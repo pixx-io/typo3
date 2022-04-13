@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.0">
+    <file source-language="en" datatype="plaintext" original="messages" date="2019-01-20T10:12:33Z" product-name="pixxio">
+        <header/>
+        <body>
+            <trans-unit id="modal_view.button">
+                <source>Select from pixx.io</source>
+            </trans-unit>
+            <trans-unit id="modal_view.header">
+                <source>Select from pixx.io</source>
+            </trans-unit>
+        </body>
+    </file>
+</xliff>

@@ -1,0 +1,29 @@
+# cat=basic; type=string; label=pixx.io URL (domain.px.media)
+url =
+
+# cat=basic; type=string; label=pixx.io refresh token
+token_refresh =
+
+# cat=basic; type=int; label=File Storage ID (Default is 1 = fileadmin in standard TYPO3 installations)
+filestorage_id = 1
+
+# cat=basic; type=string; label=Default subfolder (of choosen File Storage, e.g. "images")
+subfolder =
+
+# cat=metadata; type=string; label=Metadata for alternative Text (default = Alt Text (Accessibility))
+alt_text = Alt Text (Accessibility)
+
+# cat=sync; type=boolean; label=Delete file, if the file does not exist in the mediaspace
+delete = false
+
+# cat=sync; type=boolean; label=Update file, if the file has a new version in pixx.io
+update = false
+
+# cat=sync; type=int [1-50]; label=The amount of files that should be synchronized through a single run
+limit = 20
+
+# cat=proxy; type=boolean; label=Use proxy configuration
+use_proxy = false
+
+# cat=proxy; type=string; label=Provide a proxy URL that contains a scheme like this: http(s)://username:password@host:port (optional)
+proxy_connection =

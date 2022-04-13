@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<xliff version="1.0">
+	<file source-language="en" datatype="plaintext" original="EXT:pixxio_extension/Resources/Private/Language/locallang_csh_tx_pixxioextension_domain_model_pixxiofiles.xlf" date="2022-04-05T17:34:03Z" product-name="pixxio_extension">
+		<header/>
+		<body>
+			<trans-unit id="pixxio_file_id.description" resname="pixxio_file_id.description">
+				<source>pixxioFileId</source>
+			</trans-unit>
+			<trans-unit id="pixxio_mediaspace.description" resname="pixxio_mediaspace.description">
+				<source>pixxioMediaspace</source>
+			</trans-unit>
+			<trans-unit id="pixxio_downloadformat_id.description" resname="pixxio_downloadformat_id.description">
+				<source>pixxioDownloadformatId</source>
+			</trans-unit>
+		</body>
+	</file>
+</xliff>
