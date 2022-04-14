@@ -17,6 +17,6 @@ $iconRegistry = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance(\TYPO3\CMS\
 $iconRegistry->registerIcon(
     'actions-pixxio-extension-modal-view',
     \TYPO3\CMS\Core\Imaging\IconProvider\SvgIconProvider::class,
-    ['source' => 'EXT:pixxio_extension/Resources/Public/Icons/pixxio-logo.svg']
+    ['source' => 'EXT:pixxio_extension/Resources/Public/Icons/Extension.svg']
 );
 unset($iconRegistry);
