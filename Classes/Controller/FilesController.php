@@ -1,8 +1,9 @@
 <?php
 declare(strict_types = 1);
 
-namespace Pixxio\PixxioExtension\Controller;
 
+namespace Pixxio\PixxioExtension\Controller;
+define('TYPO3_PIXXIO_EXT_NUM', 1554937800);
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -69,7 +70,7 @@ class FilesController {
    private function throwError($message, $num) {
       throw new \RuntimeException(
          $message,
-         TYPO3_PIXXIO_EXT_NUM + $num
+         \TYPO3_PIXXIO_EXT_NUM + $num
       );
    }
 
@@ -349,7 +350,7 @@ class FilesController {
       $io->writeln('Check Existence and Version on pixx.io');
       $pixxioDiff = $this->pixxioCheckExistence($fileIds);
 
-      if (is_array($pixxioDiff)) {
+      if (!is_array($pixxioDiff)) {
          $this->throwError('Something went wrong during the check of existing pixx.io assets', 6);
       }
 
@@ -360,6 +361,7 @@ class FilesController {
       $pixxioIdsToUpdate = array_map(function($ids) { return $ids['oldId']; }, array_filter($pixxioDiff, function ($diff) {
          return $diff['newId'] !== $diff['oldId'];
       }));
+
 
       // do the sync
       //check if file exists and update their versions
@@ -393,19 +395,21 @@ class FilesController {
                      break;
                   }
                }
-               $pixxioFile = $this->pixxioFile($newId);
-               $absFileIdentifier = $this->saveFile($file['name'], $pixxioFile->originalFileURL);
-               $storage = $this->getStorage();
-               $storage->replaceFile($storage->getFileByIdentifier($file['identifier']), $absFileIdentifier);
-               $io->writeln('File to updated:' . $file['identifier']);
-               foreach($fileIds as $key =>$id) {
-                  if ($id === $file['pixxio_file_id']) {
-                     $fileIds[$key] = $newId;
-                     break;
+               if ($newId) {
+                  $pixxioFile = $this->pixxioFile($newId);
+                  $absFileIdentifier = $this->saveFile($file['name'], $pixxioFile->originalFileURL);
+                  $storage = $this->getStorage();
+                  $storage->replaceFile($storage->getFileByIdentifier($file['identifier']), $absFileIdentifier);
+                  $io->writeln('File to updated:' . $file['identifier']);
+                  foreach($fileIds as $key =>$id) {
+                     if ($id === $file['pixxio_file_id']) {
+                        $fileIds[$key] = $newId;
+                        break;
+                     }
                   }
+   
+                  $files[$index]['pixxio_file_id'] = $newId;
                }
-
-               $files[$index]['pixxio_file_id'] = $newId;
             }
          }
 
