@@ -6,12 +6,12 @@ $EM_CONF[$_EXTKEY] = [
     'category' => 'be',
     'author' => 'pixx.io',
     'author_email' => 'ds@pixx.io',
-    'state' => 'beta',
+    'state' => 'stable',
     'clearCacheOnLoad' => 1,
-    'version' => '0.1.4',
+    'version' => '0.1.5',
     'constraints' => [
         'depends' => [
-            'typo3' => '11.5.0-11.5.99',
+            'typo3' => '10.0.0-10.99.99,11.5.0-11.5.99',
         ],
         'conflicts' => [],
         'suggests' => [],
