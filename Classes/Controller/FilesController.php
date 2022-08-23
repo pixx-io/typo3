@@ -456,8 +456,14 @@ class FilesController {
 
       foreach(array_keys($this->metadataMapping) as $key) {
          foreach(array_values((array)$pixxioFile->metadataFields) as $metadataField) {
+           
             if ($metadataField->name === $this->metadataMapping[$key]) {
-               $temp[$key] = $metadataField->value ?: '';
+               if(is_array($metadataField->value)) {
+                  $temp[$key] = join(',', $metadataField->value) ?: '';
+               } else {
+                  $temp[$key] = $metadataField->value ?: '';
+               }
+               
                break;
             }
          }

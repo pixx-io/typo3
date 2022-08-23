@@ -31,7 +31,7 @@ define([
           event.preventDefault();
           console.log('got here');
           p.getMedia({
-            allowTypes: ["jpg", "png", "gif"],
+            allowTypes: ["jpg", "png", "gif", "svg", "tif", "tiff"],
             max: -1,
             showSelection: false,
             showFileName: false,
