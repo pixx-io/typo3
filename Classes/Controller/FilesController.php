@@ -87,6 +87,14 @@ class FilesController {
          if (substr($storageBasePath,0,1) == '/') {
             $storageBasePath = substr($storageBasePath,1);
          }
+
+         if($this->extensionConfiguration['subfolder']) {
+            $storageBasePath .= $this->extensionConfiguration['subfolder'];
+         }
+
+         if (substr($storageBasePath,-1) != '/') {
+            $storageBasePath = $storageBasePath.'/';
+         }
    
          return GeneralUtility::getFileAbsFileName($storageBasePath);
       } catch(\Exception $error) {
@@ -375,7 +383,7 @@ class FilesController {
             if (in_array($file['pixxio_file_id'], $pixxioIdsToDelete) && $this->extensionConfiguration['delete']) {
                $io->writeln('File to deleted:' . $file['identifier']);
                $storage = $this->getStorage();
-               $storage->deleteFile($storage->getFileByIdentifier($file['identifier']));
+               $storage->deleteFile($storage->getFileByIdentifier($this->extensionConfiguration['subfolder'] . '/' . $file['identifier']));
                unset($files[$index]);
                foreach($fileIds as $key =>$id) {
                   if ($id === $file['pixxio_file_id']) {
@@ -399,7 +407,7 @@ class FilesController {
                   $pixxioFile = $this->pixxioFile($newId);
                   $absFileIdentifier = $this->saveFile($file['name'], $pixxioFile->originalFileURL);
                   $storage = $this->getStorage();
-                  $storage->replaceFile($storage->getFileByIdentifier($file['identifier']), $absFileIdentifier);
+                  $storage->replaceFile($storage->getFileByIdentifier($this->extensionConfiguration['subfolder'] . '/' . $file['identifier']), $absFileIdentifier);
                   $io->writeln('File to updated:' . $file['identifier']);
                   foreach($fileIds as $key =>$id) {
                      if ($id === $file['pixxio_file_id']) {
@@ -548,7 +556,7 @@ class FilesController {
          if (!$this->saveFile($filename, $file->url)) {
             $this->throwError('Copying file "' . $filename . '" to path "' . '" failed.', 4);
          } else {
-            $importedFile = $this->getStorage()->getFile($filename);
+            $importedFile = $this->getStorage()->getFile($this->extensionConfiguration['subfolder'] . '/' . $filename);
             if ($importedFile) {
 
                // import file to FAL

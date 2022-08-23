@@ -29,7 +29,6 @@ define([
         .querySelector(".btn-default.pixxio[data-uid='"+ container.getAttribute('data-uid')+"']")
         .addEventListener("click", function (event) {
           event.preventDefault();
-          console.log('got here');
           p.getMedia({
             allowTypes: ["jpg", "png", "gif", "svg", "tif", "tiff"],
             max: -1,
@@ -54,7 +53,6 @@ define([
                   const data = await response.resolve();
                   if (data.files.length) {
                     data.files.forEach(function (uid) {
-                      console.log(uid);
                       const message = {
                         actionName: "typo3:foreignRelation:insert",
                         objectGroup: container.getAttribute("data-dom"),
