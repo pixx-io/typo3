@@ -11,9 +11,9 @@ define([
   "TYPO3/CMS/Backend/Severity",
   "TYPO3/CMS/Backend/Utility/MessageUtility",
 ], function (NProgress, AjaxRequest, Modal, Severity, MessageUtility) {
-  window.addEventListener("load", function () {
+  function init() {
     var containers = document.querySelectorAll(".pixxio-jsdk");
-    
+
     var p = new PIXXIO({
       appKey: containers[0].getAttribute("data-key"),
       modal: true,
@@ -23,10 +23,14 @@ define([
       appUrl: containers[0].getAttribute("data-url"),
       refreshToken: containers[0].getAttribute("data-token"),
     });
-    
+
     containers.forEach((container) => {
       document
-        .querySelector(".btn-default.pixxio[data-uid='"+ container.getAttribute('data-uid')+"']")
+        .querySelector(
+          ".btn-default.pixxio[data-uid='" +
+            container.getAttribute("data-uid") +
+            "']"
+        )
         .addEventListener("click", function (event) {
           event.preventDefault();
           p.getMedia({
@@ -87,5 +91,15 @@ define([
             });
         });
     });
-  });
+  }
+
+  if (document.readyState === "complete") {
+    init();
+  } else {
+    document.addEventListener("readystatechange", (event) => {
+      if (event.target.readyState === "complete") {
+        init();
+      }
+    });
+  }
 });
