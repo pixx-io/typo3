@@ -1,5 +1,5 @@
 <?php
-defined('TYPO3_MODE') || die();
+defined('TYPO3') || die();
  
 /***************
  * Add to the image a checkbox - Responsive Image
@@ -73,3 +73,4 @@ $temporaryPixxioFields = array(
   'imageoverlayPalette',
   'pixxio_downloadformat_id'
 );
+

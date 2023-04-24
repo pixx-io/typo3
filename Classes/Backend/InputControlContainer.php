@@ -17,7 +17,7 @@ use TYPO3\CMS\Backend\Routing\UriBuilder;
  *
  * Override core InlineControlContainer to inject Pixxio button
  */
-class InlineControlContainer extends \TYPO3\CMS\Backend\Form\Container\InlineControlContainer
+class InputControlContainer extends \TYPO3\CMS\Backend\Form\Container\InputControlContainer
 {
 
     private $applikationKey = 'ghx8F66X3ix4AJ0VmS0DE8sx7';
@@ -28,8 +28,8 @@ class InlineControlContainer extends \TYPO3\CMS\Backend\Form\Container\InlineCon
      */
     protected function renderPossibleRecordsSelectorTypeGroupDB(array $inlineConfiguration)
     {
-        return '<div class="form-group t3js-formengine-validation-marker t3js-inline-controls-top-outer-container">' . $item . '</div>';
 
+        asfd
         $selector = parent::renderPossibleRecordsSelectorTypeGroupDB($inlineConfiguration);
 
         $button = $this->renderPixxioButton($inlineConfiguration);

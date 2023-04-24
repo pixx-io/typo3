@@ -13,9 +13,16 @@ class ConfigurationUtility
 
     public static function getExtensionConfiguration(): array
     {
+        $extensionConfiguration = GeneralUtility::makeInstance(
+            ExtensionConfiguration::class
+        )->get('pixxio_extension');
+
+        /*
+
         $objectManager = GeneralUtility::makeInstance(ObjectManager::class);
         if (class_exists(CoreConfigurationUtility::class)) {
             $configuration = $objectManager->get(CoreConfigurationUtility::class)->getCurrentConfiguration('pixxio_extension');
+
            
             $extensionConfiguration = [];
             foreach ($configuration as $key => $value) {
@@ -24,6 +31,7 @@ class ConfigurationUtility
         } else {
             $extensionConfiguration = $objectManager->get(ExtensionConfiguration::class)->get('pixxio_extension');
         }
+        */
 
         if (isset($extensionConfiguration['url'])) {
             $extensionConfiguration['url'] = static::getCompleteUrl($extensionConfiguration['url']);

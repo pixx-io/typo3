@@ -3,7 +3,7 @@ declare(strict_types = 1);
 
 
 namespace Pixxio\PixxioExtension\Controller;
-define('TYPO3_PIXXIO_EXT_NUM', 1554937800);
+//define('TYPO3_PIXXIO_EXT_NUM', 1554937800);
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
