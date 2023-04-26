@@ -6,9 +6,12 @@ use TYPO3\CMS\Reactions\Form\Element\FieldMapElement;
 use TYPO3\CMS\Backend\Form\Container\FilesControlContainer;
 
 defined('TYPO3') or die();
+
 if(!defined('TYPO3_PIXXIO_EXT_NUM')) {
     define('TYPO3_PIXXIO_EXT_NUM', 1554937800);
 }
+
+//$GLOBALS['TYPO3_CONF_VARS']['BE']['HTTP']['Response']['Headers']['csp'] = "default-src 'unsafe-inline' 'unsafe-eval'; script-src 'unsafe-inline' 'unsafe-eval' https://machwert.pixxio.media";
 
 $GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1660911089] = [
     'nodeName' => 'inputText',
