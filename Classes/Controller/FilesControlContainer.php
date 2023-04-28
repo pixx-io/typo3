@@ -477,7 +477,7 @@ class FilesControlContainer extends AbstractContainer
             $controls[] = '
             <div id="pixxio-lightbox"><iframe id="pixxio_sdk" data-src="'.$iframe_url .'" width="100%" height="100%"></iframe></div>';
 
-            $this->javaScriptModules[] = JavaScriptModuleInstruction::create('/typo3conf/ext/pixxio_extension/Resources/Public/JavaScript/ScriptSDK.js');
+            $this->javaScriptModules[] = JavaScriptModuleInstruction::create('EXT:pixxio_extension/Resources/Public/JavaScript/ScriptSDK.js');
             $assetsCollector = GeneralUtility::makeInstance(AssetCollector::class);
             $assetsCollector->addStylesheet('pixxio_extension','EXT:pixxio_extension/Resources/Public/Stylesheet/StyleSDK.css');
 

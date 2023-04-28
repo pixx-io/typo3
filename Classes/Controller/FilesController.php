@@ -55,6 +55,7 @@ class FilesController {
 
    public function selectedFilesAction(ServerRequestInterface $request, ResponseInterface $response = null): ResponseInterface {
       // get files
+
       // update database that id x has to be updated
       $files = $this->getJSONRequest($request)->getParsedBody()->files;
       // pull files from pixx.io
