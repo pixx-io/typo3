@@ -24,7 +24,8 @@ return Map::fromEntries([
             Directive::DefaultSrc,
             SourceKeyword::self,
             new UriValue('*.pixxio.media'),
-            new UriValue('https://fonts.gstatic.com')
+            new UriValue('https://fonts.gstatic.com'),
+            SourceKeyword::unsafeInline
         ),
 
         // Extends the ancestor directive ('default-src'),
@@ -37,6 +38,12 @@ return Map::fromEntries([
             new UriValue('https://*.typo3.org')
         ),
 
+        new Mutation(
+            MutationMode::Extend,
+            Directive::FrameSrc,
+            new UriValue('https://plugin.pixx.io')
+        ),
+
         // Extends the ancestor directive ('default-src'),
         // thus reuses 'self' and adds additional sources
         // Results in `script-src 'self' 'nonce-[random]'`
@@ -44,6 +51,7 @@ return Map::fromEntries([
         new Mutation(
             MutationMode::Extend,
             Directive::ScriptSrc,
+            SourceKeyword::unsafeInline,
             new UriValue('*.pixxio.media')
         ),
 

@@ -10,6 +10,7 @@ import AjaxRequest from "@typo3/core/ajax/ajax-request.js";import Modal from "@t
   function init() {
     var containers = document.querySelectorAll(".pixxio-jsdk");
 
+    /*
     var p = new PIXXIO({
       appKey: containers[0].getAttribute("data-key"),
       modal: true,
@@ -19,6 +20,7 @@ import AjaxRequest from "@typo3/core/ajax/ajax-request.js";import Modal from "@t
       appUrl: containers[0].getAttribute("data-url"),
       refreshToken: containers[0].getAttribute("data-token"),
     });
+     */
 
     containers.forEach((container) => {
       document
@@ -28,15 +30,17 @@ import AjaxRequest from "@typo3/core/ajax/ajax-request.js";import Modal from "@t
             "']"
         )
         .addEventListener("click", function (event) {
-
+          event.preventDefault();
           var pixxioIframe = document.getElementById('pixxio_sdk');
           var pixxioIframeSrc = pixxioIframe.dataset.src;
-
-          if(pixxioIframeSrc != "") {
+          if (pixxioIframeSrc != "") {
             pixxioIframe.src = pixxioIframeSrc;
           }
+          var pixxioLightbox = document.getElementById('pixxio-lightbox');
+          pixxioLightbox.style.display = 'block';
+        });
 
-          event.preventDefault();
+          /*
           p.getMedia({
             allowTypes: ["jpg", "png", "gif", "svg", "tif", "tiff"],
             max: -1,
@@ -47,6 +51,7 @@ import AjaxRequest from "@typo3/core/ajax/ajax-request.js";import Modal from "@t
             additionalResponseFields: ["metadataFields", "description"],
           })
             .then((result) => {
+              /*
               NProgress.start();
               new AjaxRequest(TYPO3.settings.ajaxUrls.pixxio_files)
                 .post(
@@ -93,9 +98,10 @@ import AjaxRequest from "@typo3/core/ajax/ajax-request.js";import Modal from "@t
             .catch((error) => {
               console.trace(error);
             });
+
+           */
         });
-    });
-  }
+    }
 
   if (document.readyState === "complete") {
     init();

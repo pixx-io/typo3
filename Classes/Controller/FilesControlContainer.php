@@ -34,6 +34,7 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\MathUtility;
 use TYPO3\CMS\Core\Utility\StringUtility;
 use TYPO3Fluid\Fluid\View\TemplateView;
+use TYPO3\CMS\Core\Page\AssetCollector;
 
 /**
  * Files entry container.
@@ -78,6 +79,8 @@ class FilesControlContainer extends AbstractContainer
             'renderType' => 'localizationStateSelector',
         ],
     ];
+
+    private AssetCollector $assetCollector;
 
     /**
      * Container objects give $nodeFactory down to other containers.
@@ -466,12 +469,56 @@ class FilesControlContainer extends AbstractContainer
                 </button>';
 
 
-            //
-            $this->javaScriptModules[] = JavaScriptModuleInstruction::create('/typo3conf/ext/pixxio_extension/Resources/Public/Vendor/pixxio.jsdk.min.js');
+            $iframe_lang = 'de';
 
-            $this->javaScriptModules[] = JavaScriptModuleInstruction::create('/typo3conf/ext/pixxio_extension/Resources/Public/JavaScript/Scriptv12.js');
+            $iframe_url = 'https://plugin.pixx.io/static/v1/' . $iframe_lang . '/media?applicationId=eS9Pb3S5bsEa2Z6527lUwUBp8';
+            // https://plugin.pixx.io/static/v1/de/media?applicationId=eS9Pb3S5bsEa2Z6527lUwUBp8
 
-            // $this->requireJsModules[] = 
+            $controls[] = '
+            <div id="pixxio-lightbox"><iframe id="pixxio_sdk" data-src="'.$iframe_url .'" width="100%" height="100%"></iframe></div>';
+
+            $this->javaScriptModules[] = JavaScriptModuleInstruction::create('/typo3conf/ext/pixxio_extension/Resources/Public/JavaScript/ScriptSDK.js');
+            $assetsCollector = GeneralUtility::makeInstance(AssetCollector::class);
+            $assetsCollector->addStylesheet('pixxio_extension','EXT:pixxio_extension/Resources/Public/Stylesheet/StyleSDK.css');
+
+            //$this->javaScriptModules[] = JavaScriptModuleInstruction::create('/typo3conf/ext/pixxio_extension/Resources/Public/JavaScript/pixxio_extension.js');
+            //echo GeneralUtility::wrapJS($script);
+
+            /*
+            $allowedFileTypes = array(
+                    'jpg',
+                    'png',
+                    'tiff',
+                    'heic',
+            );
+
+            $allowedDownloadFormats = array(
+                    'png',
+                    'jpg',
+                    'preview'
+            );
+
+            $controls[] = '<iframe id="pixxio_sdk" src="'.$iframe_url .'" width="100%" height="100%"></iframe>';
+            */
+
+            // check SVG support and add parameters
+            /*
+            $allowedExtensions = array_keys( get_allowed_mime_types() );
+            if ( in_array( 'svg' , $allowedExtensions ) ) {
+                $allowedFileTypes[] = 'svg';
+                $allowedDownloadFormats[] = 'svg';
+            }
+
+            foreach ( $allowedFileTypes as $fileType ) {
+                $iframe_url .= '&allowedFileTypes=' . $fileType;
+            }
+
+            foreach ( $allowedDownloadFormats as $downloadFormat ) {
+                $iframe_url .= '&allowedDownloadFormats='. $downloadFormat;
+            }
+            */
+
+            // $this->javaScriptModules[] = JavaScriptModuleInstruction::create('/typo3conf/ext/pixxio_extension/Resources/Public/Vendor/pixxio.jsdk.min.js');
 
         }
 
