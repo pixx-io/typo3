@@ -4,7 +4,7 @@
  *
  */
 
-import AjaxRequest from "@typo3/core/ajax/ajax-request.js";import Modal from "@typo3/backend/modal.js";import {MessageUtility} from "@typo3/backend/utility/message-utility.js";
+import AjaxRequest from "@typo3/core/ajax/ajax-request.js";import Modal from "@typo3/backend/modal.js";import{MessageUtility}from "@typo3/backend/utility/message-utility.js";
 
 
   function init() {
@@ -23,114 +23,168 @@ import AjaxRequest from "@typo3/core/ajax/ajax-request.js";import Modal from "@t
      */
 
 
-    containers.forEach((container) => {
-      document
-          .querySelector(
-              ".btn-default.pixxio[data-uid='" +
-              container.getAttribute("data-uid") +
-              "']"
-          )
-          .addEventListener("click", function (event) {
-            event.preventDefault();
-            var pixxioIframe = document.getElementById('pixxio_sdk');
-            var pixxioIframeSrc = pixxioIframe.dataset.src;
-            if (pixxioIframeSrc != "") {
-              pixxioIframe.src = pixxioIframeSrc;
-            }
-            var pixxioLightbox = document.getElementById('pixxio-lightbox');
-            pixxioLightbox.style.display = 'block';
-          });
-    });
+    console.log(TYPO3.settings.ajaxUrls.pixxio_files);
 
-    document
-        .querySelector(
-            ".pixxio-close"
+    new AjaxRequest(TYPO3.settings.ajaxUrls.pixxio_files)
+        .post(
+            { files: result },
+            {
+              headers: {
+                "Content-Type": "application/json; charset=utf-8",
+              },
+            }
+        )
+        .then(async function (response) {
+          console.log(data.files);
+          const data = await response.resolve();
+          if (data.files.length) {
+            data.files.forEach(function (uid) {
+              const message = {
+                actionName: "typo3:foreignRelation:insert",
+                objectGroup: container.getAttribute("data-dom"),
+                table: "sys_file",
+                uid: uid,
+              };
+              MessageUtility.MessageUtility.send(message);
+            });
+          } else {
+            var $confirm = Modal.confirm(
+                "ERROR",
+                data.error,
+                Severity.error,
+                [
+                  {
+                    text: TYPO3.lang["button.ok"] || "OK",
+                    btnClass:
+                        "btn-" + Severity.getCssClass(Severity.error),
+                    name: "ok",
+                    active: true,
+                  },
+                ]
+            ).on("confirm.button.ok", function () {
+              $confirm.modal("hide");
+            });
+          }
+        });
+
+
+
+
+    containers.forEach((container) => {
+      document.querySelector(
+          ".btn-default.pixxio[data-uid='" +
+            container.getAttribute("data-uid") +
+            "']"
         )
         .addEventListener("click", function (event) {
-            var pixxioLightbox = document.getElementById('pixxio-lightbox');
-            pixxioLightbox.style.display = 'none';
+          event.preventDefault();
+          var pixxioIframe = document.getElementById('pixxio_sdk');
+          var pixxioIframeSrc = pixxioIframe.dataset.src;
+          if (pixxioIframeSrc != "") {
+            pixxioIframe.src = pixxioIframeSrc;
+          }
+          var pixxioLightbox = document.getElementById('pixxio-lightbox');
+          pixxioLightbox.style.display = 'block';
         });
- }
 
-if (document.readyState === "complete") {
-  init();
-} else {
-  document.addEventListener("readystatechange", (event) => {
-    if (event.target.readyState === "complete") {
-      init();
-    }
-  });
+          /*
+          p.getMedia({
+            allowTypes: ["jpg", "png", "gif", "svg", "tif", "tiff"],
+            max: -1,
+            showSelection: false,
+            showFileName: false,
+            showFileType: true,
+            showFileSize: false,
+            additionalResponseFields: ["metadataFields", "description"],
+          })
+            .then((result) => {
+              /*
+              NProgress.start();
+              new AjaxRequest(TYPO3.settings.ajaxUrls.pixxio_files)
+                .post(
+                  { files: result },
+                  {
+                    headers: {
+                      "Content-Type": "application/json; charset=utf-8",
+                    },
+                  }
+                )
+                .then(async function (response) {
+                  const data = await response.resolve();
+                  if (data.files.length) {
+                    data.files.forEach(function (uid) {
+                      const message = {
+                        actionName: "typo3:foreignRelation:insert",
+                        objectGroup: container.getAttribute("data-dom"),
+                        table: "sys_file",
+                        uid: uid,
+                      };
+                      MessageUtility.MessageUtility.send(message);
+                    });
+                  } else {
+                    var $confirm = Modal.confirm(
+                      "ERROR",
+                      data.error,
+                      Severity.error,
+                      [
+                        {
+                          text: TYPO3.lang["button.ok"] || "OK",
+                          btnClass:
+                            "btn-" + Severity.getCssClass(Severity.error),
+                          name: "ok",
+                          active: true,
+                        },
+                      ]
+                    ).on("confirm.button.ok", function () {
+                      $confirm.modal("hide");
+                    });
+                  }
+                  NProgress.done();
+                });
+            })
+            .catch((error) => {
+              console.trace(error);
+            });
+
+           */
+        }
+
+
+  if (document.readyState === "complete") {
+    init();
+  } else {
+    document.addEventListener("readystatechange", (event) => {
+      if (event.target.readyState === "complete") {
+        init();
+      }
+    });
+  }
+
 }
 
 window.addEventListener( 'message', ( messageEvent ) => {
-    if (
-        messageEvent?.origin !== 'https://plugin.pixx.io' ||
-        messageEvent?.data?.sender !== 'pixxio-plugin-sdk'
-    )
-      return;
+  if (
+      messageEvent?.origin !== 'https://plugin.pixx.io' ||
+      messageEvent?.data?.sender !== 'pixxio-plugin-sdk'
+  )
+    return;
 
-    if ( messageEvent?.data?.method === 'downloadFiles' ) {
-      downloadFiles( messageEvent?.data?.parameters[ 0 ] );
-    }
-});
+  if ( messageEvent?.data?.method === 'downloadFiles' ) {
+    downloadFiles( messageEvent?.data?.parameters[ 0 ] );
+  }
+} );
 
 
 function downloadFiles( files ) {
+  alert("1");
+  console.log(files);
   if ( ! files || ! files.length ) {
     console.warn( 'No files to download' ); // eslint-disable-line no-console
   }
 
-  var containers = document.querySelectorAll(".pixxio-jsdk");
-  var container = containers[0];
-
-  new AjaxRequest(TYPO3.settings.ajaxUrls.pixxio_files)
-      .post(
-          {files: files},
-          {
-            headers: {
-              "Content-Type": "application/json; charset=utf-8",
-            },
-          }
-      )
-      .then(async function (response) {
-        const data = await response.resolve();
-        if (data.files.length) {
-          data.files.forEach(function (uid) {
-            const message = {
-              actionName: "typo3:foreignRelation:insert",
-              objectGroup: container.getAttribute("data-dom"),
-              table: "sys_file",
-              uid: uid,
-            };
-            MessageUtility.send(message);
-            var pixxioLightbox = document.getElementById('pixxio-lightbox');
-            pixxioLightbox.style.display = 'none';
-          });
-        } else {
-          var $confirm = Modal.confirm(
-              "ERROR",
-              data.error,
-              Severity.error,
-              [
-                {
-                  text: TYPO3.lang["button.ok"] || "OK",
-                  btnClass:
-                      "btn-" + Severity.getCssClass(Severity.error),
-                  name: "ok",
-                  active: true,
-                },
-              ]
-          ).on("confirm.button.ok", function () {
-            $confirm.modal("hide");
-          });
-        }
-        //NProgress.done();
-      })
-  }
-
   //var downloadErrors = [];
-  /*
-    const progressData = {
+
+  const progressData = {
     totalFiles: files.length,
     processedFiles: 0,
     fileProgress: new Map(),
@@ -141,17 +195,14 @@ function downloadFiles( files ) {
   files.forEach( ( file ) => {
     progressData.fileProgress.set( file, 0 );
     downloadSingleFile( file, progressData );
-  });
-   */
-
+  } );
+}
 
 function downloadSingleFile( file, progressData ) {
   console.log(file);
   console.log(progressData);
+  alert(progressData);
 }
-
-  //NProgress.start();
-
 
   /*
   $.ajax( {

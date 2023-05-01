@@ -13,33 +13,31 @@ if(!defined('TYPO3_PIXXIO_EXT_NUM')) {
 
 //$GLOBALS['TYPO3_CONF_VARS']['BE']['HTTP']['Response']['Headers']['csp'] = "default-src 'unsafe-inline' 'unsafe-eval'; script-src 'unsafe-inline' 'unsafe-eval' https://machwert.pixxio.media";
 
+/*
 $GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1660911089] = [
     'nodeName' => 'inputText',
     'priority' => 90,
     'class' => \Pixxio\PixxioExtension\Form\Element\InputTextElement::class,
 ];
+*/
+
     // adds pixx.io button by overwriting TYPO3 InlineController
     
-    
+    /*
     $GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1554937800] = [
         'nodeName' => 'inline',
         'priority' => 92,
         'class' => \Pixxio\PixxioExtension\Backend\InlineControlContainer::class,
     ];
-    
+    */
+
+    /*
     $GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1554937800] = [
         'nodeName' => 'inline',
         'priority' => 92,
         'class' => \Pixxio\PixxioExtension\Controller\FileListController::class,
     ];
-
-    $GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1554937800] = [
-        'nodeName' => FilesControlContainer::NODE_TYPE_IDENTIFIER,
-        'priority' => 92,
-        'class' => \Pixxio\PixxioExtension\Controller\FilesControlContainer::class,
-    ];
-    
-
+    */
 
     /*
     // Register a node in ext_localconf.php
@@ -61,6 +59,15 @@ $GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1660911089] = [
             JavaScriptModuleInstruction::create('@myvendor/my_extension/my-javascript.js');
     }
     */
+
+
+
+    $GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1554937800] = [
+        'nodeName' => FilesControlContainer::NODE_TYPE_IDENTIFIER,
+        'priority' => 92,
+        'class' => \Pixxio\PixxioExtension\Controller\FilesControlContainer::class,
+    ];
+
 
 
     $GLOBALS['TYPO3_CONF_VARS']['SYS']['locallangXMLOverride']['de']['EXT:pixxio_extension/Resources/Private/Language/locallang_be.xlf'][] = 'EXT:pixxio_extension/Resources/Private/Language/Overrides/de.locallang_be.xlf';

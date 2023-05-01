@@ -33,12 +33,14 @@ class FilesController {
    private $applikationKey = 'ghx8F66X3ix4AJ0VmS0DE8sx7';
    private $accessToken = '';
 
-   /** @var RequestFactoryInterface */
-   private $requestFactory;
+    /** @var RequestFactory */
+    private $requestFactory;
 
    public function __construct() {
       $this->extensionConfiguration = \Pixxio\PixxioExtension\Utility\ConfigurationUtility::getExtensionConfiguration();
-      $this->requestFactory = new RequestFactory;
+      //$this->requestFactory = new RequestFactory;
+      $this->requestFactory = GeneralUtility::makeInstance(RequestFactory::class);
+      //$this->requestFactory = $requestFactory;
    }
 
    public function hasExt($key) {
@@ -551,10 +553,12 @@ class FilesController {
       $importedFiles = [];
       foreach($files as $key => $file) {
          // set upload filename and upload folder
-         $filename = $this->getNonUtf8Filename($file->file->fileName ?: '');
+         //$filename = $this->getNonUtf8Filename($file->file->fileName ?: '');
+         $filename = $this->getNonUtf8Filename($file->fileName ?: '');
 
          // upload file
-         if (!$this->saveFile($filename, $file->url)) {
+         if (!$this->saveFile($filename, $file->downloadURL)) {
+         //if (!$this->saveFile($filename, $file->url)) {
             $this->throwError('Copying file "' . $filename . '" to path "' . '" failed.', 4);
          } else {
             $importedFile = $this->getStorage()->getFile($this->extensionConfiguration['subfolder'] . '/' . $filename);
@@ -578,9 +582,9 @@ class FilesController {
                   $additionalFields = array_merge($additionalFields, $this->getMetadataWithFilemetadataExt($file->file));
                }
 
-               $objectManager = GeneralUtility::makeInstance('TYPO3\CMS\Extbase\Object\ObjectManager');
-               $metadata = $objectManager->get('TYPO3\CMS\Core\Resource\Index\MetaDataRepository');
-               $metadata->update($importedFileUid, $additionalFields);
+               //$objectManager = GeneralUtility::makeInstance('TYPO3\CMS\Extbase\Object\ObjectManager');
+               //$metadata = $objectManager->get('TYPO3\CMS\Core\Resource\Index\MetaDataRepository');
+               //$metadata->update($importedFileUid, $additionalFields);
             }
 
          }
