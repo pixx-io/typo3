@@ -26,8 +26,6 @@
     top:15px;
     font-size:28px;
     color:#ffffff;
-    border:1px solid #ffffff;
-    border-radius:15px;
     cursor:pointer;
 }
 .pixxio-close:after {
@@ -35,4 +33,7 @@
     display:block;
     margin-top:-11px;
     margin-left:5px;
+}
+.icon-actions-pixxio-extension-modal-view {
+    padding-right:25px;
 }

@@ -4,8 +4,6 @@ namespace Pixxio\PixxioExtension\Utility;
 
 use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Extbase\Object\ObjectManager;
-use TYPO3\CMS\Extensionmanager\Utility\ConfigurationUtility as CoreConfigurationUtility;
 
 class ConfigurationUtility
 {
@@ -16,22 +14,6 @@ class ConfigurationUtility
         $extensionConfiguration = GeneralUtility::makeInstance(
             ExtensionConfiguration::class
         )->get('pixxio_extension');
-
-        /*
-
-        $objectManager = GeneralUtility::makeInstance(ObjectManager::class);
-        if (class_exists(CoreConfigurationUtility::class)) {
-            $configuration = $objectManager->get(CoreConfigurationUtility::class)->getCurrentConfiguration('pixxio_extension');
-
-           
-            $extensionConfiguration = [];
-            foreach ($configuration as $key => $value) {
-                $extensionConfiguration[$key] = $value['value'];
-            }
-        } else {
-            $extensionConfiguration = $objectManager->get(ExtensionConfiguration::class)->get('pixxio_extension');
-        }
-        */
 
         if (isset($extensionConfiguration['url'])) {
             $extensionConfiguration['url'] = static::getCompleteUrl($extensionConfiguration['url']);

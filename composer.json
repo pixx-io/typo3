@@ -1,7 +1,7 @@
 {
     "name": "pixxio/pixxio-extension",
     "type": "typo3-cms-extension",
-    "version": "1.0.4",
+    "version": "2.0.0",
     "description": "Integrate pixx.io DAM Digital Asset Management into TYPO3. Use files from your pixx.io media pool with TYPO3 easily and without any detour. Use the search field to search through your pixx.io media library and find the right picture in a flash.",
     "keywords": [
 		"TYPO3",

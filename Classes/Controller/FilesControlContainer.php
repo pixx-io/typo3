@@ -195,11 +195,11 @@ class FilesControlContainer extends \TYPO3\CMS\Backend\Form\Container\FilesContr
 
             $attributes = [
                 'type' => 'button',
-                'class' => 'btn btn-default pixxio pixxio-jsdk',
+                'class' => 'btn btn-default pixxio pixxio-sdk-btn',
                 'title' => $buttonText,
                 'style' => 'margin-left:5px',
                 'data-dom' => htmlspecialchars($objectPrefix),
-                'data-key'=> $this->applikationId,
+                'data-key'=> $this->applicationId,
                 'data-url' => $extensionConfiguration['url'],
                 'data-token' => $extensionConfiguration['token_refresh'],
                 'data-uid' => uniqid()
@@ -213,7 +213,7 @@ class FilesControlContainer extends \TYPO3\CMS\Backend\Form\Container\FilesContr
                 </button>';
 
             $iframe_lang = $languageService->getLocale();
-            $iframe_url = 'https://plugin.pixx.io/static/v1/' . $iframe_lang . '/media?applicationId='.$this->applicationId;
+            $iframe_url = 'https://plugin.pixx.io/static/v1/' . $iframe_lang . '/media?multiSelect=true&applicationId='.$this->applicationId;
 
             $controls[] = '
             <div id="pixxio-lightbox"><div class="pixxio-close"></div><div class="pixxio-lightbox-inner"><iframe id="pixxio_sdk" data-src="'.$iframe_url .'" width="100%" height="100%"></iframe></div></div>';

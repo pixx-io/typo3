@@ -1,20 +1,16 @@
 <?php
+
 declare(strict_types = 1);
 
-
 namespace Pixxio\PixxioExtension\Controller;
-//define('TYPO3_PIXXIO_EXT_NUM', 1554937800);
-use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use TYPO3\CMS\Core\Http\Request;
-use TYPO3\CMS\Core\Http\HtmlResponse;
 use TYPO3\CMS\Core\Http\JsonResponse;
 use \TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\Restriction\RootLevelRestriction;
 use TYPO3\CMS\Core\Http\RequestFactory;
+use TYPO3\CMS\Core\Resource\Index\MetaDataRepository;
 
 class FilesController {
 
@@ -38,9 +34,7 @@ class FilesController {
 
    public function __construct() {
       $this->extensionConfiguration = \Pixxio\PixxioExtension\Utility\ConfigurationUtility::getExtensionConfiguration();
-      //$this->requestFactory = new RequestFactory;
       $this->requestFactory = GeneralUtility::makeInstance(RequestFactory::class);
-      //$this->requestFactory = $requestFactory;
    }
 
    public function hasExt($key) {
@@ -57,9 +51,8 @@ class FilesController {
 
    public function selectedFilesAction(ServerRequestInterface $request, ResponseInterface $response = null): ResponseInterface {
       // get files
-
-      // update database that id x has to be updated
       $files = $this->getJSONRequest($request)->getParsedBody()->files;
+
       // pull files from pixx.io
       $importedFiles = $this->pullFiles($files);
       // for TYPO3 10.x
@@ -553,7 +546,6 @@ class FilesController {
       $importedFiles = [];
       foreach($files as $key => $file) {
          // set upload filename and upload folder
-         //$filename = $this->getNonUtf8Filename($file->file->fileName ?: '');
          $filename = $this->getNonUtf8Filename($file->fileName ?: '');
 
          // upload file
@@ -569,6 +561,17 @@ class FilesController {
                $importedFiles[] = $importedFileUid;
 
                // set meta data
+
+                $additionalFields = array (
+                    'pixxio_file_id' => $file->id,
+                    'pixxio_mediaspace' => $this->extensionConfiguration['url'],
+                    'pixxio_last_sync_stamp' => time(),
+                    'pixxio_downloadformat_id' => 0
+                );
+
+                // http://local.pixx.io/typo3/ajax/pixxio/files?token=3c644295781d81cb0b14a6dd9965eb54dac221ea
+
+                /*
                $additionalFields = array (
                      'title' =>   $file->file->subject,
                      'description' => $file->file->description,
@@ -577,14 +580,22 @@ class FilesController {
                      'pixxio_mediaspace' => $this->extensionConfiguration['url'],
                      'pixxio_downloadformat_id' => 0
                );
+               */
 
+               /*
                if ($this->hasExt('filemetadata')) {
                   $additionalFields = array_merge($additionalFields, $this->getMetadataWithFilemetadataExt($file->file));
                }
+               */
 
-               //$objectManager = GeneralUtility::makeInstance('TYPO3\CMS\Extbase\Object\ObjectManager');
-               //$metadata = $objectManager->get('TYPO3\CMS\Core\Resource\Index\MetaDataRepository');
-               //$metadata->update($importedFileUid, $additionalFields);
+               /*
+               $objectManager = GeneralUtility::makeInstance('TYPO3\CMS\Extbase\Object\ObjectManager');
+               $metadata = $objectManager->get('TYPO3\CMS\Core\Resource\Index\MetaDataRepository');
+               $metadata->update($importedFileUid, $additionalFields);
+               */
+
+               $metaDataRepository = GeneralUtility::makeInstance(MetaDataRepository::class);
+               $metaDataRepository->update($importedFileUid, $additionalFields);
             }
 
          }
