@@ -1,6 +1,9 @@
 # cat=basic; type=string; label=pixx.io URL (domain.px.media)
 url =
 
+# cat=basic; type=string; label=pixx.io user id or email
+user_id =
+
 # cat=basic; type=string; label=pixx.io refresh token
 token_refresh =
 

@@ -32,6 +32,22 @@ define([
                     }
                     var pixxioLightbox = document.getElementById('pixxio-lightbox');
                     pixxioLightbox.style.display = 'block';
+
+                    // auto login in pixxio iframe
+                    var pixxio_token_refresh = atob(document.getElementById('pixxio_token_refresh').dataset.value);
+                    var pixxio_user_id = atob(document.getElementById('pixxio_user_id').dataset.value);
+                    var pixxio_mediaspace = atob(document.getElementById('pixxio_mediaspace').dataset.value);
+
+                    if (pixxio_token_refresh != '' && pixxio_user_id != '' && pixxio_mediaspace != '') {
+                        pixxioIframe.contentWindow.postMessage(
+                            {
+                                receiver: 'pixxio-plugin-sdk',
+                                method: 'login',
+                                parameters: [pixxio_token_refresh, pixxio_user_id, pixxio_mediaspace]
+                            },
+                            'https://plugin.pixx.io'
+                        );
+                    }
                 });
         });
 
@@ -66,7 +82,6 @@ define([
             downloadFiles(messageEvent?.data?.parameters[0]);
         }
     });
-
 
     function downloadFiles(files) {
         if (!files || !files.length) {

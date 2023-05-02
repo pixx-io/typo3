@@ -215,8 +215,20 @@ class FilesControlContainer extends \TYPO3\CMS\Backend\Form\Container\FilesContr
             $iframe_lang = $languageService->getLocale();
             $iframe_url = 'https://plugin.pixx.io/static/v1/' . $iframe_lang . '/media?multiSelect=true&applicationId='.$this->applicationId;
 
+            $tldPos = strpos($extensionConfiguration['url'],'//');
+            if ($tldPos > 0) {
+                $pixxioMediaspace = substr($extensionConfiguration['url'],$tldPos+2);
+            } else {
+                $pixxioMediaspace = $extensionConfiguration['url'];
+            }
             $controls[] = '
-            <div id="pixxio-lightbox"><div class="pixxio-close"></div><div class="pixxio-lightbox-inner"><iframe id="pixxio_sdk" data-src="'.$iframe_url .'" width="100%" height="100%"></iframe></div></div>';
+            <div id="pixxio-lightbox"><div class="pixxio-close"></div><div class="pixxio-lightbox-inner"><iframe id="pixxio_sdk" data-src="'.$iframe_url .'" width="100%" height="100%"></iframe></div></div>
+            <div style="display:none">
+                <div id="pixxio_token_refresh" data-value="'.base64_encode($extensionConfiguration['token_refresh']).'"></div>
+                <div id="pixxio_user_id" data-value="'.base64_encode($extensionConfiguration['user_id']).'"></div>
+                <div id="pixxio_mediaspace" data-value="'.base64_encode($pixxioMediaspace).'"></div>
+            </div>
+            ';
 
             $this->javaScriptModules[] = JavaScriptModuleInstruction::create('@pixxio/pixxio-extension/ScriptSDK.js');
             $assetsCollector = GeneralUtility::makeInstance(AssetCollector::class);
