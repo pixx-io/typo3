@@ -87,13 +87,9 @@ define([
         if (!files || !files.length) {
             console.warn('No files to download'); // eslint-disable-line no-console
         }
-        console.log(files);
-        console.log(TYPO3.settings.ajaxUrls.pixxio_files);
 
         var containers = document.querySelectorAll(".pixxio-sdk-btn");
         var container = containers[0];
-
-
 
         NProgress.start();
         new AjaxRequest(TYPO3.settings.ajaxUrls.pixxio_files)

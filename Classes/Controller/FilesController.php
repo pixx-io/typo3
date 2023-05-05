@@ -607,29 +607,18 @@ class FilesController
                         'pixxio_last_sync_stamp' => time(),
                         'pixxio_downloadformat_id' => 0
                     );
-                    
-                    /*
-                   $additionalFields = array (
-                         'title' =>   $file->file->subject,
-                         'description' => $file->file->description,
-                         'alternative' => $this->getMetadataField($file->file, $this->extensionConfiguration['alt_text'] ?: 'Alt Text (Accessibility)'),
-                         'pixxio_file_id' => $file->id,
-                         'pixxio_mediaspace' => $this->extensionConfiguration['url'],
-                         'pixxio_downloadformat_id' => 0
-                   );
-                   */
 
-                    /*
-                    if ($this->hasExt('filemetadata')) {
-                       $additionalFields = array_merge($additionalFields, $this->getMetadataWithFilemetadataExt($file->file));
+                    // get tile and description seperately
+                    $this->accessToken = $this->pixxioAuth();
+                    $pixxioFileInfos = $this->pixxioFiles(array($file->id));
+
+                    if (isset($pixxioFileInfos[0]->subject)) {
+                        $additionalFields['title'] = $pixxioFileInfos[0]->subject;
                     }
-                    */
 
-                    /*
-                    $objectManager = GeneralUtility::makeInstance('TYPO3\CMS\Extbase\Object\ObjectManager');
-                    $metadata = $objectManager->get('TYPO3\CMS\Core\Resource\Index\MetaDataRepository');
-                    $metadata->update($importedFileUid, $additionalFields);
-                    */
+                    if (isset($pixxioFileInfos[0]->description)) {
+                        $additionalFields['description'] = $pixxioFileInfos[0]->description;
+                    }
 
                     $metaDataRepository = GeneralUtility::makeInstance(MetaDataRepository::class);
                     $metaDataRepository->update($importedFileUid, $additionalFields);
@@ -688,4 +677,3 @@ class FilesController
         }
     }
 }
-

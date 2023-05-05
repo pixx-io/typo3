@@ -12,8 +12,6 @@ use TYPO3\CMS\Core\Page\AssetCollector;
  */
 class InlineControlContainer extends \TYPO3\CMS\Backend\Form\Container\InlineControlContainer
 {
-
-    //private $applikationKey = 'ghx8F66X3ix4AJ0VmS0DE8sx7';
     private $applicationId = 'eS9Pb3S5bsEa2Z6527lUwUBp8';
 
     /**
@@ -45,7 +43,6 @@ class InlineControlContainer extends \TYPO3\CMS\Backend\Form\Container\InlineCon
      */
     protected function renderPixxioButton(array $inlineConfiguration): string
     {
-        // is necessary for Button.php
         $extensionConfiguration = \Pixxio\PixxioExtension\Utility\ConfigurationUtility::getExtensionConfiguration();
 
         $languageService = $this->getLanguageService();
