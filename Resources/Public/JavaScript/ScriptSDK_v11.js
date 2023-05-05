@@ -4,8 +4,6 @@
  *
  */
 
-//import AjaxRequest from "@typo3/core/ajax/ajax-request.js";import Modal from "@typo3/backend/modal.js";import {MessageUtility} from "@typo3/backend/utility/message-utility.js";
-
 define([
     "nprogress",
     "TYPO3/CMS/Core/Ajax/AjaxRequest",
@@ -32,22 +30,6 @@ define([
                     }
                     var pixxioLightbox = document.getElementById('pixxio-lightbox');
                     pixxioLightbox.style.display = 'block';
-
-                    // auto login in pixxio iframe
-                    var pixxio_token_refresh = atob(document.getElementById('pixxio_token_refresh').dataset.value);
-                    var pixxio_user_id = atob(document.getElementById('pixxio_user_id').dataset.value);
-                    var pixxio_mediaspace = atob(document.getElementById('pixxio_mediaspace').dataset.value);
-
-                    if (pixxio_token_refresh != '' && pixxio_user_id != '' && pixxio_mediaspace != '') {
-                        pixxioIframe.contentWindow.postMessage(
-                            {
-                                receiver: 'pixxio-plugin-sdk',
-                                method: 'login',
-                                parameters: [pixxio_token_refresh, pixxio_user_id, pixxio_mediaspace]
-                            },
-                            'https://plugin.pixx.io'
-                        );
-                    }
                 });
         });
 
@@ -80,6 +62,23 @@ define([
 
         if (messageEvent?.data?.method === 'downloadFiles') {
             downloadFiles(messageEvent?.data?.parameters[0]);
+        }
+        if (messageEvent?.data?.method === 'onSdkReady') {
+            var pixxioIframe = document.getElementById('pixxio_sdk');
+            var pixxio_token_refresh = atob(document.getElementById('pixxio_token_refresh').dataset.value);
+            var pixxio_user_id = atob(document.getElementById('pixxio_user_id').dataset.value);
+            var pixxio_mediaspace = atob(document.getElementById('pixxio_mediaspace').dataset.value);
+
+            if (pixxio_token_refresh != '' && pixxio_user_id != '' && pixxio_mediaspace != '') {
+                pixxioIframe.contentWindow.postMessage(
+                    {
+                        receiver: 'pixxio-plugin-sdk',
+                        method: 'login',
+                        parameters: [pixxio_token_refresh, pixxio_user_id, pixxio_mediaspace]
+                    },
+                    'https://plugin.pixx.io'
+                );
+            }
         }
     });
 
