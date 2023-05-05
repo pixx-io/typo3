@@ -27,7 +27,6 @@ import AjaxRequest from "@typo3/core/ajax/ajax-request.js";import Modal from "@t
             var pixxioLightbox = document.getElementById('pixxio-lightbox');
             pixxioLightbox.style.display = 'block';
 
-            // auto login in pixxio iframe
             var pixxio_token_refresh = atob(document.getElementById('pixxio_token_refresh').dataset.value);
             var pixxio_user_id = atob(document.getElementById('pixxio_user_id').dataset.value);
             var pixxio_mediaspace = atob(document.getElementById('pixxio_mediaspace').dataset.value);
@@ -42,7 +41,6 @@ import AjaxRequest from "@typo3/core/ajax/ajax-request.js";import Modal from "@t
                     'https://plugin.pixx.io'
                 );
             }
-
           });
     });
 

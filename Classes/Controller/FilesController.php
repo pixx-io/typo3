@@ -602,6 +602,8 @@ class FilesController
                     // set meta data
 
                     $additionalFields = array(
+                        'title' => $file->subject,
+                        'description' => $file->description,
                         'pixxio_file_id' => $file->id,
                         'pixxio_mediaspace' => $this->extensionConfiguration['url'],
                         'pixxio_last_sync_stamp' => time(),
@@ -609,6 +611,7 @@ class FilesController
                     );
 
                     // get tile and description seperately
+                    /*
                     $this->accessToken = $this->pixxioAuth();
                     $pixxioFileInfos = $this->pixxioFiles(array($file->id));
 
@@ -619,6 +622,7 @@ class FilesController
                     if (isset($pixxioFileInfos[0]->description)) {
                         $additionalFields['description'] = $pixxioFileInfos[0]->description;
                     }
+                    */
 
                     $metaDataRepository = GeneralUtility::makeInstance(MetaDataRepository::class);
                     $metaDataRepository->update($importedFileUid, $additionalFields);
