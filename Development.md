@@ -21,3 +21,14 @@
 
 1. Pull the code from the repository with `git pull`
 2. Reinstall the plugin `composer require pixxio/pixxio-extension`
+
+## Publish new release
+
+- Create a new branch
+- Update the version in `ext_emconf.php` and `composer.json`
+- Run `composer install`
+- Push the branch and merge it into the master
+- Checkout master
+- Create and push a new tag: `git tag 1.0.4 && git push --tags`
+- Login to https://packagist.org/ and click the "Update" button at https://packagist.org/packages/pixxio/pixxio-extension
+- Wait until the change is visible in Typo3 TER (can take some hours)
