@@ -1,7 +1,7 @@
 <?php
 defined('TYPO3_MODE') || die('Access denied.');
 
-define('TYPO3_PIXXIO_EXT_NUM', 1554937800);
+if (!defined('TYPO3_PIXXIO_EXT_NUM')) define('TYPO3_PIXXIO_EXT_NUM', 1554937800);
 
 // adds pixx.io button by overwriting TYPO3 InlineController
 $GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1554937800] = [
