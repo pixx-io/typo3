@@ -31,4 +31,5 @@
 - Checkout master
 - Create and push a new tag: `git tag 1.0.4 && git push --tags`
 - Login to https://packagist.org/ and click the "Update" button at https://packagist.org/packages/pixxio/pixxio-extension
-- Wait until the change is visible in Typo3 TER (can take some hours)
+- Create a zip `zip -r ../pixxio_extension_1.0.4.zip *`
+- Upload the extension to https://extensions.typo3.org/my-extensions
