@@ -511,40 +511,40 @@ class FilesController
 
         $temp['unit'] = 'px';
 
-        if ($pixxioFile->keywords) {
+        if (isset($pixxioFile->keywords)) {
             $temp['keywords'] = join(', ', $pixxioFile->keywords);
         }
 
-        if ($pixxioFile->location) {
+        if (isset($pixxioFile->location->latitude) && isset($pixxioFile->location->longitude)) {
             $temp['latitude'] = $pixxioFile->location->latitude;
             $temp['longitude'] = $pixxioFile->location->longitude;
         }
 
-        if ($pixxioFile->createDate) {
+        if (isset($pixxioFile->createDate)) {
             $temp['content_creation_date'] = strtotime($pixxioFile->createDate);
         }
 
-        if ($pixxioFile->modifyDate) {
+        if (isset($pixxioFile->modifyDate)) {
             $temp['content_modification_date'] = strtotime($pixxioFile->modifyDate);
         }
 
-        if ($pixxioFile->colorspace) {
+        if (isset($pixxioFile->colorspace)) {
             $temp['color_space'] = $pixxioFile->colorspace;
         }
 
-        if ($pixxioFile->colorspace) {
+        if (isset($pixxioFile->creator)) {
             $temp['creator'] = $pixxioFile->creator;
         }
 
-        if ($pixxioFile->subject) {
+        if (isset($pixxioFile->subject)) {
             $temp['download_name'] = $pixxioFile->subject;
         }
 
-        if ($pixxioFile->rating) {
+        if (isset($pixxioFile->rating)) {
             $temp['ranking'] = $pixxioFile->rating;
         }
 
-        if ($pixxioFile->description) {
+        if (isset($pixxioFile->description)) {
             $temp['caption'] = $pixxioFile->description;
         }
 
