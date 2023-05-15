@@ -1,5 +1,18 @@
 # Development
 
+## Setup a local Typo3 system
+
+You can use Docker and ddev to setup a local Typo3 instance.
+
+Typo3 V11: https://docs.typo3.org/m/typo3/tutorial-getting-started/11.5/en-us/Installation/TutorialDdev.html
+Typo3 V12: https://docs.typo3.org/m/typo3/tutorial-getting-started/12.4/en-us/Installation/TutorialDdev.html
+
+## Important hints
+
+Some functions are related to a external plugin called `filemetadata`. You should test the extension with and without the plugin.
+
+https://packagist.org/packages/typo3/cms-filemetadata
+
 ## Development setup with composer
 
 1. Create a folder `./local_packages`
