@@ -96,11 +96,6 @@ class InlineControlContainer extends \TYPO3\CMS\Backend\Form\Container\InlineCon
           '.$this->iconFactory->getIcon('actions-pixxio-extension-modal-view', \TYPO3\CMS\Core\Imaging\Icon::SIZE_SMALL)->render().$buttonText.'
         </span>
         <div id="pixxio-lightbox" style="display:none"><div class="pixxio-close"></div><div class="pixxio-lightbox-inner"><iframe id="pixxio_sdk" data-src="'.$iframe_url .'" width="100%" height="100%"></iframe></div></div>
-        <div style="display:none">
-            <div id="pixxio_token_refresh" data-value="'.$tokenRefresh.'"></div>
-            <div id="pixxio_user_id" data-value="'.$userId.'"></div>
-            <div id="pixxio_mediaspace" data-value="'.base64_encode($pixxioMediaspace).'"></div>
-        </div>
         ';
 
         $this->requireJsModules[] = 'TYPO3/CMS/PixxioExtension/ScriptSDK_v11';

@@ -223,11 +223,6 @@ class FilesControlContainer extends \TYPO3\CMS\Backend\Form\Container\FilesContr
             }
             $controls[] = '
             <div id="pixxio-lightbox"><div class="pixxio-close"></div><div class="pixxio-lightbox-inner"><iframe id="pixxio_sdk" data-src="'.$iframe_url .'" width="100%" height="100%"></iframe></div></div>
-            <div style="display:none">
-                <div id="pixxio_token_refresh" data-value="'.base64_encode($extensionConfiguration['token_refresh']).'"></div>
-                <div id="pixxio_user_id" data-value="'.base64_encode($extensionConfiguration['user_id']).'"></div>
-                <div id="pixxio_mediaspace" data-value="'.base64_encode($pixxioMediaspace).'"></div>
-            </div>
             ';
 
             $this->javaScriptModules[] = JavaScriptModuleInstruction::create('@pixxio/pixxio-extension/ScriptSDK.js');
