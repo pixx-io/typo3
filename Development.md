@@ -19,16 +19,36 @@ https://packagist.org/packages/typo3/cms-filemetadata
 2. Go inside the folder
 3. Checkout the repo with `git clone https://github.com/pixx-io/typo3.git pixxio_extension`
 4. Add to `composer.json` a local package repository:
-	```
-		"repositories": [
-			{
-			"type": "path",
-			"url": "./local_packages/*"
-			}
-		],
-	```
+   ```
+   	"repositories": [
+   		{
+   		"type": "path",
+   		"url": "./local_packages/*"
+   		}
+   	],
+   ```
 5. Install the plugin via `composer require pixxio/pixxio-extension`
 6. TBD: Create a symlink in `public/typo3conf/ext` to `../../../local_packages/pixxio_extension`
+
+### Testing Sync
+
+#### Preconditions
+
+You need one additional plugin:
+
+`composer require typo3/cms-scheduler`
+
+After the installation, there is a database error visible. To fix it, run:
+
+`ddev typo3 extension:setup` (V11) or `ddev typo3 database:updateschema` (V12)
+
+#### Add a scheduled task
+
+- Login to the typo3 admin panel and select "Typo3 Scheduler" in the main menu.
+- Add a new task and select:
+  - Task: "Execute console command"
+  - Schedulable Command. Save and reopen to define command arguments: "pixxio:sync"
+  - Frequeny: "3600"
 
 ### Update the plugin from Github repository
 
