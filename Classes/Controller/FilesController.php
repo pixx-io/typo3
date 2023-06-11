@@ -489,7 +489,6 @@ class FilesController
                 $additionalFields = array_merge($additionalFields, $this->getMetadataWithFilemetadataExt($pixxioFile));
             }
             $io->writeln('Metadata update for ' . $file['identifier']);
-            print_r($additionalFields);
             $metadata->update($file['uid'], $additionalFields);
         }
         return true;
