@@ -341,6 +341,12 @@ class FilesController
 
     public function syncAction($io): bool
     {
+        // check if extension configuration is set to update/delete media by sync command
+        if (!($this->extensionConfiguration['delete'] || $this->extensionConfiguration['update'])) {
+            $io->writeln('Please update extension configuration to enable update/deletion of media by sync command');
+            return true;
+        }
+
         $metadata = GeneralUtility::makeInstance(MetaDataRepository::class);
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('sys_file_metadata');
         $queryBuilder->getRestrictions()->add(GeneralUtility::makeInstance(RootLevelRestriction::class));
@@ -404,56 +410,54 @@ class FilesController
 
         // do the sync
         //check if file exists and update their versions
-        if ($this->extensionConfiguration['delete'] || $this->extensionConfiguration['update']) {
-            // delete files that aren't existing in pixx.io
-            $io->writeln('Files to delete:' . count($pixxioIdsToDelete));
-            $io->writeln('Files to update:' . count($pixxioIdsToUpdate));
+        // delete files that aren't existing in pixx.io
+        $io->writeln('Files to delete:' . count($pixxioIdsToDelete));
+        $io->writeln('Files to update:' . count($pixxioIdsToUpdate));
 
-            foreach ($files as $index => $file) {
-                // delete files
-                if (in_array($file['pixxio_file_id'], $pixxioIdsToDelete) && $this->extensionConfiguration['delete']) {
-                    $io->writeln('File to deleted:' . $file['identifier']);
-                    $storage = $this->getStorage();
-                    $storage->deleteFile($storage->getFileByIdentifier($this->extensionConfiguration['subfolder'] . '/' . $file['identifier']));
-                    unset($files[$index]);
-                    foreach ($fileIds as $key => $id) {
-                        if ($id === $file['pixxio_file_id']) {
-                            unset($fileIds[$key]);
-                            break;
-                        }
-                    }
-                    $fileIds = array_values($fileIds);
-                }
-
-                // update to new version
-                if (in_array($file['pixxio_file_id'], $pixxioIdsToUpdate) && $this->extensionConfiguration['update']) {
-                    $newId = 0;
-                    foreach ($pixxioDiff as $diff) {
-                        if ($diff['oldId'] === $file['pixxio_file_id']) {
-                            $newId = $diff['newId'];
-                            break;
-                        }
-                    }
-                    if ($newId) {
-                        $pixxioFile = $this->pixxioFile($newId);
-                        $absFileIdentifier = $this->saveFile($file['name'], $pixxioFile->originalFileURL);
-                        $storage = $this->getStorage();
-                        $storage->replaceFile($storage->getFileByIdentifier($this->extensionConfiguration['subfolder'] . '/' . $file['identifier']), $absFileIdentifier);
-                        $io->writeln('File to updated:' . $file['identifier']);
-                        foreach ($fileIds as $key => $id) {
-                            if ($id === $file['pixxio_file_id']) {
-                                $fileIds[$key] = $newId;
-                                break;
-                            }
-                        }
-
-                        $files[$index]['pixxio_file_id'] = $newId;
+        foreach ($files as $index => $file) {
+            // delete files
+            if (in_array($file['pixxio_file_id'], $pixxioIdsToDelete) && $this->extensionConfiguration['delete']) {
+                $io->writeln('File to deleted:' . $file['identifier']);
+                $storage = $this->getStorage();
+                $storage->deleteFile($storage->getFileByIdentifier($this->extensionConfiguration['subfolder'] . '/' . $file['identifier']));
+                unset($files[$index]);
+                foreach ($fileIds as $key => $id) {
+                    if ($id === $file['pixxio_file_id']) {
+                        unset($fileIds[$key]);
+                        break;
                     }
                 }
+                $fileIds = array_values($fileIds);
             }
 
-            $files = array_values($files);
+            // update to new version
+            if (in_array($file['pixxio_file_id'], $pixxioIdsToUpdate) && $this->extensionConfiguration['update']) {
+                $newId = 0;
+                foreach ($pixxioDiff as $diff) {
+                    if ($diff['oldId'] === $file['pixxio_file_id']) {
+                        $newId = $diff['newId'];
+                        break;
+                    }
+                }
+                if ($newId) {
+                    $pixxioFile = $this->pixxioFile($newId);
+                    $absFileIdentifier = $this->saveFile($file['name'], $pixxioFile->originalFileURL);
+                    $storage = $this->getStorage();
+                    $storage->replaceFile($storage->getFileByIdentifier($this->extensionConfiguration['subfolder'] . '/' . $file['identifier']), $absFileIdentifier);
+                    $io->writeln('File to updated:' . $file['identifier']);
+                    foreach ($fileIds as $key => $id) {
+                        if ($id === $file['pixxio_file_id']) {
+                            $fileIds[$key] = $newId;
+                            break;
+                        }
+                    }
+
+                    $files[$index]['pixxio_file_id'] = $newId;
+                }
+            }
         }
+
+        $files = array_values($files);
 
         $io->writeln('start to sync: ' . json_encode($fileIds));
         $pixxioFiles = $this->pixxioFiles($fileIds);
@@ -485,6 +489,7 @@ class FilesController
                 $additionalFields = array_merge($additionalFields, $this->getMetadataWithFilemetadataExt($pixxioFile));
             }
             $io->writeln('Metadata update for ' . $file['identifier']);
+            print_r($additionalFields);
             $metadata->update($file['uid'], $additionalFields);
         }
         return true;
