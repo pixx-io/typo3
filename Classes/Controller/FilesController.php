@@ -28,6 +28,15 @@ class FilesController
         'publisher' => 'Publisher'
     ];
 
+    private $downloadFormat = [
+        0 => 'original',
+        1 => 'preview',
+        2 => 'jpg',
+        3 => 'png',
+        4 => 'pdf',
+        5 => 'tiff',
+    ];
+
     protected $extensionConfiguration;
     private $applikationKey = 'ghx8F66X3ix4AJ0VmS0DE8sx7';
     private $accessToken = '';
@@ -604,6 +613,11 @@ class FilesController
                     $importedFiles[] = $importedFileUid;
 
                     // set meta data
+                    //if($file->downloadFormat == '');
+                    $pixxioDownloadformatId = array_search($file->downloadFormat, $this->downloadFormat);
+                    if ($pixxioDownloadformatId == false) {
+                        $pixxioDownloadformatId = 0;
+                    }
 
                     $additionalFields = array(
                         'title' => $file->subject,
@@ -611,7 +625,7 @@ class FilesController
                         'pixxio_file_id' => $file->id,
                         'pixxio_mediaspace' => $this->extensionConfiguration['url'],
                         'pixxio_last_sync_stamp' => time(),
-                        'pixxio_downloadformat_id' => 0
+                        'pixxio_downloadformat_id' => $pixxioDownloadformatId
                     );
 
                     // get tile and description seperately

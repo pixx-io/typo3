@@ -26,7 +26,35 @@ $temporaryPixxioFields = array(
       'label' => 'pixx.io Download Format ID',
       'config' => array (
         'readOnly' => true,
-        'type' => 'input',
+        'type' => 'select',
+        'renderType' => 'selectSingle',
+        'items' => [
+            [
+                'original',
+                0,
+            ],
+            [
+                'preview',
+                1,
+            ],
+            [
+                'jpg',
+                2,
+            ],
+            [
+                'png',
+                3,
+            ],
+            [
+                'pdf',
+                4,
+            ],
+            [
+                'tiff',
+                5,
+            ],
+        ],
+        'default' => 0,
       )
     )
 );
