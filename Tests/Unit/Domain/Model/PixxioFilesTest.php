@@ -79,21 +79,21 @@ class PixxioFilesTest extends UnitTestCase
     /**
      * @test
      */
-    public function getPixxioDownloadformatIdReturnsInitialValueForInt(): void
+    public function getPixxioDownloadformatReturnsInitialValueForInt(): void
     {
         self::assertSame(
             0,
-            $this->subject->getPixxioDownloadformatId()
+            $this->subject->getPixxioDownloadformat()
         );
     }
 
     /**
      * @test
      */
-    public function setPixxioDownloadformatIdForIntSetsPixxioDownloadformatId(): void
+    public function setPixxioDownloadformatForIntSetsPixxioDownloadformat(): void
     {
-        $this->subject->setPixxioDownloadformatId(12);
+        $this->subject->setPixxioDownloadformat(12);
 
-        self::assertEquals(12, $this->subject->_get('pixxioDownloadformatId'));
+        self::assertEquals(12, $this->subject->_get('pixxioDownloadformat'));
     }
 }

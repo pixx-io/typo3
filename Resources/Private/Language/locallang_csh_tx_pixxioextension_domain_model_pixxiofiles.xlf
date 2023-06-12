@@ -9,8 +9,8 @@
 			<trans-unit id="pixxio_mediaspace.description" resname="pixxio_mediaspace.description">
 				<source>pixxioMediaspace</source>
 			</trans-unit>
-			<trans-unit id="pixxio_downloadformat_id.description" resname="pixxio_downloadformat_id.description">
-				<source>pixxioDownloadformatId</source>
+			<trans-unit id="pixxio_downloadformat.description" resname="pixxio_downloadformat.description">
+				<source>pixxioDownloadformat</source>
 			</trans-unit>
 		</body>
 	</file>

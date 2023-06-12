@@ -6,6 +6,7 @@ namespace Pixxio\PixxioExtension\Controller;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Symfony\Component\Lock\Key;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\Restriction\RootLevelRestriction;
 use TYPO3\CMS\Core\Http\JsonResponse;
@@ -26,15 +27,6 @@ class FilesController
         'source' => 'Source',
         'color_space' => 'ColorSpace',
         'publisher' => 'Publisher'
-    ];
-
-    private $downloadFormat = [
-        0 => 'original',
-        1 => 'preview',
-        2 => 'jpg',
-        3 => 'png',
-        4 => 'pdf',
-        5 => 'tiff',
     ];
 
     protected $extensionConfiguration;
@@ -210,6 +202,16 @@ class FilesController
 
     private function pixxioAuth()
     {
+
+        if($this->extensionConfiguration['url'] == "") {
+            $this->throwError('Authentication to pixx.io failed. Please check pixx.io URL in your extension configuration', 9);
+            return false;
+        }
+        if($this->extensionConfiguration['token_refresh'] == "") {
+            $this->throwError('Authentication to pixx.io failed. Please check pixx.io refresh token in your extension configuration', 10);
+            return false;
+        }
+
         $additionalOptions = [
             'headers' => ['Cache-Control' => 'no-cache'],
             'allow_redirects' => false,
@@ -490,7 +492,7 @@ class FilesController
                 'description' => $pixxioFile->description,
                 'alternative' => $this->getMetadataField($pixxioFile, $this->extensionConfiguration['alt_text'] ?: 'Alt Text (Accessibility)'),
                 'pixxio_file_id' => $pixxioFile->id,
-                'pixxio_mediaspace' => $this->extensionConfiguration['url'],
+                //'pixxio_mediaspace' => $pixxioFile->originalFileURL,
                 'pixxio_last_sync_stamp' => time()
             );
 
@@ -613,19 +615,13 @@ class FilesController
                     $importedFiles[] = $importedFileUid;
 
                     // set meta data
-                    //if($file->downloadFormat == '');
-                    $pixxioDownloadformatId = array_search($file->downloadFormat, $this->downloadFormat);
-                    if ($pixxioDownloadformatId == false) {
-                        $pixxioDownloadformatId = 0;
-                    }
-
                     $additionalFields = array(
                         'title' => $file->subject,
                         'description' => $file->description,
                         'pixxio_file_id' => $file->id,
-                        'pixxio_mediaspace' => $this->extensionConfiguration['url'],
+                        'pixxio_mediaspace' => $file->downloadURL,
                         'pixxio_last_sync_stamp' => time(),
-                        'pixxio_downloadformat_id' => $pixxioDownloadformatId
+                        'pixxio_downloadformat' => $file->downloadFormat
                     );
 
                     // get tile and description seperately

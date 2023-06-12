@@ -21,40 +21,12 @@ $temporaryPixxioFields = array(
         'type' => 'input',
       )
     ),
-    'pixxio_downloadformat_id' => array (
+    'pixxio_downloadformat' => array (
       'exclude' => 0,
-      'label' => 'pixx.io Download Format ID',
+      'label' => 'pixx.io Download Format',
       'config' => array (
         'readOnly' => true,
-        'type' => 'select',
-        'renderType' => 'selectSingle',
-        'items' => [
-            [
-                'original',
-                0,
-            ],
-            [
-                'preview',
-                1,
-            ],
-            [
-                'jpg',
-                2,
-            ],
-            [
-                'png',
-                3,
-            ],
-            [
-                'pdf',
-                4,
-            ],
-            [
-                'tiff',
-                5,
-            ],
-        ],
-        'default' => 0,
+        'type' => 'input',
       )
     )
 );
@@ -79,7 +51,7 @@ $temporaryPixxioFields = array(
 );
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addToAllTCAtypes(
   'sys_file_metadata',
-  'pixxio_downloadformat_id',
+  'pixxio_downloadformat',
   '',
   'after:title'
 );
@@ -99,6 +71,6 @@ $temporaryPixxioFields = array(
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToPalette(
   'sys_file_reference',
   'imageoverlayPalette',
-  'pixxio_downloadformat_id'
+  'pixxio_downloadformat'
 );
 

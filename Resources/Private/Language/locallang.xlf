@@ -12,8 +12,8 @@
 			<trans-unit id="tx_pixxioextension_domain_model_pixxiofiles.pixxio_mediaspace" resname="tx_pixxioextension_domain_model_pixxiofiles.pixxio_mediaspace">
 				<source>Pixxio Mediaspace</source>
 			</trans-unit>
-			<trans-unit id="tx_pixxioextension_domain_model_pixxiofiles.pixxio_downloadformat_id" resname="tx_pixxioextension_domain_model_pixxiofiles.pixxio_downloadformat_id">
-				<source>Pixxio Downloadformat Id</source>
+			<trans-unit id="tx_pixxioextension_domain_model_pixxiofiles.pixxio_downloadformat" resname="tx_pixxioextension_domain_model_pixxiofiles.pixxio_downloadformat">
+				<source>Pixxio Downloadformat</source>
 			</trans-unit>
 		</body>
 	</file>
