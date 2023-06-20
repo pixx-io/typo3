@@ -28,7 +28,6 @@ https://packagist.org/packages/typo3/cms-filemetadata
    	],
    ```
 5. Install the plugin via `composer require pixxio/pixxio-extension`
-6. TBD: Create a symlink in `public/typo3conf/ext` to `../../../local_packages/pixxio_extension`
 
 ### Testing Sync
 
