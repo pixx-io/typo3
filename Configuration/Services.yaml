@@ -1,5 +1,4 @@
 services:
-
   Pixxio\PixxioExtension\Command\SyncCommand:
     tags:
       - name: 'console.command'

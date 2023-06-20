@@ -2,15 +2,8 @@
 
 namespace Pixxio\PixxioExtension\Backend;
 
-/*
-use TYPO3\CMS\Backend\Utility\BackendUtility;
-use TYPO3\CMS\Core\Imaging\Icon;
-use TYPO3\CMS\Core\Resource\ResourceStorage;
-*/
-
-use TYPO3\CMS\Core\Imaging\Icon;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Backend\Routing\UriBuilder;
+use TYPO3\CMS\Core\Page\AssetCollector;
 
 /**
  * Class InlineControlContainer
@@ -19,8 +12,7 @@ use TYPO3\CMS\Backend\Routing\UriBuilder;
  */
 class InlineControlContainer extends \TYPO3\CMS\Backend\Form\Container\InlineControlContainer
 {
-
-    private $applikationKey = 'ghx8F66X3ix4AJ0VmS0DE8sx7';
+    private $applicationId = 'eS9Pb3S5bsEa2Z6527lUwUBp8';
 
     /**
      * @param array $inlineConfiguration
@@ -51,7 +43,6 @@ class InlineControlContainer extends \TYPO3\CMS\Backend\Form\Container\InlineCon
      */
     protected function renderPixxioButton(array $inlineConfiguration): string
     {
-        // is necessary for Button.php
         $extensionConfiguration = \Pixxio\PixxioExtension\Utility\ConfigurationUtility::getExtensionConfiguration();
 
         $languageService = $this->getLanguageService();
@@ -61,12 +52,56 @@ class InlineControlContainer extends \TYPO3\CMS\Backend\Form\Container\InlineCon
         $currentStructureDomObjectIdPrefix = $this->inlineStackProcessor->getCurrentStructureDomObjectIdPrefix($this->data['inlineFirstPid']);
         $objectPrefix = $currentStructureDomObjectIdPrefix . '-' . $foreign_table;
 
-        ob_start();
-        include($_SERVER['DOCUMENT_ROOT'] . '/typo3conf/ext/pixxio_extension/Resources/Public/Partials/Button.php');
-        $button = ob_get_clean();
+        $attributes = [
+            'type' => 'button',
+            'class' => 'btn btn-default pixxio pixxio-sdk-btn',
+            'title' => $buttonText,
+            'style' => 'margin-left:5px',
+            'data-dom' => htmlspecialchars($objectPrefix),
+            'data-key'=> $this->applicationId,
+            'data-url' => $extensionConfiguration['url'],
+            'data-token' => $extensionConfiguration['token_refresh'],
+            'data-uid' => uniqid()
+        ];
 
-        $this->requireJsModules[] = 'TYPO3/CMS/PixxioExtension/Script';
-            
+        $langCode = $GLOBALS['BE_USER']->uc['lang'] ?? '';
+
+        if ($langCode == 'default' OR $langCode == '') {
+            $langCode = 'en';
+        }
+
+        $iframe_url = 'https://plugin.pixx.io/static/v1/' .$langCode. '/media?multiSelect=true&applicationId='.$this->applicationId;
+
+        $tldPos = strpos($extensionConfiguration['url'],'//');
+        if (isset($extensionConfiguration['url'])) {
+            if ($tldPos > 0) {
+                $pixxioMediaspace = substr($extensionConfiguration['url'],$tldPos+2);
+            } else {
+                $pixxioMediaspace = $extensionConfiguration['url'];
+            }
+        }
+
+        $tokenRefresh = '';
+        $userId = '';
+
+        if(isset($extensionConfiguration['token_refresh'])) {
+            $tokenRefresh = base64_encode($extensionConfiguration['token_refresh']);
+        }
+        if(isset($extensionConfiguration['user_id'])) {
+            $userId = base64_encode($extensionConfiguration['user_id']);
+        }
+
+        $button = '
+        <span ' . GeneralUtility::implodeAttributes($attributes, true) . '>
+          '.$this->iconFactory->getIcon('actions-pixxio-extension-modal-view', \TYPO3\CMS\Core\Imaging\Icon::SIZE_SMALL)->render().$buttonText.'
+        </span>
+        <div id="pixxio-lightbox" style="display:none"><div class="pixxio-close"></div><div class="pixxio-lightbox-inner"><iframe id="pixxio_sdk" data-src="'.$iframe_url .'" width="100%" height="100%"></iframe></div></div>
+        ';
+
+        $this->requireJsModules[] = 'TYPO3/CMS/PixxioExtension/ScriptSDK_v11';
+
+        $assetsCollector = GeneralUtility::makeInstance(AssetCollector::class);
+        $assetsCollector->addStylesheet('pixxio_extension','EXT:pixxio_extension/Resources/Public/Stylesheet/StyleSDK.css');
 
         return $button;
     }

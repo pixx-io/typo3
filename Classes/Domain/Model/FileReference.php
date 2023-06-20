@@ -18,11 +18,11 @@ class FileReference extends \TYPO3\CMS\Core\Resource\FileReference {
   protected $pixxioFileId;
 
   /**
-   * pixxioDownloadformatId
+   * pixxioDownloadformat
    *
-   * @var integer
+   * @var string
    */
-  protected $pixxioDownloadformatId;
+  protected $pixxioDownloadformat;
  
   /**
    * Returns the pixxioMediaspace
@@ -63,12 +63,12 @@ class FileReference extends \TYPO3\CMS\Core\Resource\FileReference {
   }
 
   /**
-   * Returns the pixxioDownloadformatId
+   * Returns the pixxioDownloadformat
    *
-   * @return integer $pixxioDownloadformatId
+   * @return string $pixxioDownloadformat
    */
-  public function getPixxioDownloadformatId() {
-    return $this->pixxioDownloadformatId;
+  public function getPixxioDownloadformat() {
+    return $this->pixxioDownloadformat;
   }
 
   /**
@@ -77,7 +77,7 @@ class FileReference extends \TYPO3\CMS\Core\Resource\FileReference {
    * @param integer $pixxioFileId
    * @return void
    */
-  public function setPixxioDownloadformatId($pixxioDownloadformatId) {
-      $this->pixxioDownloadformatId = $pixxioDownloadformatId;
+  public function setPixxioDownloadformat($pixxioDownloadformat) {
+      $this->pixxioDownloadformat = $pixxioDownloadformat;
   }
 }

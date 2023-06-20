@@ -1,9 +1,3 @@
-# cat=basic; type=string; label=pixx.io URL (domain.px.media)
-url =
-
-# cat=basic; type=string; label=pixx.io refresh token
-token_refresh =
-
 # cat=basic; type=int; label=File Storage ID (Default is 1 = fileadmin in standard TYPO3 installations)
 filestorage_id = 1
 
@@ -12,6 +6,15 @@ subfolder =
 
 # cat=metadata; type=string; label=Metadata for alternative Text (default = Alt Text (Accessibility))
 alt_text = Alt Text (Accessibility)
+
+# cat=sync; type=string; label=pixx.io URL (domain.px.media)
+url =
+
+# cat=sync; type=string; label=pixx.io user id or email: This value is used only for automatic sync.
+user_id =
+
+# cat=sync; type=string; label=pixx.io refresh token: This value is used only for automatic sync.
+token_refresh =
 
 # cat=sync; type=boolean; label=Delete file, if the file does not exist in the mediaspace
 delete = false
