@@ -32,7 +32,13 @@ https://packagist.org/packages/typo3/cms-filemetadata
 
 ### Testing Sync
 
-#### Preconditions
+#### Testing manual with ddev
+
+You can run the sync command via the ddev cli:
+
+`ddev typo3 pixxio:sync`
+
+#### Testing with scheduler
 
 You need one additional plugin:
 
@@ -42,7 +48,7 @@ After the installation, there is a database error visible. To fix it, run:
 
 `ddev typo3 extension:setup` (V11) or `ddev typo3 database:updateschema` (V12)
 
-#### Add a scheduled task
+##### Add a scheduled task
 
 - Login to the typo3 admin panel and select "Typo3 Scheduler" in the main menu.
 - Add a new task and select:
