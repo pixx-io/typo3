@@ -145,6 +145,10 @@ class FilesController
 
     private function pixxioFiles($fileIds)
     {
+        if (count($fileIds) === 0) {
+            return [];
+        }
+
         try {
             $additionalOptions = [
                 'headers' => [
