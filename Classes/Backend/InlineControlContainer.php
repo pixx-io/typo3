@@ -101,7 +101,7 @@ class InlineControlContainer extends \TYPO3\CMS\Backend\Form\Container\InlineCon
         $this->requireJsModules[] = 'TYPO3/CMS/PixxioExtension/ScriptSDK_v11';
 
         $assetsCollector = GeneralUtility::makeInstance(AssetCollector::class);
-        $assetsCollector->addStylesheet('pixxio_extension','EXT:pixxio_extension/Resources/Public/Stylesheet/StyleSDK.css');
+        $assetsCollector->addStylesheet('pixxio_extension','EXT:pixxio_extension/Resources/Public/StyleSheet/StyleSDK.css');
 
         return $button;
     }
