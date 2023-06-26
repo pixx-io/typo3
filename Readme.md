@@ -10,7 +10,12 @@ The pixx.io Typo3 Extension allows pixx.io users to select the assets directly f
 
 
 ## Installation:
-The installation of the extension is straight forward. Type `composer req pixxio/pixxio-extension` for installation. After the successful installation go to Maintenance -> Analyze Database and apply the changes that a related to the pixxio_extension. 
+The installation of the extension is straight forward. Type `composer req pixxio/pixxio-extension` for installation. ext-curl is installed automatically, if it is not already installed. After the successful installation go to Maintenance -> Analyze Database and apply the changes that are related to the pixxio_extension. 
+
+If there are problems with curl on your server and the files are not transferred, you can also set 
+allow_url_fopen = On
+in you php.ini. In this case curl won't be used to download the files but "file_get_contents".
+
 
 ## Configuration:
 To get the extension complete expierence, you have to do some settings first. Go to Settings > Extension configuration and select pixxio_extension.
