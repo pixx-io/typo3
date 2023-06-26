@@ -594,7 +594,22 @@ class FilesController
             }
         }
 
-        $uploaded = file_put_contents($absFileIdentifier, file_get_contents($url));
+        if( ini_get('allow_url_fopen') ) {
+            $uploaded = file_put_contents($absFileIdentifier, file_get_contents($url));
+        } else {
+            $ch = curl_init($url);
+            $fp = fopen($absFileIdentifier, 'wb');
+            curl_setopt($ch, CURLOPT_FILE, $fp);
+            curl_setopt($ch, CURLOPT_HEADER, 0);
+
+            $uploaded = true;
+            if( ! curl_exec($ch)) {
+                $this->throwError('CURL Error while transferring file.', 7);
+                $uploaded = false;
+            }
+            curl_close($ch);
+            fclose($fp);
+        }
 
         return $uploaded ? $absFileIdentifier : false;
     }
