@@ -597,7 +597,7 @@ class FilesController
             }
         }
 
-        if( ini_get('allow_url_fopen') ) {file_get_contents
+        if( ini_get('allow_url_fopen') ) {
             $uploaded = file_put_contents($absFileIdentifier, file_get_contents($url));
         } else {
             $ch = curl_init($url);
