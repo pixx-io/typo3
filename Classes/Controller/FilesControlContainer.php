@@ -227,7 +227,7 @@ class FilesControlContainer extends \TYPO3\CMS\Backend\Form\Container\FilesContr
 
             $this->javaScriptModules[] = JavaScriptModuleInstruction::create('@pixxio/pixxio-extension/ScriptSDK.js');
             $assetsCollector = GeneralUtility::makeInstance(AssetCollector::class);
-            $assetsCollector->addStylesheet('pixxio_extension','EXT:pixxio_extension/Resources/Public/Stylesheet/StyleSDK.css');
+            $assetsCollector->addStylesheet('pixxio_extension','EXT:pixxio_extension/Resources/Public/StyleSheet/StyleSDK.css');
         }
 
         return $controls;

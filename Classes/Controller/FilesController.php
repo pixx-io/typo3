@@ -61,13 +61,16 @@ class FilesController
         // get files
         $files = $this->getJSONRequest($request)->getParsedBody()->files;
 
-        // pull files from pixx.io
-        $importedFiles = $this->pullFiles($files);
         // for TYPO3 10.x
         if (!is_object($response)) {
             $response = new JsonResponse();
         }
-        $response->getBody()->write(json_encode(['files' => $importedFiles]));
+
+        // pull files from pixx.io
+        if($files) {
+            $importedFiles = $this->pullFiles($files);
+            $response->getBody()->write(json_encode(['files' => $importedFiles]));
+        }
         return $response;
     }
 
@@ -594,7 +597,23 @@ class FilesController
             }
         }
 
-        $uploaded = file_put_contents($absFileIdentifier, file_get_contents($url));
+        if( ini_get('allow_url_fopen') ) {
+            $uploaded = file_put_contents($absFileIdentifier, file_get_contents($url));
+        } else {
+            $ch = curl_init($url);
+            $fp = fopen($absFileIdentifier, 'wb');
+            curl_setopt($ch, CURLOPT_FILE, $fp);
+            curl_setopt($ch, CURLOPT_HEADER, 0);
+
+            $uploaded = true;
+            if( ! curl_exec($ch)) {
+                $this->throwError('CURL Error while transferring file.', 7);
+                $uploaded = false;
+            }
+
+            curl_close($ch);
+            fclose($fp);
+        }
 
         return $uploaded ? $absFileIdentifier : false;
     }
