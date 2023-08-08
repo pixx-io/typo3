@@ -74,7 +74,7 @@ class FilesControlContainer extends \TYPO3\CMS\Backend\Form\Container\FilesContr
     /**
      * Generate buttons to select, reference and upload files.
      */
-    protected function getFileSelectors(array $inlineConfiguration, array $allowedFileTypes): array
+    protected function getFileSelectors(array $inlineConfiguration, \TYPO3\CMS\Core\Resource\Filter\FileExtensionFilter $fileExtensionFilter): array
     {
         $languageService = $this->getLanguageService();
         $backendUser = $this->getBackendUserAuthentication();
@@ -96,7 +96,7 @@ class FilesControlContainer extends \TYPO3\CMS\Backend\Form\Container\FilesContr
                 'style' => !($inlineConfiguration['inline']['showCreateNewRelationButton'] ?? true) ? 'display: none;' : '',
                 'title' => $buttonText,
                 'data-mode' => 'file',
-                'data-params' => '|||' . implode(',', $allowedFileTypes) . '|' . $objectPrefix,
+                'data-params' => '|||' . implode(',', $fileExtensionFilter->getAllowedFileExtensions() ?? []) . '|' . $objectPrefix,
             ];
             $controls[] = '
                 <button ' . GeneralUtility::implodeAttributes($attributes, true) . '>
@@ -106,8 +106,8 @@ class FilesControlContainer extends \TYPO3\CMS\Backend\Form\Container\FilesContr
         }
 
         $onlineMediaAllowed = GeneralUtility::makeInstance(OnlineMediaHelperRegistry::class)->getSupportedFileExtensions();
-        if ($allowedFileTypes !== []) {
-            $onlineMediaAllowed = array_intersect($allowedFileTypes, $onlineMediaAllowed);
+        if ($fileExtensionFilter->getAllowedFileExtensions() !== []) {
+            $onlineMediaAllowed = array_intersect($fileExtensionFilter->getAllowedFileExtensions(), $onlineMediaAllowed);
         }
 
         $showUpload = (bool)($inlineConfiguration['appearance']['fileUploadAllowed'] ?? true);
@@ -141,7 +141,7 @@ class FilesControlContainer extends \TYPO3\CMS\Backend\Form\Container\FilesContr
                         'data-dropzone-target' => '#' . StringUtility::escapeCssSelector($currentStructureDomObjectIdPrefix),
                         'data-insert-dropzone-before' => '1',
                         'data-file-irre-object' => $objectPrefix,
-                        'data-file-allowed' => implode(',', $allowedFileTypes),
+                        'data-file-allowed' => implode(',', $fileExtensionFilter->getAllowedFileExtensions() ?? []),
                         'data-target-folder' => $folder->getCombinedIdentifier(),
                         'data-max-file-size' => (string)(GeneralUtility::getMaxUploadFileSize() * 1024),
                     ];
