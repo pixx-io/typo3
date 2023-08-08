@@ -107,7 +107,7 @@ class FilesControlContainer extends \TYPO3\CMS\Backend\Form\Container\FilesContr
 
         $onlineMediaAllowed = GeneralUtility::makeInstance(OnlineMediaHelperRegistry::class)->getSupportedFileExtensions();
         if ($fileExtensionFilter->getAllowedFileExtensions() !== []) {
-            $onlineMediaAllowed = array_intersect($fileExtensionFilter->getAllowedFileExtensions(), $onlineMediaAllowed);
+            $onlineMediaAllowed = array_intersect($fileExtensionFilter->getAllowedFileExtensions() ?? [], $onlineMediaAllowed);
         }
 
         $showUpload = (bool)($inlineConfiguration['appearance']['fileUploadAllowed'] ?? true);
