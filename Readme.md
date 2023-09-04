@@ -75,3 +75,6 @@ typo3 -> pixx.io
 - Content Modification Date -> modifyDate
 - Color Space -> colorspace
 - Unit -> Pixels
+
+## ChangeLog
+- v2.0.2: Bugfix for TYPO3 >= 12.4.3 in Controller/FilesControlContainer.php (FileExtensionFilter)
