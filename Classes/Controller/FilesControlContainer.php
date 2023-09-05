@@ -22,12 +22,12 @@ use TYPO3\CMS\Core\Imaging\Icon;
 use TYPO3\CMS\Core\Imaging\IconFactory;
 use TYPO3\CMS\Core\Page\JavaScriptModuleInstruction;
 use TYPO3\CMS\Core\Resource\DefaultUploadFolderResolver;
+use TYPO3\CMS\Core\Resource\Filter\FileExtensionFilter;
 use TYPO3\CMS\Core\Resource\Folder;
 use TYPO3\CMS\Core\Resource\OnlineMedia\Helpers\OnlineMediaHelperRegistry;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\StringUtility;
 use TYPO3\CMS\Core\Page\AssetCollector;
-
 /**
  * Files entry container.
  *
@@ -41,7 +41,6 @@ use TYPO3\CMS\Core\Page\AssetCollector;
  */
 class FilesControlContainer extends \TYPO3\CMS\Backend\Form\Container\FilesControlContainer
 {
-    //private $applikationKey = 'ghx8F66X3ix4AJ0VmS0DE8sx7';
     private $applicationId = 'eS9Pb3S5bsEa2Z6527lUwUBp8';
 
     private const FILE_REFERENCE_TABLE = 'sys_file_reference';
@@ -74,7 +73,7 @@ class FilesControlContainer extends \TYPO3\CMS\Backend\Form\Container\FilesContr
     /**
      * Generate buttons to select, reference and upload files.
      */
-    protected function getFileSelectors(array $inlineConfiguration, array $allowedFileTypes): array
+    protected function getFileSelectors(array $inlineConfiguration, FileExtensionFilter $fileExtensionFilter): array
     {
         $languageService = $this->getLanguageService();
         $backendUser = $this->getBackendUserAuthentication();
@@ -96,7 +95,7 @@ class FilesControlContainer extends \TYPO3\CMS\Backend\Form\Container\FilesContr
                 'style' => !($inlineConfiguration['inline']['showCreateNewRelationButton'] ?? true) ? 'display: none;' : '',
                 'title' => $buttonText,
                 'data-mode' => 'file',
-                'data-params' => '|||' . implode(',', $allowedFileTypes) . '|' . $objectPrefix,
+                'data-params' => '|||allowed=' . implode(',', $fileExtensionFilter->getAllowedFileExtensions() ?? []) . ';disallowed=' . implode(',', $fileExtensionFilter->getDisallowedFileExtensions() ?? []) . '|' . $objectPrefix,
             ];
             $controls[] = '
                 <button ' . GeneralUtility::implodeAttributes($attributes, true) . '>
@@ -105,9 +104,11 @@ class FilesControlContainer extends \TYPO3\CMS\Backend\Form\Container\FilesContr
 			    </button>';
         }
 
-        $onlineMediaAllowed = GeneralUtility::makeInstance(OnlineMediaHelperRegistry::class)->getSupportedFileExtensions();
-        if ($allowedFileTypes !== []) {
-            $onlineMediaAllowed = array_intersect($allowedFileTypes, $onlineMediaAllowed);
+        $onlineMediaAllowed = [];
+        foreach (GeneralUtility::makeInstance(OnlineMediaHelperRegistry::class)->getSupportedFileExtensions() as $supportedFileExtension) {
+            if ($fileExtensionFilter->isAllowed($supportedFileExtension)) {
+                $onlineMediaAllowed[] = $supportedFileExtension;
+            }
         }
 
         $showUpload = (bool)($inlineConfiguration['appearance']['fileUploadAllowed'] ?? true);
@@ -141,7 +142,8 @@ class FilesControlContainer extends \TYPO3\CMS\Backend\Form\Container\FilesContr
                         'data-dropzone-target' => '#' . StringUtility::escapeCssSelector($currentStructureDomObjectIdPrefix),
                         'data-insert-dropzone-before' => '1',
                         'data-file-irre-object' => $objectPrefix,
-                        'data-file-allowed' => implode(',', $allowedFileTypes),
+                        'data-file-allowed' => implode(',', $fileExtensionFilter->getAllowedFileExtensions() ?? []),
+                        'data-file-disallowed' => implode(',', $fileExtensionFilter->getDisallowedFileExtensions() ?? []),
                         'data-target-folder' => $folder->getCombinedIdentifier(),
                         'data-max-file-size' => (string)(GeneralUtility::getMaxUploadFileSize() * 1024),
                     ];
