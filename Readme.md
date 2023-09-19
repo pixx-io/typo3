@@ -77,4 +77,11 @@ typo3 -> pixx.io
 - Unit -> Pixels
 
 ## ChangeLog
-- v2.0.2: Bugfix for TYPO3 >= 12.4.3 in Controller/FilesControlContainer.php (FileExtensionFilter)
+
+### 2.0.2
+
+- Bugfix for TYPO3 >= 12.4.3 in Controller/FilesControlContainer.php (FileExtensionFilter)
+
+### 2.0.3
+
+- Fix bugs to support multiple image fields
