@@ -51,8 +51,10 @@ class InlineControlContainer extends \TYPO3\CMS\Backend\Form\Container\InlineCon
         $foreign_table = $inlineConfiguration['foreign_table'];
         $currentStructureDomObjectIdPrefix = $this->inlineStackProcessor->getCurrentStructureDomObjectIdPrefix($this->data['inlineFirstPid']);
         $objectPrefix = $currentStructureDomObjectIdPrefix . '-' . $foreign_table;
+        $uniqueId = uniqid();
 
         $attributes = [
+            'id' => 'pixxio-btn-'.$uniqueId,
             'type' => 'button',
             'class' => 'btn btn-default pixxio pixxio-sdk-btn',
             'title' => $buttonText,
@@ -61,7 +63,7 @@ class InlineControlContainer extends \TYPO3\CMS\Backend\Form\Container\InlineCon
             'data-key'=> $this->applicationId,
             'data-url' => $extensionConfiguration['url'],
             'data-token' => $extensionConfiguration['token_refresh'],
-            'data-uid' => uniqid()
+            'data-uid' => $uniqueId
         ];
 
         $langCode = $GLOBALS['BE_USER']->uc['lang'] ?? '';
@@ -95,7 +97,7 @@ class InlineControlContainer extends \TYPO3\CMS\Backend\Form\Container\InlineCon
         <span ' . GeneralUtility::implodeAttributes($attributes, true) . '>
           '.$this->iconFactory->getIcon('actions-pixxio-extension-modal-view', \TYPO3\CMS\Core\Imaging\Icon::SIZE_SMALL)->render().$buttonText.'
         </span>
-        <div class="pixxio-lightbox" style="display:none"><div class="pixxio-close"></div><div class="pixxio-lightbox-inner"><iframe class="pixxio_sdk" data-src="'.$iframe_url .'" width="100%" height="100%"></iframe></div></div>
+        <div id="pixxio-lightbox-'.$uniqueId.'" class="pixxio-lightbox" style="display:none"><div class="pixxio-close" id="pixxio-close-'.$uniqueId.'" data-uid="'.$uniqueId.'"></div><div class="pixxio-lightbox-inner"><iframe id="pixxio-iframe-'.$uniqueId.'" data-src="'.$iframe_url .'" width="100%" height="100%"></iframe></div></div>
         ';
 
         $this->requireJsModules[] = 'TYPO3/CMS/PixxioExtension/ScriptSDK_v11';

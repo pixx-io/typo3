@@ -85,3 +85,7 @@ typo3 -> pixx.io
 ### 2.0.3
 
 - Fix bugs to support multiple image fields
+
+### 2.0.4
+
+- Bugfix for inline content elements (e.g. for news)

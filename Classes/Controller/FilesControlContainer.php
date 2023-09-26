@@ -18,6 +18,7 @@ declare(strict_types=1);
 namespace Pixxio\PixxioExtension\Controller;
 
 use TYPO3\CMS\Backend\Form\InlineStackProcessor;
+use TYPO3\CMS\Core\Context\SecurityAspect;
 use TYPO3\CMS\Core\Imaging\Icon;
 use TYPO3\CMS\Core\Imaging\IconFactory;
 use TYPO3\CMS\Core\Page\JavaScriptModuleInstruction;
@@ -25,9 +26,11 @@ use TYPO3\CMS\Core\Resource\DefaultUploadFolderResolver;
 use TYPO3\CMS\Core\Resource\Filter\FileExtensionFilter;
 use TYPO3\CMS\Core\Resource\Folder;
 use TYPO3\CMS\Core\Resource\OnlineMedia\Helpers\OnlineMediaHelperRegistry;
+use TYPO3\CMS\Core\Security\Nonce;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\StringUtility;
 use TYPO3\CMS\Core\Page\AssetCollector;
+
 /**
  * Files entry container.
  *
@@ -194,8 +197,10 @@ class FilesControlContainer extends \TYPO3\CMS\Backend\Form\Container\FilesContr
             $foreign_table = $inlineConfiguration['foreign_table'];
             $currentStructureDomObjectIdPrefix = $this->inlineStackProcessor->getCurrentStructureDomObjectIdPrefix($this->data['inlineFirstPid']);
             $objectPrefix = $currentStructureDomObjectIdPrefix . '-' . $foreign_table;
+            $uniqueId = uniqid();
 
             $attributes = [
+                'id' => 'pixxio-btn-'.$uniqueId,
                 'type' => 'button',
                 'class' => 'btn btn-default pixxio pixxio-sdk-btn',
                 'title' => $buttonText,
@@ -204,7 +209,7 @@ class FilesControlContainer extends \TYPO3\CMS\Backend\Form\Container\FilesContr
                 'data-key'=> $this->applicationId,
                 'data-url' => $extensionConfiguration['url'],
                 'data-token' => $extensionConfiguration['token_refresh'],
-                'data-uid' => uniqid()
+                'data-uid' => $uniqueId
             ];
 
             // @todo Should be implemented as web component
@@ -223,8 +228,9 @@ class FilesControlContainer extends \TYPO3\CMS\Backend\Form\Container\FilesContr
             } else {
                 $pixxioMediaspace = $extensionConfiguration['url'];
             }
+
             $controls[] = '
-            <div class="pixxio-lightbox"><div class="pixxio-close"></div><div class="pixxio-lightbox-inner"><iframe class="pixxio_sdk" data-src="'.$iframe_url .'" width="100%" height="100%"></iframe></div></div>
+            <div id="pixxio-lightbox-'.$uniqueId.'" class="pixxio-lightbox" style="display:none"><div class="pixxio-close" id="pixxio-close-'.$uniqueId.'" data-uid="'.$uniqueId.'"></div><div class="pixxio-lightbox-inner"><iframe id="pixxio-iframe-'.$uniqueId.'" data-src="'.$iframe_url .'" width="100%" height="100%"></iframe></div></div>
             ';
 
             $this->javaScriptModules[] = JavaScriptModuleInstruction::create('@pixxio/pixxio-extension/ScriptSDK.js');
