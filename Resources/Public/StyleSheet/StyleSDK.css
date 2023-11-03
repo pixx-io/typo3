@@ -1,39 +1,40 @@
 .pixxio-lightbox {
-    position:absolute;
-    display:none;
-    left:0;
-    top:0px;
-    width:100%;
-    height:100%;
-    z-index:999;
-    background:rgba(0,0,0,0.8);
-    padding:50px;
-    min-height:400px;
+  position: absolute;
+  display: none;
+  left: 0;
+  top: 0px;
+  width: 100%;
+  height: 100%;
+  z-index: 999;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 50px;
+  min-height: 400px;
 }
 .pixxio-lightbox-inner {
-    width:100%;
-    height:100%;
-    min-height:400px;
-    overflow-y:auto;
+  width: 100%;
+  height: 100%;
+  min-height: 400px;
+  overflow-y: auto;
+  background-color: white;
 }
 .pixxio-close {
-    width:30px;
-    height:30px;
-    background-color:transparent;
-    position:absolute;
-    z-index:999;
-    right:15px;
-    top:15px;
-    font-size:28px;
-    color:#ffffff;
-    cursor:pointer;
+  width: 30px;
+  height: 30px;
+  background-color: transparent;
+  position: absolute;
+  z-index: 999;
+  right: 15px;
+  top: 15px;
+  font-size: 28px;
+  color: #ffffff;
+  cursor: pointer;
 }
 .pixxio-close:after {
-    content:'x';
-    display:block;
-    margin-top:-11px;
-    margin-left:5px;
+  content: "x";
+  display: block;
+  margin-top: -11px;
+  margin-left: 5px;
 }
 .icon-actions-pixxio-extension-modal-view {
-    padding-right:25px;
+  padding-right: 25px;
 }

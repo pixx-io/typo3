@@ -7,41 +7,32 @@ import Modal from "@typo3/backend/modal.js";
 import { MessageUtility } from "@typo3/backend/utility/message-utility.js";
 
 function init() {
-  var containers = document.querySelectorAll(".pixxio-sdk-btn");
+  document.addEventListener("click", function (event) {
+    if (event.target.classList.contains("pixxio-sdk-btn")) {
+      event.preventDefault();
+      var pixxioIframe =
+        event.target.parentElement.querySelector("iframe.pixxio_sdk");
+      var pixxioIframeSrc = pixxioIframe.dataset.src;
+      if (pixxioIframeSrc != "") {
+        pixxioIframe.src = pixxioIframeSrc;
+      }
+      var pixxioLightbox =
+        event.target.parentElement.querySelector(".pixxio-lightbox");
+      pixxioLightbox.style.display = "block";
 
-  containers.forEach((container) => {
-    document
-      .querySelector(
-        ".btn-default.pixxio[data-uid='" +
-          container.getAttribute("data-uid") +
-          "']"
-      )
-      .addEventListener("click", (event) => {
-        event.preventDefault();
-        var pixxioIframe =
-          container.parentElement.querySelector("iframe.pixxio_sdk");
-        var pixxioIframeSrc = pixxioIframe.dataset.src;
-        if (pixxioIframeSrc != "") {
-          pixxioIframe.src = pixxioIframeSrc;
-        }
-        var pixxioLightbox =
-          container.parentElement.querySelector(".pixxio-lightbox");
-        pixxioLightbox.style.display = "block";
+      var closeButton =
+        event.target.parentElement.querySelector(".pixxio-close");
+      if (closeButton) {
+        closeButton.addEventListener("click", (event) => {
+          var pixxioLightbox = event.target.closest(".pixxio-lightbox");
+          pixxioLightbox.style.display = "none";
+          pixxioIframe.src = "";
+        });
+      }
 
-        window.pixxioLastLightboxOpenerButton = container;
-      });
+      window.pixxioLastLightboxOpenerButton = event.target;
+    }
   });
-
-  const closeButtons = document.querySelectorAll(".pixxio-close");
-
-  if (closeButtons && closeButtons.length) {
-    closeButtons.forEach((button) => {
-      button.addEventListener("click", (event) => {
-        var pixxioLightbox = event.target.closest(".pixxio-lightbox");
-        pixxioLightbox.style.display = "none";
-      });
-    });
-  }
 }
 
 if (document.readyState === "complete") {
