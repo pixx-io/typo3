@@ -8,29 +8,39 @@ import { MessageUtility } from "@typo3/backend/utility/message-utility.js";
 
 function init() {
   document.addEventListener("click", function (event) {
+    var buttonElement = null;
+
     if (event.target.classList.contains("pixxio-sdk-btn")) {
+      buttonElement = event.target;
+    } else if (event.target.closest(".pixxio-sdk-btn")) {
+      buttonElement = event.target.closest(".pixxio-sdk-btn");
+    }
+
+    if (buttonElement) {
       event.preventDefault();
       var pixxioIframe =
-        event.target.parentElement.querySelector("iframe.pixxio_sdk");
+        buttonElement.parentElement.querySelector("iframe.pixxio_sdk");
       var pixxioIframeSrc = pixxioIframe.dataset.src;
       if (pixxioIframeSrc != "") {
         pixxioIframe.src = pixxioIframeSrc;
       }
       var pixxioLightbox =
-        event.target.parentElement.querySelector(".pixxio-lightbox");
+        buttonElement.parentElement.querySelector(".pixxio-lightbox");
       pixxioLightbox.style.display = "block";
 
       var closeButton =
-        event.target.parentElement.querySelector(".pixxio-close");
+        buttonElement.parentElement.querySelector(".pixxio-close");
+
       if (closeButton) {
         closeButton.addEventListener("click", (event) => {
-          var pixxioLightbox = event.target.closest(".pixxio-lightbox");
+          event.preventDefault();
+
           pixxioLightbox.style.display = "none";
           pixxioIframe.src = "";
         });
       }
 
-      window.pixxioLastLightboxOpenerButton = event.target;
+      window.pixxioLastLightboxOpenerButton = buttonElement;
     }
   });
 }
