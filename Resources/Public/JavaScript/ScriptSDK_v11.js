@@ -10,41 +10,42 @@ define([
   "TYPO3/CMS/Backend/Utility/MessageUtility",
 ], function (NProgress, AjaxRequest, Modal, Severity, MessageUtility) {
   function init() {
-    var containers = document.querySelectorAll(".pixxio-sdk-btn");
+    document.addEventListener("click", function (event) {
+      var buttonElement = null;
 
-    containers.forEach((container) => {
-      document
-        .querySelector(
-          ".btn-default.pixxio[data-uid='" +
-            container.getAttribute("data-uid") +
-            "']"
-        )
-        .addEventListener("click", (event) => {
-          event.preventDefault();
-          var pixxioIframe =
-            container.parentElement.querySelector("iframe.pixxio_sdk");
-          var pixxioIframeSrc = pixxioIframe.dataset.src;
-          if (pixxioIframeSrc != "") {
-            pixxioIframe.src = pixxioIframeSrc;
-          }
-          var pixxioLightbox =
-            container.parentElement.querySelector(".pixxio-lightbox");
-          pixxioLightbox.style.display = "block";
+      if (event.target.classList.contains("pixxio-sdk-btn")) {
+        buttonElement = event.target;
+      } else if (event.target.closest(".pixxio-sdk-btn")) {
+        buttonElement = event.target.closest(".pixxio-sdk-btn");
+      }
 
-          window.pixxioLastLightboxOpenerButton = container;
-        });
+      if (buttonElement) {
+        event.preventDefault();
+        var pixxioIframe =
+          buttonElement.parentElement.querySelector("iframe.pixxio_sdk");
+        var pixxioIframeSrc = pixxioIframe.dataset.src;
+        if (pixxioIframeSrc != "") {
+          pixxioIframe.src = pixxioIframeSrc;
+        }
+        var pixxioLightbox =
+          buttonElement.parentElement.querySelector(".pixxio-lightbox");
+        pixxioLightbox.style.display = "block";
+
+        var closeButton =
+          buttonElement.parentElement.querySelector(".pixxio-close");
+
+        if (closeButton) {
+          closeButton.addEventListener("click", (event) => {
+            event.preventDefault();
+
+            pixxioLightbox.style.display = "none";
+            pixxioIframe.src = "";
+          });
+        }
+
+        window.pixxioLastLightboxOpenerButton = buttonElement;
+      }
     });
-
-    const closeButtons = document.querySelectorAll(".pixxio-close");
-
-    if (closeButtons && closeButtons.length) {
-      closeButtons.forEach((button) => {
-        button.addEventListener("click", (event) => {
-          var pixxioLightbox = event.target.closest(".pixxio-lightbox");
-          pixxioLightbox.style.display = "none";
-        });
-      });
-    }
   }
 
   if (document.readyState === "complete") {
