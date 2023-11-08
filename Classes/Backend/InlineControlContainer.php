@@ -81,6 +81,10 @@ class InlineControlContainer extends \TYPO3\CMS\Backend\Form\Container\InlineCon
             }
         }
 
+        if (isset($extensionConfiguration['alt_text'])) {
+            $iframe_url .= '&metadata=' . urlencode($extensionConfiguration['alt_text']);
+        }
+
         $tokenRefresh = '';
         $userId = '';
 
