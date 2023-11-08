@@ -647,19 +647,9 @@ class FilesController
                         'pixxio_downloadformat' => $file->downloadFormat
                     );
 
-                    // get tile and description seperately
-                    /*
-                    $this->accessToken = $this->pixxioAuth();
-                    $pixxioFileInfos = $this->pixxioFiles(array($file->id));
-
-                    if (isset($pixxioFileInfos[0]->subject)) {
-                        $additionalFields['title'] = $pixxioFileInfos[0]->subject;
+                    if (isset($this->extensionConfiguration['alt_text']) && isset($file->metadata->{$this->extensionConfiguration['alt_text']})) {
+                        $additionalFields['alternative'] = $file->metadata->{$this->extensionConfiguration['alt_text']};
                     }
-
-                    if (isset($pixxioFileInfos[0]->description)) {
-                        $additionalFields['description'] = $pixxioFileInfos[0]->description;
-                    }
-                    */
 
                     $metaDataRepository = GeneralUtility::makeInstance(MetaDataRepository::class);
                     $metaDataRepository->update($importedFileUid, $additionalFields);

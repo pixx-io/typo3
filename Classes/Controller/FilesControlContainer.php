@@ -217,6 +217,10 @@ class FilesControlContainer extends \TYPO3\CMS\Backend\Form\Container\FilesContr
             $iframe_lang = $languageService->getLocale();
             $iframe_url = 'https://plugin.pixx.io/static/v1/' . $iframe_lang . '/media?multiSelect=true&applicationId='.$this->applicationId;
 
+            if (isset($extensionConfiguration['alt_text'])) {
+                $iframe_url .= '&metadata=' . urlencode($extensionConfiguration['alt_text']);
+            }
+
             $tldPos = strpos($extensionConfiguration['url'],'//');
             if ($tldPos > 0) {
                 $pixxioMediaspace = substr($extensionConfiguration['url'],$tldPos+2);
