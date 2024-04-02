@@ -113,8 +113,9 @@ class FilesControlContainer extends \TYPO3\CMS\Backend\Form\Container\FilesContr
 
         $showUpload = (bool)($inlineConfiguration['appearance']['fileUploadAllowed'] ?? true);
         $showByUrl = ($inlineConfiguration['appearance']['fileByUrlAllowed'] ?? true) && $onlineMediaAllowed !== [];
-
-        if (($showUpload || $showByUrl) && ($backendUser->uc['edit_docModuleUpload'] ?? false)) {
+        $pixxioUploadAllowed = (isset($backendUser->uc['show_pixxioUpload']) &&  $backendUser->uc['show_pixxioUpload'] === '0') ? false : true;
+        
+        if (($showUpload || $showByUrl) && $pixxioUploadAllowed) {
             $defaultUploadFolderResolver = GeneralUtility::makeInstance(DefaultUploadFolderResolver::class);
             $folder = $defaultUploadFolderResolver->resolve(
                 $backendUser,
