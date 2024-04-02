@@ -46,6 +46,11 @@ You can define a limit from 1 to 50. This limit defines the amount of files that
 You be able to run the pixx.io connection via a proxy. Therefore you have to set in the extension configuration under the tab "Proxy" the flag “use_proxy” and add a valid connection string to the “proxy_connection”.
 The proxy URL can have this schema http(s)://username:password@host:port . It’s not necessary to add a username or a password, but you should add the host and port for the connection.
 
+### Hide select button
+
+You can hide the "Select from pixx.io" button for backend users and backend user groups. Do do so, just add a user setting:
+
+```setup.override.show_pixxioUpload=0```
 
 ## Works with
 
