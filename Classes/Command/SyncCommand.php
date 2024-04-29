@@ -20,26 +20,26 @@ class SyncCommand extends Command
     $this->setHelp('Prints a list of recent sys_log entries.' . LF . 'If you want to get more detailed information, use the --verbose option.');
   }
 
-  protected function execute(InputInterface $input, OutputInterface $output)
+  protected function execute(InputInterface $input, OutputInterface $output): int
   {
-    $io = new SymfonyStyle($input, $output);
+      $io = new SymfonyStyle($input, $output);
 
-    $io->title($this->getDescription());
+      $io->title($this->getDescription());
 
-    $io->writeln('🚀 Start syncing');
-    try {
-      $filesController = GeneralUtility::makeInstance(\Pixxio\PixxioExtension\Controller\FilesController::class);
-      $result = $filesController->syncAction($io);
-      if ($result) {
-        $io->success('🪐 synchronization successful');
-        return Command::SUCCESS;
+      $io->writeln('🚀 Start syncing');
+      try {
+          $filesController = GeneralUtility::makeInstance(\Pixxio\PixxioExtension\Controller\FilesController::class);
+          $result = $filesController->syncAction($io);
+          if ($result) {
+              $io->success('🪐 synchronization successful');
+              return Command::SUCCESS;
+          }
+          $io->error('💥 synchronization failed');
+          return Command::FAILURE;
+      } catch (\RuntimeException $error) {
+          var_dump($error->getMessage());
+          $io->error('😱 got a runtime exception: ' . $error->getMessage());
+          return Command::FAILURE;
       }
-      $io->error('💥 synchronization failed');
-      return Command::FAILURE;
-    } catch (\RuntimeException $error) {
-      var_dump($error->getMessage());
-      $io->error('😱 got a runtime exception: ' . $error->getMessage());
-      return Command::FAILURE;
-    }
   }
 }
