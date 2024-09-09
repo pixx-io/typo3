@@ -58,28 +58,24 @@ You can hide the "Select from pixx.io" button for backend users and backend user
 
 If you are using the core extension filemetadata it will sync more metadata to typo3 from pixx.io. The mapping of the metadata is defined like this:
 
-typo3 -> pixx.io
+#### Mapping from pixx.io to TYPO3
 
-- Description -> description
-- Ranking -> rating
-- Keywords -> keywords
-- Alternative Text -> (What you have defined in your configuration default is "Alt Text (Accessibility)")
-- Caption -> description
-- Download Name -> subject
-- Creator -> creator
-- Creator Tool -> Model
-- Publisher -> Publisher
-- Source -> Source
-- Copyright -> CopyrightNotice
-- Country -> Country
-- Region -> Region
-- City -> City
-- GPS Latitude -> location.latitude 
-- GPS Longitude -> location.longitude
-- Content Creation Date -> createDate
-- Content Modification Date -> modifyDate
-- Color Space -> colorspace
-- Unit -> Pixels
+- `Title` / `Titel` (Type: Internal) => `Download Name`
+- `Description` / `Beschreibung` (Type: Internal) => `Description` and `Caption`
+- `Rating` / `Bewertung` (Type: Internal) => `Ranking `
+- `Keywords` / `Schlagwörter` => `Keywords`
+- `Creator` / `Ersteller` (Type: Internal) => `Creator`
+- `Model` / `Model` (Type: EXIF) => `Creator Tool`
+- `Publisher` / `Publisher` (Type: IPTC) => `Publisher`
+- `Quelle` (Type: IPTC) => `Source`
+- `Source` / `Copyright-Vermerk` (Type: IPTC) => `Copyright`
+- `GPS` / `GPS` (Type: Internal) => `GPS Latitude` und `GPS Longitude`
+- `Country` (Type: Custom) => `Country`
+- `Region` (Type: Custom) => `Region`
+- `City` / `Stadt` (Type: IPTC) => `City`
+- `Date created` / `Erstellungsdatum` (Type: Internal) => `Content Creation Date`
+- `Zuletzt bearbeitet` (Type: Internal) => `Content Modification Date`
+- `ModifyDate` / `Farbraum` (Type: Internal) => `Color Space`
 
 ## ChangeLog
 
