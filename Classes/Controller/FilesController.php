@@ -4,14 +4,16 @@ declare(strict_types=1);
 
 namespace Pixxio\PixxioExtension\Controller;
 
+use Pixxio\PixxioExtension\Utility\ConfigurationUtility;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Symfony\Component\Lock\Key;
+use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\Restriction\RootLevelRestriction;
-use TYPO3\CMS\Core\Http\JsonResponse;
 use TYPO3\CMS\Core\Http\RequestFactory;
 use TYPO3\CMS\Core\Resource\Index\MetaDataRepository;
+use TYPO3\CMS\Core\Resource\ResourceFactory;
+use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 class FilesController
@@ -37,13 +39,13 @@ class FilesController
 
     public function __construct()
     {
-        $this->extensionConfiguration = \Pixxio\PixxioExtension\Utility\ConfigurationUtility::getExtensionConfiguration();
+        $this->extensionConfiguration = ConfigurationUtility::getExtensionConfiguration();
         $this->requestFactory = GeneralUtility::makeInstance(RequestFactory::class);
     }
 
     public function hasExt($key)
     {
-        return \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::isLoaded($key);
+        return ExtensionManagementUtility::isLoaded($key);
     }
 
     public function getJSONRequest(ServerRequestInterface $request): ServerRequestInterface
@@ -61,11 +63,6 @@ class FilesController
     ): ResponseInterface {
         // get files
         $files = $this->getJSONRequest($request)->getParsedBody()->files;
-
-        // for TYPO3 10.x
-        if (!is_object($response)) {
-            $response = new JsonResponse();
-        }
 
         // pull files from pixx.io
         if ($files) {
@@ -365,7 +362,7 @@ class FilesController
             ->select('*')
             ->from('sys_file_metadata')
             ->where(
-                $queryBuilder->expr()->gt('pixxio_file_id', $queryBuilder->createNamedParameter(0, \TYPO3\CMS\Core\Database\Connection::PARAM_INT)),
+                $queryBuilder->expr()->gt('pixxio_file_id', $queryBuilder->createNamedParameter(0, Connection::PARAM_INT)),
             )
             ->orderBy('pixxio_last_sync_stamp')
             ->setMaxResults(10)
@@ -569,7 +566,7 @@ class FilesController
             $storageUid = 1;
         }
 
-        $resourceFactory = GeneralUtility::makeInstance(\TYPO3\CMS\Core\Resource\ResourceFactory::class);
+        $resourceFactory = GeneralUtility::makeInstance(ResourceFactory::class);
         return $resourceFactory->getStorageObject($storageUid);
     }
 
@@ -680,21 +677,5 @@ class FilesController
         $filename = preg_replace('/[^a-z0-9\._-]/isU', '', $filename);
         $filename = trim((string) $filename);
         return $filename;
-    }
-
-    protected function isImageExtension($filename)
-    {
-        $supportedImages = [
-            'gif',
-            'jpg',
-            'jpeg',
-            'png'
-        ];
-        $ext = strtolower(pathinfo((string) $filename, PATHINFO_EXTENSION));
-        if (in_array($ext, $supportedImages)) {
-            return true;
-        } else {
-            return false;
-        }
     }
 }
