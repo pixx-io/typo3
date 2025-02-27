@@ -6,8 +6,8 @@ use Pixxio\PixxioExtension\Utility\ConfigurationUtility;
 use TYPO3\CMS\Backend\Form\Event\CustomFileControlsEvent;
 use TYPO3\CMS\Core\Attribute\AsEventListener;
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
-use TYPO3\CMS\Core\Imaging\Icon;
 use TYPO3\CMS\Core\Imaging\IconFactory;
+use TYPO3\CMS\Core\Imaging\IconSize;
 use TYPO3\CMS\Core\Localization\LanguageService;
 use TYPO3\CMS\Core\Page\JavaScriptModuleInstruction;
 use TYPO3\CMS\Core\Resource\Filter\FileExtensionFilter;
@@ -76,7 +76,7 @@ final class FileControlsEventListener
         // @todo Should be implemented as web component
         $event->addControl('
             <button ' . GeneralUtility::implodeAttributes($attributes, true) . '>
-                ' . $this->iconFactory->getIcon('tx-pixxio-extension-icon', Icon::SIZE_SMALL)->render() . '
+                ' . $this->iconFactory->getIcon('tx-pixxio-extension-icon', IconSize::SMALL)->render() . '
                 ' . htmlspecialchars($buttonText) . '
             </button>'
         );

@@ -7,7 +7,6 @@ $EM_CONF[$_EXTKEY] = [
     'author' => 'pixx.io',
     'author_email' => 'ds@pixx.io',
     'state' => 'stable',
-    'clearCacheOnLoad' => 1,
     'version' => '2.1.1',
     'constraints' => [
         'depends' => [

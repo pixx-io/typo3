@@ -48,7 +48,7 @@ class FilesController
 
     public function getJSONRequest(ServerRequestInterface $request): ServerRequestInterface
     {
-        if (false === strpos($request->getHeaderLine('Content-Type'), 'application/json')) {
+        if (!str_contains($request->getHeaderLine('Content-Type'), 'application/json')) {
             return $request;
         }
         // TODO: Implement broken json handling
@@ -75,7 +75,7 @@ class FilesController
         return $response;
     }
 
-    private function throwError($message, $num)
+    private function throwError($message, $num): never
     {
         throw new \RuntimeException(
             $message,
@@ -91,18 +91,18 @@ class FilesController
             $storageBasePath = $storage->getConfiguration()['basePath'];
 
             // correct beginning and trailing slashes
-            if (substr($storageBasePath, -1) != '/') {
+            if (!str_ends_with((string) $storageBasePath, '/')) {
                 $storageBasePath = $storageBasePath . '/';
             }
-            if (substr($storageBasePath, 0, 1) == '/') {
-                $storageBasePath = substr($storageBasePath, 1);
+            if (str_starts_with((string) $storageBasePath, '/')) {
+                $storageBasePath = substr((string) $storageBasePath, 1);
             }
 
             if ($this->extensionConfiguration['subfolder']) {
                 $storageBasePath .= $this->extensionConfiguration['subfolder'];
             }
 
-            if (substr($storageBasePath, -1) != '/') {
+            if (!str_ends_with((string) $storageBasePath, '/')) {
                 $storageBasePath = $storageBasePath . '/';
             }
 
@@ -143,8 +143,7 @@ class FilesController
         if ($this->extensionConfiguration['use_proxy'] && filter_var($this->extensionConfiguration['proxy_connection'],
                 FILTER_VALIDATE_URL)) {
             $proxy = [];
-            $proxy[strpos($this->extensionConfiguration['proxy_connection'],
-                'https') === 0 ? 'https' : 'http'] = $this->extensionConfiguration['proxy_connection'];
+            $proxy[str_starts_with((string) $this->extensionConfiguration['proxy_connection'], 'https') ? 'https' : 'http'] = $this->extensionConfiguration['proxy_connection'];
             $additionalFields['proxy'] = $proxy;
         }
     }
@@ -366,7 +365,7 @@ class FilesController
             ->select('*')
             ->from('sys_file_metadata')
             ->where(
-                $queryBuilder->expr()->gt('pixxio_file_id', $queryBuilder->createNamedParameter(0, \PDO::PARAM_INT)),
+                $queryBuilder->expr()->gt('pixxio_file_id', $queryBuilder->createNamedParameter(0, \TYPO3\CMS\Core\Database\Connection::PARAM_INT)),
             )
             ->orderBy('pixxio_last_sync_stamp')
             ->setMaxResults(10)
@@ -483,7 +482,7 @@ class FilesController
 
             $pixxioFile = $pixxioFile[0];
 
-            $additionalFields = array(
+            $additionalFields = [
                 'title' => $pixxioFile->subject,
                 'description' => $pixxioFile->description,
                 'alternative' => $this->getMetadataField($pixxioFile,
@@ -491,7 +490,7 @@ class FilesController
                 'pixxio_file_id' => $pixxioFile->id,
                 //'pixxio_mediaspace' => $pixxioFile->originalFileURL,
                 'pixxio_last_sync_stamp' => time()
-            );
+            ];
 
             if ($this->hasExt('filemetadata')) {
                 $additionalFields = array_merge($additionalFields, $this->getMetadataWithFilemetadataExt($pixxioFile));
@@ -629,14 +628,14 @@ class FilesController
                     $importedFiles[] = $importedFileUid;
 
                     // set meta data
-                    $additionalFields = array(
+                    $additionalFields = [
                         'title' => $file->subject,
                         'description' => $file->description,
                         'pixxio_file_id' => $file->id,
                         'pixxio_mediaspace' => $file->downloadURL,
                         'pixxio_last_sync_stamp' => time(),
                         'pixxio_downloadformat' => $file->downloadFormat
-                    );
+                    ];
 
                     if (isset($this->extensionConfiguration['alt_text']) && isset($file->metadata->{$this->extensionConfiguration['alt_text']})) {
                         $additionalFields['alternative'] = $file->metadata->{$this->extensionConfiguration['alt_text']};
@@ -653,7 +652,7 @@ class FilesController
 
     protected function isExecutableExtension($filename)
     {
-        $notSupportedImages = array(
+        $notSupportedImages = [
             'php',
             'js',
             'cgi',
@@ -661,8 +660,8 @@ class FilesController
             'doc',
             'xls',
             'sh'
-        );
-        $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+        ];
+        $ext = strtolower(pathinfo((string) $filename, PATHINFO_EXTENSION));
         if (in_array($ext, $notSupportedImages)) {
             return true;
         } else {
@@ -672,26 +671,26 @@ class FilesController
 
     protected function getNonUtf8Filename($filename)
     {
-        $filename = mb_strtolower($filename, 'UTF-8');
+        $filename = mb_strtolower((string) $filename, 'UTF-8');
         $filename = str_replace(
-            array('ä', 'ö', 'ü', 'ß', ' - ', ' + ', '_', ' / ', '/'),
-            array('ae', 'oe', 'ue', 'ss', '-', '-', '-', '-', '-'),
+            ['ä', 'ö', 'ü', 'ß', ' - ', ' + ', '_', ' / ', '/'],
+            ['ae', 'oe', 'ue', 'ss', '-', '-', '-', '-', '-'],
             $filename);
         $filename = str_replace(' ', '-', $filename);
         $filename = preg_replace('/[^a-z0-9\._-]/isU', '', $filename);
-        $filename = trim($filename);
+        $filename = trim((string) $filename);
         return $filename;
     }
 
     protected function isImageExtension($filename)
     {
-        $supportedImages = array(
+        $supportedImages = [
             'gif',
             'jpg',
             'jpeg',
             'png'
-        );
-        $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+        ];
+        $ext = strtolower(pathinfo((string) $filename, PATHINFO_EXTENSION));
         if (in_array($ext, $supportedImages)) {
             return true;
         } else {
