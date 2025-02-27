@@ -17,7 +17,7 @@
     ],
     "license": "GPL-2.0-or-later",
     "require": {
-        "typo3/cms-core": "^10.4 || ^11.5 || ^12.4.3",
+        "typo3/cms-core": "^13.4",
         "ext-curl": "*"
     },
     "require-dev": {
@@ -41,7 +41,6 @@
     },
     "extra": {
         "typo3/cms": {
-            "cms-package-dir": "{$vendor-dir}/typo3/cms",
             "web-dir": ".Build/public",
             "extension-key": "pixxio_extension"
         }

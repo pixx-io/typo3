@@ -3,7 +3,6 @@
 namespace Pixxio\PixxioExtension\Command;
 
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
@@ -17,7 +16,7 @@ class SyncCommand extends Command
    */
   protected function configure()
   {
-    $this->setHelp('Prints a list of recent sys_log entries.' . LF . 'If you want to get more detailed information, use the --verbose option.');
+    $this->setHelp('Prints a list of recent sys_log entries.' . PHP_EOL . 'If you want to get more detailed information, use the --verbose option.');
   }
 
   protected function execute(InputInterface $input, OutputInterface $output): int

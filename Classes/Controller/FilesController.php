@@ -11,7 +11,6 @@ use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\Restriction\RootLevelRestriction;
 use TYPO3\CMS\Core\Http\JsonResponse;
 use TYPO3\CMS\Core\Http\RequestFactory;
-use TYPO3\CMS\Core\Information\Typo3Version;
 use TYPO3\CMS\Core\Resource\Index\MetaDataRepository;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
@@ -56,8 +55,10 @@ class FilesController
         return $request->withParsedBody(json_decode($request->getBody()->getContents()));
     }
 
-    public function selectedFilesAction(ServerRequestInterface $request, ResponseInterface $response = null): ResponseInterface
-    {
+    public function selectedFilesAction(
+        ServerRequestInterface $request,
+        ResponseInterface $response = null
+    ): ResponseInterface {
         // get files
         $files = $this->getJSONRequest($request)->getParsedBody()->files;
 
@@ -67,7 +68,7 @@ class FilesController
         }
 
         // pull files from pixx.io
-        if($files) {
+        if ($files) {
             $importedFiles = $this->pullFiles($files);
             $response->getBody()->write(json_encode(['files' => $importedFiles]));
         }
@@ -139,9 +140,11 @@ class FilesController
 
     private function getProxySettings(&$additionalFields)
     {
-        if ($this->extensionConfiguration['use_proxy'] && filter_var($this->extensionConfiguration['proxy_connection'], FILTER_VALIDATE_URL)) {
+        if ($this->extensionConfiguration['use_proxy'] && filter_var($this->extensionConfiguration['proxy_connection'],
+                FILTER_VALIDATE_URL)) {
             $proxy = [];
-            $proxy[strpos($this->extensionConfiguration['proxy_connection'], 'https') === 0 ? 'https' : 'http'] = $this->extensionConfiguration['proxy_connection'];
+            $proxy[strpos($this->extensionConfiguration['proxy_connection'],
+                'https') === 0 ? 'https' : 'http'] = $this->extensionConfiguration['proxy_connection'];
             $additionalFields['proxy'] = $proxy;
         }
     }
@@ -209,14 +212,11 @@ class FilesController
 
     private function pixxioAuth()
     {
-
-        if($this->extensionConfiguration['url'] == "") {
+        if ($this->extensionConfiguration['url'] == "") {
             $this->throwError('Authentication to pixx.io failed. Please check pixx.io URL in your extension configuration', 9);
-            return false;
         }
-        if($this->extensionConfiguration['token_refresh'] == "") {
+        if ($this->extensionConfiguration['token_refresh'] == "") {
             $this->throwError('Authentication to pixx.io failed. Please check pixx.io refresh token in your extension configuration', 10);
-            return false;
         }
 
         $additionalOptions = [
@@ -230,15 +230,16 @@ class FilesController
 
         $this->getProxySettings($additionalOptions);
 
-        $response = $this->requestFactory->request($this->extensionConfiguration['url'] . '/gobackend/accessToken', 'POST', $additionalOptions);
+        $response = $this->requestFactory->request($this->extensionConfiguration['url'] . '/gobackend/accessToken',
+            'POST', $additionalOptions);
 
         if ($response->getStatusCode() === 200) {
             $data = json_decode($response->getBody()->getContents());
             return $data->success ? $data->accessToken : false;
         }
 
-        $this->throwError('Authentication to pixx.io failed. Please check your configuration and your given refresh token.', 2);
-        return false;
+        $this->throwError('Authentication to pixx.io failed. Please check your configuration and your given refresh token.',
+            2);
     }
 
     private function getMetadataField($file, $name)
@@ -324,11 +325,7 @@ class FilesController
             ->orderBy('pixxio_last_sync_stamp')
             ->setMaxResults(1);
 
-        if (GeneralUtility::makeInstance(Typo3Version::class)->getMajorVersion() < 11) {
-            $fileMetaData = $fileMetaData->execute()->fetch();
-        } else {
-            $fileMetaData = $fileMetaData->executeQuery()->fetchAssociative();
-        }
+        $fileMetaData = $fileMetaData->executeQuery()->fetchAssociative();
 
         if ($fileMetaData) {
             $file = $queryBuilder
@@ -340,11 +337,7 @@ class FilesController
                 ->orderBy('pixxio_last_sync_stamp')
                 ->setMaxResults(1);
 
-            if (GeneralUtility::makeInstance(Typo3Version::class)->getMajorVersion() < 11) {
-                $file = $file->execute()->fetch();
-            } else {
-                $file = $file->executeQuery()->fetchAssociative();
-            }
+            $file = $file->executeQuery()->fetchAssociative();
         }
 
         if ($fileMetaData && $file) {
@@ -383,11 +376,7 @@ class FilesController
             )
             );
 
-        if (GeneralUtility::makeInstance(Typo3Version::class)->getMajorVersion() < 11) {
-            $files = $files->execute()->fetchAll();
-        } else {
-            $files = $files->executeQuery()->fetchAllAssociative();
-        }
+        $files = $files->executeQuery()->fetchAllAssociative();
 
         $io->writeln('Got files from database');
 
@@ -497,7 +486,8 @@ class FilesController
             $additionalFields = array(
                 'title' => $pixxioFile->subject,
                 'description' => $pixxioFile->description,
-                'alternative' => $this->getMetadataField($pixxioFile, $this->extensionConfiguration['alt_text'] ?: 'Alt Text (Accessibility)'),
+                'alternative' => $this->getMetadataField($pixxioFile,
+                    $this->extensionConfiguration['alt_text'] ?: 'Alt Text (Accessibility)'),
                 'pixxio_file_id' => $pixxioFile->id,
                 //'pixxio_mediaspace' => $pixxioFile->originalFileURL,
                 'pixxio_last_sync_stamp' => time()
@@ -593,11 +583,12 @@ class FilesController
             $uploaded = true;
         } else {
             if ($this->isExecutableExtension($filename)) {
-                $this->throwError('Wrong upload file extension. Is not allowed to use php,js,js,exe,doc,xls,sh: "' . $filename, 5);
+                $this->throwError('Wrong upload file extension. Is not allowed to use php,js,js,exe,doc,xls,sh: "' . $filename,
+                    5);
             }
         }
 
-        if( ini_get('allow_url_fopen') ) {
+        if (ini_get('allow_url_fopen')) {
             $uploaded = file_put_contents($absFileIdentifier, file_get_contents($url));
         } else {
             $ch = curl_init($url);
@@ -606,7 +597,7 @@ class FilesController
             curl_setopt($ch, CURLOPT_HEADER, 0);
 
             $uploaded = true;
-            if( ! curl_exec($ch)) {
+            if (!curl_exec($ch)) {
                 $this->throwError('CURL Error while transferring file.', 7);
                 $uploaded = false;
             }
