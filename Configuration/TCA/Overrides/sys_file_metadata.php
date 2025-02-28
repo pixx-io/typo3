@@ -4,32 +4,32 @@ defined('TYPO3') || die();
 /***************
  * Add to the image a checkbox - Responsive Image
  */
-$temporaryPixxioFields = array(
-    'pixxio_mediaspace' => array (
+$temporaryPixxioFields = [
+    'pixxio_mediaspace' =>  [
       'exclude' => 0,
       'label' => 'pixx.io Mediaspace',
-      'config' => array (
+      'config' =>  [
         'readOnly' => true,
         'type' => 'input',
-      )
-    ),
-    'pixxio_file_id' => array (
+      ]
+    ],
+    'pixxio_file_id' =>  [
       'exclude' => 0,
       'label' => 'pixx.io File ID',
-      'config' => array (
+      'config' =>  [
         'readOnly' => true,
         'type' => 'input',
-      )
-    ),
-    'pixxio_downloadformat' => array (
+      ]
+    ],
+    'pixxio_downloadformat' =>  [
       'exclude' => 0,
       'label' => 'pixx.io Download Format',
-      'config' => array (
+      'config' =>  [
         'readOnly' => true,
         'type' => 'input',
-      )
-    )
-);
+      ]
+    ]
+];
  
 // add field to tca
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTCAcolumns(

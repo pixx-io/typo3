@@ -1,8 +1,13 @@
 services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+
+  Pixxio\PixxioExtension\:
+    resource: '../Classes/*'
+
   Pixxio\PixxioExtension\Command\SyncCommand:
     tags:
       - name: 'console.command'
         command: 'pixxio:sync'
         description: 'Sync alternative text, description and title with your pixx.io system'
-        # not required, defaults to false
-        hidden: false
