@@ -60,7 +60,8 @@ final class FileControlsEventListener
         $extensionConfiguration = ConfigurationUtility::getExtensionConfiguration();
         $languageService = $this->getLanguageService();
         $buttonText = htmlspecialchars($languageService->sL('LLL:EXT:pixxio_extension/Resources/Private/Language/locallang_be.xlf:modal_view.button'));
-        $objectPrefix = $event->getFormFieldIdentifier();
+        $foreignTable = $event->getFieldConfig()['foreign_table'];
+        $objectPrefix = $event->getFormFieldIdentifier() . '-' . $foreignTable;
         $attributes = [
             'type' => 'button',
             'class' => 'btn btn-default pixxio pixxio-sdk-btn',
@@ -70,7 +71,7 @@ final class FileControlsEventListener
             'data-key'=> $this->applicationId,
             'data-url' => $extensionConfiguration['url'],
             'data-token' => $extensionConfiguration['token_refresh'],
-            'data-uid' => uniqid()
+            'data-uid' => uniqid(),
         ];
 
         // @todo Should be implemented as web component
@@ -81,15 +82,15 @@ final class FileControlsEventListener
             </button>'
         );
 
-        $iframe_lang = $languageService->getLocale();
-        $iframe_url = 'https://plugin.pixx.io/static/v1/' . $iframe_lang . '/media?multiSelect=true&applicationId='.$this->applicationId;
+        $iframeLanguage = $languageService->getLocale();
+        $iframeUrl = 'https://plugin.pixx.io/static/v1/' . $iframeLanguage . '/media?multiSelect=true&applicationId='.$this->applicationId;
 
         if (isset($extensionConfiguration['alt_text'])) {
-            $iframe_url .= '&metadata=' . urlencode($extensionConfiguration['alt_text']);
+            $iframeUrl .= '&metadata=' . urlencode($extensionConfiguration['alt_text']);
         }
 
         $event->addControl(
-            '<div class="pixxio-lightbox"><div class="pixxio-close"></div><div class="pixxio-lightbox-inner"><iframe class="pixxio_sdk" data-src="'.$iframe_url .'" width="100%" height="100%"></iframe></div></div>'
+            '<div class="pixxio-lightbox"><div class="pixxio-close"></div><div class="pixxio-lightbox-inner"><iframe class="pixxio_sdk" data-src="'.$iframeUrl .'" width="100%" height="100%"></iframe></div></div>'
         );
 
         $resultArray['javaScriptModules'][] = JavaScriptModuleInstruction::create('@pixxio/pixxio-extension/ScriptSDK.js');
