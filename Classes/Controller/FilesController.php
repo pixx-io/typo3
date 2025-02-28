@@ -10,6 +10,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\Restriction\RootLevelRestriction;
+use TYPO3\CMS\Core\Http\JsonResponse;
 use TYPO3\CMS\Core\Http\RequestFactory;
 use TYPO3\CMS\Core\Resource\Index\MetaDataRepository;
 use TYPO3\CMS\Core\Resource\ResourceFactory;
@@ -67,7 +68,7 @@ class FilesController
         // pull files from pixx.io
         if ($files) {
             $importedFiles = $this->pullFiles($files);
-            $response->getBody()->write(json_encode(['files' => $importedFiles]));
+            return new JsonResponse(['files' => $importedFiles]);
         }
         return $response;
     }
