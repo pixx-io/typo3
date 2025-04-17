@@ -41,7 +41,7 @@ use TYPO3\CMS\Core\Page\AssetCollector;
  */
 class FilesControlContainer extends \TYPO3\CMS\Backend\Form\Container\FilesControlContainer
 {
-    private $applicationId = 'eS9Pb3S5bsEa2Z6527lUwUBp8';
+    private $applicationId = 'ghx8F66X3ix4AJ0VmS0DE8sx7';
 
     private const FILE_REFERENCE_TABLE = 'sys_file_reference';
 

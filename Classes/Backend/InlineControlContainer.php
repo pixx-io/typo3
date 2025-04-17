@@ -12,7 +12,7 @@ use TYPO3\CMS\Core\Page\AssetCollector;
  */
 class InlineControlContainer extends \TYPO3\CMS\Backend\Form\Container\InlineControlContainer
 {
-    private $applicationId = 'eS9Pb3S5bsEa2Z6527lUwUBp8';
+    private $applicationId = 'ghx8F66X3ix4AJ0VmS0DE8sx7';
 
     /**
      * @param array $inlineConfiguration
