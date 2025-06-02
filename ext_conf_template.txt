@@ -22,6 +22,9 @@ delete = false
 # cat=sync; type=boolean; label=Update file, if the file has a new version in pixx.io
 update = false
 
+# cat=sync; type=boolean; label=Enable automatic login with sync credentials in Plugin SDK iframe
+auto_login = false
+
 # cat=sync; type=int [1-50]; label=The amount of files that should be synchronized through a single run
 limit = 20
 
