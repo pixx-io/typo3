@@ -477,8 +477,13 @@ class FilesController
 
         $files = array_values($files);
 
-        $io->writeln('start to sync: ' . json_encode($fileIds));
-        $pixxioFiles = $this->pixxioFiles($fileIds);
+        // Filter out non-existent files before calling pixxioFiles to prevent 404 errors
+        $existingFileIds = array_filter($fileIds, function ($id) use ($pixxioIdsToDelete) {
+            return !in_array($id, $pixxioIdsToDelete);
+        });
+
+        $io->writeln('start to sync: ' . json_encode($existingFileIds));
+        $pixxioFiles = $this->pixxioFiles($existingFileIds);
 
         $io->writeln('Start Syncing metadata');
         foreach ($files as $file) {
