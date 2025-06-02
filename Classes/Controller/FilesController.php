@@ -266,42 +266,32 @@ class FilesController
 
             $this->getProxySettings($additionalOptions);
 
-            $response = $this->requestFactory->request($this->extensionConfiguration['url'] . '/gobackend/files/existence?' . http_build_query([
-                    'ids' => json_encode($fileIds),
-                    'responseFields' => json_encode([
-                        'id',
-                        'isMainVersion',
-                        'mainVersion'
-                    ])
-                ]), 'GET', $additionalOptions);
+            // Use the correct API format: ids=[id1,id2,id3]
+            $idsParam = '[' . implode(',', $fileIds) . ']';
+            $response = $this->requestFactory->request($this->extensionConfiguration['url'] . '/gobackend/files/existence?ids=' . $idsParam, 'GET', $additionalOptions);
 
             $temp = [];
             if ($response->getStatusCode() === 200) {
                 $data = json_decode($response->getBody()->getContents());
                 if ($data->success) {
-                    foreach ($data->files as $f) {
-                        if ($f->isMainVersion) {
+                    // Get the IDs of files that exist
+                    $existingIds = array_map(function($f) {
+                        return $f->id;
+                    }, $data->files);
+
+                    // Create result array with oldId/newId mapping for compatibility
+                    foreach ($fileIds as $id) {
+                        if (in_array($id, $existingIds)) {
                             $temp[] = [
-                                'oldId' => $f->id,
-                                'newId' => $f->id
+                                'oldId' => $id,
+                                'newId' => $id
                             ];
                         } else {
-                            $temp[] = [
-                                'oldId' => $f->id,
-                                'newId' => $f->mainVersion
-                            ];
-                        }
-                    }
-
-                    foreach ($fileIds as $id) {
-                        if (!array_filter($temp, function ($t) use ($id) {
-                            return $t['oldId'] == $id;
-                        })) {
                             $temp[] = [
                                 'oldId' => $id,
                                 'newId' => null
                             ];
-                        };
+                        }
                     }
                 }
             }
