@@ -150,7 +150,11 @@ define([
     }
 
     // Check if auto-login is enabled and we have the required data
-    if (targetButton && targetIframe && targetButton.getAttribute("data-auto-login") === "1") {
+    if (
+      targetButton &&
+      targetIframe &&
+      targetButton.getAttribute("data-auto-login") === "1"
+    ) {
       const refreshToken = targetButton.getAttribute("data-refresh-token");
       const userId = targetButton.getAttribute("data-user-id");
       const mediaspaceUrl = targetButton.getAttribute("data-mediaspace-url");
@@ -159,16 +163,26 @@ define([
         // Decode the base64 encoded values
         const decodedRefreshToken = atob(refreshToken);
         const decodedUserId = atob(userId);
-        const decodedMediaspaceUrl = atob(mediaspaceUrl);
+        const decodedMediaspaceUrl = atob(mediaspaceUrl).replace(
+          "https://",
+          ""
+        );
 
         // Send the login success message to the iframe
         const loginMessage = {
-          sender: "pixxio-plugin-sdk",
-          method: "loginSuccess",
-          parameters: [decodedRefreshToken, decodedUserId, decodedMediaspaceUrl]
+          receiver: "pixxio-plugin-sdk",
+          method: "login",
+          parameters: [
+            decodedRefreshToken,
+            decodedUserId,
+            decodedMediaspaceUrl,
+          ],
         };
 
-        targetIframe.contentWindow.postMessage(loginMessage, "https://plugin.pixx.io");
+        targetIframe.contentWindow.postMessage(
+          loginMessage,
+          "https://plugin.pixx.io"
+        );
       }
     }
   }
