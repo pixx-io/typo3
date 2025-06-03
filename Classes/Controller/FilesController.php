@@ -434,43 +434,51 @@ class FilesController
 
         foreach ($files as $index => $file) {
             // delete files
-            if (in_array($file['pixxio_file_id'], $pixxioIdsToDelete) && $this->extensionConfiguration['delete']) {
-                $io->writeln('File to deleted:' . $file['identifier']);
-                $storage = $this->getStorage();
-                $storage->deleteFile($storage->getFileByIdentifier($file['identifier']));
-                unset($files[$index]);
-                foreach ($fileIds as $key => $id) {
-                    if ($id === $file['pixxio_file_id']) {
-                        unset($fileIds[$key]);
-                        break;
-                    }
-                }
-                $fileIds = array_values($fileIds);
-            }
-
-            // update to new version
-            if (in_array($file['pixxio_file_id'], $pixxioIdsToUpdate) && $this->extensionConfiguration['update']) {
-                $newId = 0;
-                foreach ($pixxioDiff as $diff) {
-                    if ($diff['oldId'] === $file['pixxio_file_id']) {
-                        $newId = $diff['newId'];
-                        break;
-                    }
-                }
-                if ($newId) {
-                    $pixxioFile = $this->pixxioFile($newId);
-                    $absFileIdentifier = $this->saveFile($file['name'], $pixxioFile->originalFileURL);
+            if (in_array($file['pixxio_file_id'], $pixxioIdsToDelete)) {
+                if ($this->extensionConfiguration['delete']) {
+                    $io->writeln('File to deleted:' . $file['identifier']);
                     $storage = $this->getStorage();
-                    $storage->replaceFile($storage->getFileByIdentifier($file['identifier']), $absFileIdentifier);
-                    $io->writeln('File to updated:' . $file['identifier']);
+                    $storage->deleteFile($storage->getFileByIdentifier($file['identifier']));
+                    unset($files[$index]);
                     foreach ($fileIds as $key => $id) {
                         if ($id === $file['pixxio_file_id']) {
-                            $fileIds[$key] = $newId;
+                            unset($fileIds[$key]);
                             break;
                         }
                     }
+                    $fileIds = array_values($fileIds);
+                } else {
+                    $io->writeln('File which should be deleted, but extension configuration is set to not delete files: ' . $file['pixxio_file_id']);
+                }
+            }
 
-                    $files[$index]['pixxio_file_id'] = $newId;
+            // update to new version
+            if (in_array($file['pixxio_file_id'], $pixxioIdsToUpdate)) {
+                if ($this->extensionConfiguration['update']) {
+                    $newId = 0;
+                    foreach ($pixxioDiff as $diff) {
+                        if ($diff['oldId'] === $file['pixxio_file_id']) {
+                            $newId = $diff['newId'];
+                            break;
+                        }
+                    }
+                    if ($newId) {
+                        $pixxioFile = $this->pixxioFile($newId);
+                        $absFileIdentifier = $this->saveFile($file['name'], $pixxioFile->originalFileURL);
+                        $storage = $this->getStorage();
+                        $storage->replaceFile($storage->getFileByIdentifier($file['identifier']), $absFileIdentifier);
+                        $io->writeln('File to updated:' . $file['identifier']);
+                        foreach ($fileIds as $key => $id) {
+                            if ($id === $file['pixxio_file_id']) {
+                                $fileIds[$key] = $newId;
+                                break;
+                            }
+                        }
+
+                        $files[$index]['pixxio_file_id'] = $newId;
+                    }
+                } else {
+                    $io->writeln('File which should be updated, but extension configuration is set to not update files: ' . $file['identifier']);
                 }
             }
         }
