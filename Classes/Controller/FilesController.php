@@ -422,7 +422,7 @@ class FilesController
         $pixxioIdsToUpdate = array_map(function ($ids) {
             return $ids['oldId'];
         }, array_filter($pixxioDiff, function ($diff) {
-            return $diff['newId'] !== $diff['oldId'];
+            return $diff['newId'] !== null && $diff['newId'] !== $diff['oldId'];
         }));
 
 
@@ -477,8 +477,12 @@ class FilesController
 
         $files = array_values($files);
 
-        $io->writeln('start to sync: ' . json_encode($fileIds));
-        $pixxioFiles = $this->pixxioFiles($fileIds);
+        $fileIdsWithoutDeletedFiles = array_values(array_filter($fileIds, function ($id) use ($pixxioIdsToDelete) {
+            return !in_array($id, $pixxioIdsToDelete);
+        }));
+
+        $io->writeln('start to sync: ' . json_encode($fileIdsWithoutDeletedFiles));
+        $pixxioFiles = $this->pixxioFiles($fileIdsWithoutDeletedFiles);
 
         $io->writeln('Start Syncing metadata');
         foreach ($files as $file) {
