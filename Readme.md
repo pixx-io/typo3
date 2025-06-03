@@ -72,8 +72,8 @@ If you are using the core extension filemetadata it will sync more metadata to t
 - `Creator` / `Ersteller` (Type: Internal) => `Creator`
 - `Model` / `Model` (Type: EXIF) => `Creator Tool`
 - `Publisher` / `Publisher` (Type: IPTC) => `Publisher`
-- `Quelle` (Type: IPTC) => `Source`
-- `Source` / `Copyright-Vermerk` (Type: IPTC) => `Copyright`
+- `Source` / `Quelle` (Type: IPTC) => `Source`
+- `Copyright Notice` / `Copyright-Vermerk` (Type: IPTC) => `Copyright`
 - `GPS` / `GPS` (Type: Internal) => `GPS Latitude` und `GPS Longitude`
 - `Country` (Type: Custom) => `Country`
 - `Region` (Type: Custom) => `Region`
