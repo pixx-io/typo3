@@ -63,6 +63,20 @@ class InlineControlContainer extends \TYPO3\CMS\Backend\Form\Container\InlineCon
             'data-token' => $extensionConfiguration['token_refresh'],
             'data-uid' => uniqid()
         ];
+        
+        // Add auto-login data attributes if enabled
+        if (isset($extensionConfiguration['auto_login']) && $extensionConfiguration['auto_login']) {
+            $attributes['data-auto-login'] = '1';
+            if (isset($extensionConfiguration['token_refresh'])) {
+                $attributes['data-refresh-token'] = base64_encode($extensionConfiguration['token_refresh']);
+            }
+            if (isset($extensionConfiguration['user_id'])) {
+                $attributes['data-user-id'] = base64_encode($extensionConfiguration['user_id']);
+            }
+            if (isset($extensionConfiguration['url'])) {
+                $attributes['data-mediaspace-url'] = base64_encode($extensionConfiguration['url']);
+            }
+        }
 
         $langCode = $GLOBALS['BE_USER']->uc['lang'] ?? '';
 
