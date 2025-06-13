@@ -4,15 +4,17 @@ declare(strict_types=1);
 
 namespace Pixxio\PixxioExtension\Controller;
 
+use Pixxio\PixxioExtension\Utility\ConfigurationUtility;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Symfony\Component\Lock\Key;
+use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\Restriction\RootLevelRestriction;
 use TYPO3\CMS\Core\Http\JsonResponse;
 use TYPO3\CMS\Core\Http\RequestFactory;
-use TYPO3\CMS\Core\Information\Typo3Version;
 use TYPO3\CMS\Core\Resource\Index\MetaDataRepository;
+use TYPO3\CMS\Core\Resource\ResourceFactory;
+use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 class FilesController
@@ -38,43 +40,40 @@ class FilesController
 
     public function __construct()
     {
-        $this->extensionConfiguration = \Pixxio\PixxioExtension\Utility\ConfigurationUtility::getExtensionConfiguration();
+        $this->extensionConfiguration = ConfigurationUtility::getExtensionConfiguration();
         $this->requestFactory = GeneralUtility::makeInstance(RequestFactory::class);
     }
 
     public function hasExt($key)
     {
-        return \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::isLoaded($key);
+        return ExtensionManagementUtility::isLoaded($key);
     }
 
     public function getJSONRequest(ServerRequestInterface $request): ServerRequestInterface
     {
-        if (false === strpos($request->getHeaderLine('Content-Type'), 'application/json')) {
+        if (!str_contains($request->getHeaderLine('Content-Type'), 'application/json')) {
             return $request;
         }
         // TODO: Implement broken json handling
         return $request->withParsedBody(json_decode($request->getBody()->getContents()));
     }
 
-    public function selectedFilesAction(ServerRequestInterface $request, ResponseInterface $response = null): ResponseInterface
-    {
+    public function selectedFilesAction(
+        ServerRequestInterface $request,
+        ResponseInterface $response = null
+    ): ResponseInterface {
         // get files
         $files = $this->getJSONRequest($request)->getParsedBody()->files;
 
-        // for TYPO3 10.x
-        if (!is_object($response)) {
-            $response = new JsonResponse();
-        }
-
         // pull files from pixx.io
-        if($files) {
+        if ($files) {
             $importedFiles = $this->pullFiles($files);
-            $response->getBody()->write(json_encode(['files' => $importedFiles]));
+            return new JsonResponse(['files' => $importedFiles]);
         }
         return $response;
     }
 
-    private function throwError($message, $num)
+    private function throwError($message, $num): never
     {
         throw new \RuntimeException(
             $message,
@@ -90,18 +89,18 @@ class FilesController
             $storageBasePath = $storage->getConfiguration()['basePath'];
 
             // correct beginning and trailing slashes
-            if (substr($storageBasePath, -1) != '/') {
+            if (!str_ends_with((string) $storageBasePath, '/')) {
                 $storageBasePath = $storageBasePath . '/';
             }
-            if (substr($storageBasePath, 0, 1) == '/') {
-                $storageBasePath = substr($storageBasePath, 1);
+            if (str_starts_with((string) $storageBasePath, '/')) {
+                $storageBasePath = substr((string) $storageBasePath, 1);
             }
 
             if ($this->extensionConfiguration['subfolder']) {
                 $storageBasePath .= $this->extensionConfiguration['subfolder'];
             }
 
-            if (substr($storageBasePath, -1) != '/') {
+            if (!str_ends_with((string) $storageBasePath, '/')) {
                 $storageBasePath = $storageBasePath . '/';
             }
 
@@ -139,9 +138,10 @@ class FilesController
 
     private function getProxySettings(&$additionalFields)
     {
-        if ($this->extensionConfiguration['use_proxy'] && filter_var($this->extensionConfiguration['proxy_connection'], FILTER_VALIDATE_URL)) {
+        if ($this->extensionConfiguration['use_proxy'] && filter_var($this->extensionConfiguration['proxy_connection'],
+                FILTER_VALIDATE_URL)) {
             $proxy = [];
-            $proxy[strpos($this->extensionConfiguration['proxy_connection'], 'https') === 0 ? 'https' : 'http'] = $this->extensionConfiguration['proxy_connection'];
+            $proxy[str_starts_with((string) $this->extensionConfiguration['proxy_connection'], 'https') ? 'https' : 'http'] = $this->extensionConfiguration['proxy_connection'];
             $additionalFields['proxy'] = $proxy;
         }
     }
@@ -209,14 +209,11 @@ class FilesController
 
     private function pixxioAuth()
     {
-
-        if($this->extensionConfiguration['url'] == "") {
+        if ($this->extensionConfiguration['url'] == "") {
             $this->throwError('Authentication to pixx.io failed. Please check pixx.io URL in your extension configuration', 9);
-            return false;
         }
-        if($this->extensionConfiguration['token_refresh'] == "") {
+        if ($this->extensionConfiguration['token_refresh'] == "") {
             $this->throwError('Authentication to pixx.io failed. Please check pixx.io refresh token in your extension configuration', 10);
-            return false;
         }
 
         $additionalOptions = [
@@ -230,15 +227,16 @@ class FilesController
 
         $this->getProxySettings($additionalOptions);
 
-        $response = $this->requestFactory->request($this->extensionConfiguration['url'] . '/gobackend/accessToken', 'POST', $additionalOptions);
+        $response = $this->requestFactory->request($this->extensionConfiguration['url'] . '/gobackend/accessToken',
+            'POST', $additionalOptions);
 
         if ($response->getStatusCode() === 200) {
             $data = json_decode($response->getBody()->getContents());
             return $data->success ? $data->accessToken : false;
         }
 
-        $this->throwError('Authentication to pixx.io failed. Please check your configuration and your given refresh token.', 2);
-        return false;
+        $this->throwError('Authentication to pixx.io failed. Please check your configuration and your given refresh token.',
+            2);
     }
 
     private function getMetadataField($file, $name)
@@ -324,11 +322,7 @@ class FilesController
             ->orderBy('pixxio_last_sync_stamp')
             ->setMaxResults(1);
 
-        if (GeneralUtility::makeInstance(Typo3Version::class)->getMajorVersion() < 11) {
-            $fileMetaData = $fileMetaData->execute()->fetch();
-        } else {
-            $fileMetaData = $fileMetaData->executeQuery()->fetchAssociative();
-        }
+        $fileMetaData = $fileMetaData->executeQuery()->fetchAssociative();
 
         if ($fileMetaData) {
             $file = $queryBuilder
@@ -340,11 +334,7 @@ class FilesController
                 ->orderBy('pixxio_last_sync_stamp')
                 ->setMaxResults(1);
 
-            if (GeneralUtility::makeInstance(Typo3Version::class)->getMajorVersion() < 11) {
-                $file = $file->execute()->fetch();
-            } else {
-                $file = $file->executeQuery()->fetchAssociative();
-            }
+            $file = $file->executeQuery()->fetchAssociative();
         }
 
         if ($fileMetaData && $file) {
@@ -373,7 +363,7 @@ class FilesController
             ->select('*')
             ->from('sys_file_metadata')
             ->where(
-                $queryBuilder->expr()->gt('pixxio_file_id', $queryBuilder->createNamedParameter(0, \PDO::PARAM_INT)),
+                $queryBuilder->expr()->gt('pixxio_file_id', $queryBuilder->createNamedParameter(0, Connection::PARAM_INT)),
             )
             ->orderBy('pixxio_last_sync_stamp')
             ->setMaxResults(10)
@@ -383,11 +373,7 @@ class FilesController
             )
             );
 
-        if (GeneralUtility::makeInstance(Typo3Version::class)->getMajorVersion() < 11) {
-            $files = $files->execute()->fetchAll();
-        } else {
-            $files = $files->executeQuery()->fetchAllAssociative();
-        }
+        $files = $files->executeQuery()->fetchAllAssociative();
 
         $io->writeln('Got files from database');
 
@@ -506,14 +492,15 @@ class FilesController
 
             $pixxioFile = $pixxioFile[0];
 
-            $additionalFields = array(
+            $additionalFields = [
                 'title' => $pixxioFile->subject,
                 'description' => $pixxioFile->description,
-                'alternative' => $this->getMetadataField($pixxioFile, $this->extensionConfiguration['alt_text'] ?: 'Alt Text (Accessibility)'),
+                'alternative' => $this->getMetadataField($pixxioFile,
+                    $this->extensionConfiguration['alt_text'] ?: 'Alt Text (Accessibility)'),
                 'pixxio_file_id' => $pixxioFile->id,
                 //'pixxio_mediaspace' => $pixxioFile->originalFileURL,
                 'pixxio_last_sync_stamp' => time()
-            );
+            ];
 
             if ($this->hasExt('filemetadata')) {
                 $additionalFields = array_merge($additionalFields, $this->getMetadataWithFilemetadataExt($pixxioFile));
@@ -592,7 +579,7 @@ class FilesController
             $storageUid = 1;
         }
 
-        $resourceFactory = GeneralUtility::makeInstance(\TYPO3\CMS\Core\Resource\ResourceFactory::class);
+        $resourceFactory = GeneralUtility::makeInstance(ResourceFactory::class);
         return $resourceFactory->getStorageObject($storageUid);
     }
 
@@ -605,11 +592,12 @@ class FilesController
             $uploaded = true;
         } else {
             if ($this->isExecutableExtension($filename)) {
-                $this->throwError('Wrong upload file extension. Is not allowed to use php,js,js,exe,doc,xls,sh: "' . $filename, 5);
+                $this->throwError('Wrong upload file extension. Is not allowed to use php,js,js,exe,doc,xls,sh: "' . $filename,
+                    5);
             }
         }
 
-        if( ini_get('allow_url_fopen') ) {
+        if (ini_get('allow_url_fopen')) {
             $uploaded = file_put_contents($absFileIdentifier, file_get_contents($url));
         } else {
             $ch = curl_init($url);
@@ -618,7 +606,7 @@ class FilesController
             curl_setopt($ch, CURLOPT_HEADER, 0);
 
             $uploaded = true;
-            if( ! curl_exec($ch)) {
+            if (!curl_exec($ch)) {
                 $this->throwError('CURL Error while transferring file.', 7);
                 $uploaded = false;
             }
@@ -650,14 +638,14 @@ class FilesController
                     $importedFiles[] = $importedFileUid;
 
                     // set meta data
-                    $additionalFields = array(
+                    $additionalFields = [
                         'title' => $file->subject,
                         'description' => $file->description,
                         'pixxio_file_id' => $file->id,
                         'pixxio_mediaspace' => $file->downloadURL,
                         'pixxio_last_sync_stamp' => time(),
                         'pixxio_downloadformat' => $file->downloadFormat
-                    );
+                    ];
 
                     if (isset($this->extensionConfiguration['alt_text']) && isset($file->metadata->{$this->extensionConfiguration['alt_text']})) {
                         $additionalFields['alternative'] = $file->metadata->{$this->extensionConfiguration['alt_text']};
@@ -674,7 +662,7 @@ class FilesController
 
     protected function isExecutableExtension($filename)
     {
-        $notSupportedImages = array(
+        $notSupportedImages = [
             'php',
             'js',
             'cgi',
@@ -682,8 +670,8 @@ class FilesController
             'doc',
             'xls',
             'sh'
-        );
-        $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+        ];
+        $ext = strtolower(pathinfo((string) $filename, PATHINFO_EXTENSION));
         if (in_array($ext, $notSupportedImages)) {
             return true;
         } else {
@@ -693,30 +681,14 @@ class FilesController
 
     protected function getNonUtf8Filename($filename)
     {
-        $filename = mb_strtolower($filename, 'UTF-8');
+        $filename = mb_strtolower((string) $filename, 'UTF-8');
         $filename = str_replace(
-            array('ä', 'ö', 'ü', 'ß', ' - ', ' + ', '_', ' / ', '/'),
-            array('ae', 'oe', 'ue', 'ss', '-', '-', '-', '-', '-'),
+            ['ä', 'ö', 'ü', 'ß', ' - ', ' + ', '_', ' / ', '/'],
+            ['ae', 'oe', 'ue', 'ss', '-', '-', '-', '-', '-'],
             $filename);
         $filename = str_replace(' ', '-', $filename);
         $filename = preg_replace('/[^a-z0-9\._-]/isU', '', $filename);
-        $filename = trim($filename);
+        $filename = trim((string) $filename);
         return $filename;
-    }
-
-    protected function isImageExtension($filename)
-    {
-        $supportedImages = array(
-            'gif',
-            'jpg',
-            'jpeg',
-            'png'
-        );
-        $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-        if (in_array($ext, $supportedImages)) {
-            return true;
-        } else {
-            return false;
-        }
     }
 }
