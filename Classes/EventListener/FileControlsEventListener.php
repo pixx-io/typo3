@@ -16,7 +16,7 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 final class FileControlsEventListener
 {
-    private $applicationId = 'eS9Pb3S5bsEa2Z6527lUwUBp8';
+    private $applicationId = 'ghx8F66X3ix4AJ0VmS0DE8sx7';
 
     public function __construct(
         protected IconFactory $iconFactory
