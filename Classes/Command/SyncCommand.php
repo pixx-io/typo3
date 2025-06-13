@@ -2,13 +2,12 @@
 
 namespace Pixxio\PixxioExtension\Command;
 
+use Pixxio\PixxioExtension\Controller\FilesController;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-
 
 class SyncCommand extends Command
 {
@@ -17,7 +16,7 @@ class SyncCommand extends Command
    */
   protected function configure()
   {
-    $this->setHelp('Prints a list of recent sys_log entries.' . LF . 'If you want to get more detailed information, use the --verbose option.');
+    $this->setHelp('Prints a list of recent sys_log entries.' . PHP_EOL . 'If you want to get more detailed information, use the --verbose option.');
   }
 
   protected function execute(InputInterface $input, OutputInterface $output): int
@@ -28,7 +27,7 @@ class SyncCommand extends Command
 
       $io->writeln('🚀 Start syncing');
       try {
-          $filesController = GeneralUtility::makeInstance(\Pixxio\PixxioExtension\Controller\FilesController::class);
+          $filesController = GeneralUtility::makeInstance(FilesController::class);
           $result = $filesController->syncAction($io);
           if ($result) {
               $io->success('🪐 synchronization successful');
