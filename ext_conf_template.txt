@@ -4,6 +4,9 @@ filestorage_id = 1
 # cat=basic; type=string; label=Default subfolder (of choosen File Storage, e.g. "images")
 subfolder =
 
+# cat=basic; type=boolean; label=Use direct links
+use_directlink = false
+
 # cat=metadata; type=string; label=Metadata for alternative Text (default = Alt Text (Accessibility))
 alt_text = Alt Text (Accessibility)
 

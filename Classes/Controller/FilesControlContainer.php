@@ -41,7 +41,7 @@ use TYPO3\CMS\Core\Page\AssetCollector;
  */
 class FilesControlContainer extends \TYPO3\CMS\Backend\Form\Container\FilesControlContainer
 {
-    private $applicationId = 'eS9Pb3S5bsEa2Z6527lUwUBp8';
+    private $applicationId = 'ghx8F66X3ix4AJ0VmS0DE8sx7';
 
     private const FILE_REFERENCE_TABLE = 'sys_file_reference';
 
@@ -114,7 +114,7 @@ class FilesControlContainer extends \TYPO3\CMS\Backend\Form\Container\FilesContr
         $showUpload = (bool)($inlineConfiguration['appearance']['fileUploadAllowed'] ?? true);
         $showByUrl = ($inlineConfiguration['appearance']['fileByUrlAllowed'] ?? true) && $onlineMediaAllowed !== [];
         $pixxioUploadAllowed = (isset($backendUser->uc['show_pixxioUpload']) &&  $backendUser->uc['show_pixxioUpload'] === '0') ? false : true;
-        
+
         if (($showUpload || $showByUrl) && $pixxioUploadAllowed) {
             $defaultUploadFolderResolver = GeneralUtility::makeInstance(DefaultUploadFolderResolver::class);
             $folder = $defaultUploadFolderResolver->resolve(
@@ -217,6 +217,10 @@ class FilesControlContainer extends \TYPO3\CMS\Backend\Form\Container\FilesContr
 
             $iframe_lang = $languageService->getLocale();
             $iframe_url = 'https://plugin.pixx.io/static/v1/' . $iframe_lang . '/media?multiSelect=true&applicationId='.$this->applicationId;
+
+            if (isset($extensionConfiguration['use_directlink']) && $extensionConfiguration['use_directlink'] == true) {
+                $iframe_url .= '&useDirectLinks=true&allowedDownloadFormats=original&allowedDownloadFormats=preview';
+            }
 
             if (isset($extensionConfiguration['alt_text'])) {
                 $iframe_url .= '&metadata=' . urlencode($extensionConfiguration['alt_text']);

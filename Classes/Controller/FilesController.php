@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Pixxio\PixxioExtension\Controller;
 
+use Pixxio\PixxioExtension\Domain\Model\LicenceRelease;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Symfony\Component\Lock\Key;
@@ -14,8 +15,11 @@ use TYPO3\CMS\Core\Http\RequestFactory;
 use TYPO3\CMS\Core\Information\Typo3Version;
 use TYPO3\CMS\Core\Resource\Index\MetaDataRepository;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
+use TYPO3\CMS\Extbase\Persistence\Generic\PersistenceManager;
+use TYPO3\CMS\Extbase\Utility\DebuggerUtility;
 
-class FilesController
+class FilesController extends ActionController
 {
 
     private $metadataMapping = [
@@ -67,7 +71,7 @@ class FilesController
         }
 
         // pull files from pixx.io
-        if($files) {
+        if ($files) {
             $importedFiles = $this->pullFiles($files);
             $response->getBody()->write(json_encode(['files' => $importedFiles]));
         }
@@ -422,7 +426,7 @@ class FilesController
         $pixxioIdsToUpdate = array_map(function ($ids) {
             return $ids['oldId'];
         }, array_filter($pixxioDiff, function ($diff) {
-            return $diff['newId'] !== $diff['oldId'];
+            return $diff['newId'] !== null && $diff['newId'] !== $diff['oldId'];
         }));
 
 
@@ -434,51 +438,63 @@ class FilesController
 
         foreach ($files as $index => $file) {
             // delete files
-            if (in_array($file['pixxio_file_id'], $pixxioIdsToDelete) && $this->extensionConfiguration['delete']) {
-                $io->writeln('File to deleted:' . $file['identifier']);
-                $storage = $this->getStorage();
-                $storage->deleteFile($storage->getFileByIdentifier($file['identifier']));
-                unset($files[$index]);
-                foreach ($fileIds as $key => $id) {
-                    if ($id === $file['pixxio_file_id']) {
-                        unset($fileIds[$key]);
-                        break;
-                    }
-                }
-                $fileIds = array_values($fileIds);
-            }
-
-            // update to new version
-            if (in_array($file['pixxio_file_id'], $pixxioIdsToUpdate) && $this->extensionConfiguration['update']) {
-                $newId = 0;
-                foreach ($pixxioDiff as $diff) {
-                    if ($diff['oldId'] === $file['pixxio_file_id']) {
-                        $newId = $diff['newId'];
-                        break;
-                    }
-                }
-                if ($newId) {
-                    $pixxioFile = $this->pixxioFile($newId);
-                    $absFileIdentifier = $this->saveFile($file['name'], $pixxioFile->originalFileURL);
+            if (in_array($file['pixxio_file_id'], $pixxioIdsToDelete)) {
+                if ($this->extensionConfiguration['delete']) {
+                    $io->writeln('File to deleted:' . $file['identifier']);
                     $storage = $this->getStorage();
-                    $storage->replaceFile($storage->getFileByIdentifier($file['identifier']), $absFileIdentifier);
-                    $io->writeln('File to updated:' . $file['identifier']);
+                    $storage->deleteFile($storage->getFileByIdentifier($file['identifier']));
+                    unset($files[$index]);
                     foreach ($fileIds as $key => $id) {
                         if ($id === $file['pixxio_file_id']) {
-                            $fileIds[$key] = $newId;
+                            unset($fileIds[$key]);
                             break;
                         }
                     }
+                    $fileIds = array_values($fileIds);
+                } else {
+                    $io->writeln('File which should be deleted, but extension configuration is set to not delete files: ' . $file['pixxio_file_id']);
+                }
+            }
 
-                    $files[$index]['pixxio_file_id'] = $newId;
+            // update to new version
+            if (in_array($file['pixxio_file_id'], $pixxioIdsToUpdate)) {
+                if ($this->extensionConfiguration['update']) {
+                    $newId = 0;
+                    foreach ($pixxioDiff as $diff) {
+                        if ($diff['oldId'] === $file['pixxio_file_id']) {
+                            $newId = $diff['newId'];
+                            break;
+                        }
+                    }
+                    if ($newId) {
+                        $pixxioFile = $this->pixxioFile($newId);
+                        $absFileIdentifier = $this->saveFile($file['name'], $pixxioFile->originalFileURL);
+                        $storage = $this->getStorage();
+                        $storage->replaceFile($storage->getFileByIdentifier($file['identifier']), $absFileIdentifier);
+                        $io->writeln('File to updated:' . $file['identifier']);
+                        foreach ($fileIds as $key => $id) {
+                            if ($id === $file['pixxio_file_id']) {
+                                $fileIds[$key] = $newId;
+                                break;
+                            }
+                        }
+
+                        $files[$index]['pixxio_file_id'] = $newId;
+                    }
+                } else {
+                    $io->writeln('File which should be updated, but extension configuration is set to not update files: ' . $file['identifier']);
                 }
             }
         }
 
         $files = array_values($files);
 
-        $io->writeln('start to sync: ' . json_encode($fileIds));
-        $pixxioFiles = $this->pixxioFiles($fileIds);
+        $fileIdsWithoutDeletedFiles = array_values(array_filter($fileIds, function ($id) use ($pixxioIdsToDelete) {
+            return !in_array($id, $pixxioIdsToDelete);
+        }));
+
+        $io->writeln('start to sync: ' . json_encode($fileIdsWithoutDeletedFiles));
+        $pixxioFiles = $this->pixxioFiles($fileIdsWithoutDeletedFiles);
 
         $io->writeln('Start Syncing metadata');
         foreach ($files as $file) {
@@ -597,7 +613,7 @@ class FilesController
             }
         }
 
-        if( ini_get('allow_url_fopen') ) {
+        if (ini_get('allow_url_fopen')) {
             $uploaded = file_put_contents($absFileIdentifier, file_get_contents($url));
         } else {
             $ch = curl_init($url);
@@ -626,7 +642,9 @@ class FilesController
             $filename = $this->getNonUtf8Filename($file->fileName ?: '');
 
             // upload file
-            if (!$this->saveFile($filename, $file->downloadURL)) {
+            if (isset($file->directLink) && $file->directLink != '' && !$this->saveFile($filename, $file->directLink)) {
+                $this->throwError('Copying file "' . $filename . '" to path "' . '" failed.', 4);
+            } else if (!isset($file->directLink) && !$this->saveFile($filename, $file->downloadURL)) {
                 //if (!$this->saveFile($filename, $file->url)) {
                 $this->throwError('Copying file "' . $filename . '" to path "' . '" failed.', 4);
             } else {
@@ -646,6 +664,55 @@ class FilesController
                         'pixxio_last_sync_stamp' => time(),
                         'pixxio_downloadformat' => $file->downloadFormat
                     );
+
+                    $licenseReleaseUids = [];
+                    if (isset($file->licenseReleases)) {
+
+                        $connectionPool = GeneralUtility::makeInstance(ConnectionPool::class);
+                        $connection = $connectionPool->getConnectionForTable('tx_pixxioextension_domain_model_licenserelease');
+
+                        $persistenceManager = GeneralUtility::makeInstance( PersistenceManager::class);
+                        $persistenceManager->persistAll();
+
+                        foreach ($file->licenseReleases as $licenseRelease) {
+
+                            $insertData = [];
+                            if (isset($licenseRelease->licenseRelease)) {
+                                if (isset($licenseRelease->licenseRelease->license)
+                                    && isset($licenseRelease->licenseRelease->license->provider)) {
+                                    $insertData['license_provider'] = $licenseRelease->licenseRelease->license->provider;
+                                }
+
+                                if (isset($licenseRelease->licenseRelease->name)) {
+                                    $insertData['name'] = $licenseRelease->licenseRelease->name;
+                                }
+
+                                if (isset($licenseRelease->licenseRelease->showWarningMessage)) {
+                                    $insertData['show_warning_message'] = (bool) $licenseRelease->licenseRelease->showWarningMessage;
+                                }
+
+                                if (isset($licenseRelease->licenseRelease->warningMessage)) {
+                                    $insertData['show_warning_message'] = $licenseRelease->licenseRelease->warningMessage;
+                                }
+                            }
+
+                            if (isset($licenseRelease->expires)) {
+                                $insertData['expires'] = $licenseRelease->expires;
+                            }
+
+                            $connection->insert('tx_pixxioextension_domain_model_licenserelease', $insertData);
+
+                            $licenseReleaseUids[] = $connection->lastInsertId('tx_pixxioextension_domain_model_licenserelease');
+                        }
+
+                    }
+
+                    $additionalFields['tx_pixxioextension_licensereleases'] = implode(',', $licenseReleaseUids);
+
+                    if (isset($file->directLink)) {
+                        $additionalFields['pixxio_is_direct_link'] = isset( $file->directLink ) && $file->directLink != '' ? 1 : 0;
+                        $additionalFields['pixxio_direct_link'] = isset( $file->directLink ) && $file->directLink != '' ? $file->directLink : '0';
+                    }
 
                     if (isset($this->extensionConfiguration['alt_text']) && isset($file->metadata->{$this->extensionConfiguration['alt_text']})) {
                         $additionalFields['alternative'] = $file->metadata->{$this->extensionConfiguration['alt_text']};
