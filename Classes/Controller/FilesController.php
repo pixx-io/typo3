@@ -60,7 +60,7 @@ class FilesController
 
     public function selectedFilesAction(
         ServerRequestInterface $request,
-        ResponseInterface $response = null
+        ?ResponseInterface $response = null
     ): ResponseInterface {
         // get files
         $files = $this->getJSONRequest($request)->getParsedBody()->files;
