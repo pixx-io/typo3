@@ -11,7 +11,7 @@ CREATE TABLE sys_file_metadata (
 CREATE TABLE tx_pixxioextension_domain_model_licenserelease (
     uid int(11) NOT NULL auto_increment,
     pid int(11) DEFAULT '0' NOT NULL,
-    sys_file_metadata int(1) NOT NULL DEFAULT '0',
+    sys_file_metadata int(11) NOT NULL DEFAULT '0',
     license_provider varchar(255) DEFAULT '' NOT NULL COMMENT 'License Provider',
     name varchar(255) DEFAULT '' NOT NULL COMMENT 'Licence Name',
     show_warning_message tinyint(1) DEFAULT '0' NOT NULL COMMENT 'Show Warning Message',
