@@ -644,7 +644,7 @@ class FilesController extends ActionController
             if (isset($file->directLink) && $file->directLink != '') {
                 $parts = parse_url($filename);
 
-                $previewImageDimensions = 'format=jpeg&qauality=60&width=100&height=100';
+                $previewImageDimensions = 'format=jpeg&quality=60&width=100&height=100';
                 if (isset($parts['query'])) {
                     $filename .= '&' . $previewImageDimensions;
                 } else {
