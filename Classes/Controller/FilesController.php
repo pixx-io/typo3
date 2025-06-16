@@ -641,6 +641,17 @@ class FilesController extends ActionController
             // set upload filename and upload folder
             $filename = $this->getNonUtf8Filename($file->fileName ?: '');
 
+            if (isset($file->directLink) && $file->directLink != '') {
+                $parts = parse_url($filename);
+
+                $previewImageDimensions = 'format=jpeg&qauality=60&width=100&height=100';
+                if (isset($parts['query'])) {
+                    $filename .= '&' . $previewImageDimensions;
+                } else {
+                    $filename .= '?' . $previewImageDimensions;
+                }
+            }
+
             // upload file
             if (isset($file->directLink) && $file->directLink != '' && !$this->saveFile($filename, $file->directLink)) {
                 $this->throwError('Copying file "' . $filename . '" to path "' . '" failed.', 4);
