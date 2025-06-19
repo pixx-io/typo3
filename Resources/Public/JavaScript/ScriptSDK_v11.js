@@ -67,6 +67,8 @@ define([
 
     if (messageEvent?.data?.method === "downloadFiles") {
       downloadFiles(messageEvent?.data?.parameters[0]);
+    } else if (messageEvent?.data?.method === "onSdkReady") {
+      handleSdkReady(messageEvent);
     }
   });
 
@@ -127,5 +129,61 @@ define([
         }
       });
     NProgress.done();
+  }
+
+  function handleSdkReady(messageEvent) {
+    // Find the corresponding button and iframe for this SDK ready event
+    let targetButton = null;
+    let targetIframe = null;
+
+    // If we have a last opened button, use that
+    if (window.pixxioLastLightboxOpenerButton) {
+      targetButton = window.pixxioLastLightboxOpenerButton;
+      targetIframe = targetButton.parentElement.querySelector("iframe.pixxio_sdk");
+    } else {
+      // Otherwise find the first visible iframe
+      const visibleLightboxes = document.querySelectorAll('.pixxio-lightbox[style*="block"]');
+      if (visibleLightboxes.length > 0) {
+        targetIframe = visibleLightboxes[0].querySelector("iframe.pixxio_sdk");
+        targetButton = visibleLightboxes[0].parentElement.querySelector(".pixxio-sdk-btn");
+      }
+    }
+
+    // Check if auto-login is enabled and we have the required data
+    if (
+      targetButton &&
+      targetIframe &&
+      targetButton.getAttribute("data-auto-login") === "1"
+    ) {
+      const refreshToken = targetButton.getAttribute("data-refresh-token");
+      const userId = targetButton.getAttribute("data-user-id");
+      const mediaspaceUrl = targetButton.getAttribute("data-mediaspace-url");
+
+      if (refreshToken && userId && mediaspaceUrl) {
+        // Decode the base64 encoded values
+        const decodedRefreshToken = atob(refreshToken);
+        const decodedUserId = atob(userId);
+        const decodedMediaspaceUrl = atob(mediaspaceUrl).replace(
+          "https://",
+          ""
+        );
+
+        // Send the login success message to the iframe
+        const loginMessage = {
+          receiver: "pixxio-plugin-sdk",
+          method: "login",
+          parameters: [
+            decodedRefreshToken,
+            decodedUserId,
+            decodedMediaspaceUrl,
+          ],
+        };
+
+        targetIframe.contentWindow.postMessage(
+          loginMessage,
+          "https://plugin.pixx.io"
+        );
+      }
+    }
   }
 });
