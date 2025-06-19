@@ -56,16 +56,19 @@ if (document.readyState === "complete") {
 }
 
 window.addEventListener("message", (messageEvent) => {
-  if (
-    messageEvent?.origin !== "https://plugin.pixx.io" ||
-    messageEvent?.data?.sender !== "pixxio-plugin-sdk"
-  )
+  if (messageEvent?.origin !== "https://plugin.pixx.io"
+      || messageEvent?.data?.sender !== "pixxio-plugin-sdk") {
     return;
+  }
 
   if (messageEvent?.data?.method === "downloadFiles") {
     downloadFiles(messageEvent?.data?.parameters[0]);
   } else if (messageEvent?.data?.method === "onSdkReady") {
     handleSdkReady(messageEvent);
+  }
+
+  if (messageEvent?.data?.method === "directLinksCreated") {
+    downloadFiles(messageEvent?.data?.parameters[0]);
   }
 });
 

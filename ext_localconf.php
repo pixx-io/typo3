@@ -40,4 +40,9 @@ $iconRegistry->registerIcon(
 );
 unset($iconRegistry);
 
-
+$extensionKey = 'pixxio_extension';
+\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTypoScript(
+    $extensionKey,
+    'setup',
+    "@import 'EXT:" . $extensionKey . "/Configuration/TypoScript/setup.typoscript'"
+);
