@@ -15,7 +15,7 @@ https://packagist.org/packages/typo3/cms-filemetadata
 
 ## Development setup with composer
 
-1. Create a folder `./local_packages`
+1. Create a folder `./packages`
 2. Go inside the folder
 3. Checkout the repo with `git clone https://github.com/pixx-io/typo3.git pixxio_extension`
 4. Add to `composer.json` a local package repository:
@@ -23,11 +23,11 @@ https://packagist.org/packages/typo3/cms-filemetadata
    	"repositories": [
    		{
    		"type": "path",
-   		"url": "./local_packages/*"
+   		"url": "./packages/*"
    		}
    	],
    ```
-5. Install the plugin via `composer require pixxio/pixxio-extension`
+5. Install the plugin via `ddev composer require pixxio/pixxio-extension`
 
 ### Testing Sync
 
@@ -41,7 +41,7 @@ You can run the sync command via the ddev cli:
 
 You need one additional plugin:
 
-`composer require typo3/cms-scheduler`
+`ddev composer require typo3/cms-scheduler`
 
 After the installation, there is a database error visible. To fix it, run:
 
@@ -58,7 +58,7 @@ After the installation, there is a database error visible. To fix it, run:
 ### Update the plugin from Github repository
 
 1. Pull the code from the repository with `git pull`
-2. Reinstall the plugin `composer require pixxio/pixxio-extension`
+2. Reinstall the plugin `ddev composer require pixxio/pixxio-extension`
 
 ## Publish new release
 

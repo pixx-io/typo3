@@ -84,6 +84,22 @@ If you are using the core extension filemetadata it will sync more metadata to t
 
 ## ChangeLog
 
+### 2.2.0
+
+- Add setting to enable auto-login with the sync access data in the image picker.
+
+### 2.1.2
+
+- Fix error handling in sync when files are removed or not accessible in pixx.io
+
+### 2.1.1
+
+- Fix fatal error in SyncCommand 
+
+### 2.1.0
+
+- Add setting `setup.override.show_pixxioUpload` for hiding the "Select from pixx.io" button for selected user groups
+
 ### 2.0.2
 
 - Bugfix for TYPO3 >= 12.4.3 in Controller/FilesControlContainer.php (FileExtensionFilter)
