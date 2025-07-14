@@ -43,7 +43,7 @@ class PixxioFilesControllerTest extends UnitTestCase
             ->disableOriginalConstructor()
             ->getMock();
 
-        $pixxioFilesRepository = $this->getMockBuilder(\::class)
+        $pixxioFilesRepository = $this->getMockBuilder(\Pixxio\PixxioExtension\Domain\Repository\PixxioFilesRepository::class)
             ->onlyMethods(['findAll'])
             ->disableOriginalConstructor()
             ->getMock();
@@ -64,7 +64,7 @@ class PixxioFilesControllerTest extends UnitTestCase
     {
         $pixxioFiles = new \Pixxio\PixxioExtension\Domain\Model\PixxioFiles();
 
-        $pixxioFilesRepository = $this->getMockBuilder(\::class)
+        $pixxioFilesRepository = $this->getMockBuilder(\Pixxio\PixxioExtension\Domain\Repository\PixxioFilesRepository::class)
             ->onlyMethods(['add'])
             ->disableOriginalConstructor()
             ->getMock();
@@ -96,7 +96,7 @@ class PixxioFilesControllerTest extends UnitTestCase
     {
         $pixxioFiles = new \Pixxio\PixxioExtension\Domain\Model\PixxioFiles();
 
-        $pixxioFilesRepository = $this->getMockBuilder(\::class)
+        $pixxioFilesRepository = $this->getMockBuilder(\Pixxio\PixxioExtension\Domain\Repository\PixxioFilesRepository::class)
             ->onlyMethods(['update'])
             ->disableOriginalConstructor()
             ->getMock();
@@ -114,7 +114,7 @@ class PixxioFilesControllerTest extends UnitTestCase
     {
         $pixxioFiles = new \Pixxio\PixxioExtension\Domain\Model\PixxioFiles();
 
-        $pixxioFilesRepository = $this->getMockBuilder(\::class)
+        $pixxioFilesRepository = $this->getMockBuilder(\Pixxio\PixxioExtension\Domain\Repository\PixxioFilesRepository::class)
             ->onlyMethods(['remove'])
             ->disableOriginalConstructor()
             ->getMock();

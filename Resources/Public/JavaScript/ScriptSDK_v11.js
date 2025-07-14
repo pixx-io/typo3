@@ -105,7 +105,7 @@ define([
               table: "sys_file",
               uid: uid,
             };
-            MessageUtility.MessageUtility.send(message);
+            MessageUtility.send(message);
 
             const lightboxes = document.querySelectorAll(".pixxio-lightbox");
 
