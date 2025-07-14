@@ -37,6 +37,9 @@ It's possible to sync the alt text. Therefore you have to define the name of the
 
 In Sync you can define behaviors that should be done during a running sync.
 
+**Auto Login:**
+Enable automatic login with the sync access data in the image picker. When enabled, users will be automatically logged into the pixx.io interface without manual authentication, using the configured sync credentials.
+
 **Delete:**
 If a file is deleted in pixx.io, it will be deleted in typo3 as well if the flag is set. If not it will decouple the file from pixx.io.
 
@@ -83,6 +86,13 @@ If you are using the core extension filemetadata it will sync more metadata to t
 - `ModifyDate` / `Farbraum` (Type: Internal) => `Color Space`
 
 ## ChangeLog
+
+### 2.3.0
+
+- **TYPO3 v13 Support**: Auto Login feature now fully supports TYPO3 v13
+- Updated version constraints to support TYPO3 10.4-13.x
+- Fixed MessageUtility compatibility for TYPO3 v13
+- Enhanced testing framework compatibility
 
 ### 2.2.0
 
