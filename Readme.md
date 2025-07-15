@@ -9,6 +9,17 @@ The pixx.io Typo3 Extension allows pixx.io users to select the assets directly f
 - Includes Proxy support
 - Works with the popular core extension: typo3/filemetadata
 
+## ⚠️ Note on versions
+
+This extension has several main versions, which are intended for different TYPO3 versions:
+
+| Extension version | Compatible with TYPO3 | Branch                                                   | Changelog                                                                  |
+| ----------------- | --------------------- | -------------------------------------------------------- | -------------------------------------------------------------------------- |
+| 3.x               | TYPO3 v13             | [`main`](https://github.com/pixx-io/typo3)               | [Changelog 3.x](./CHANGELOG.md)                                            |
+| 2.x               | TYPO3 v11 - v12.      | [`master`](https://github.com/pixx-io/typo3/tree/master) | [Changelog 2.x](https://github.com/pixx-io/typo3/blob/master/CHANGELOG.md) |
+
+Please use the appropriate version depending on your TYPO3 installation.
+
 ## Installation:
 
 The installation of the extension is straight forward. Type `composer req pixxio/pixxio-extension` for installation. ext-curl is installed automatically, if not already installed.
@@ -81,13 +92,3 @@ If you are using the core extension filemetadata it will sync more metadata to t
 - `Date created` / `Erstellungsdatum` (Type: Internal) => `Content Creation Date`
 - `Zuletzt bearbeitet` (Type: Internal) => `Content Modification Date`
 - `ModifyDate` / `Farbraum` (Type: Internal) => `Color Space`
-
-## ChangeLog
-
-### 2.0.2
-
-- Bugfix for TYPO3 >= 12.4.3 in Controller/FilesControlContainer.php (FileExtensionFilter)
-
-### 2.0.3
-
-- Fix bugs to support multiple image fields
