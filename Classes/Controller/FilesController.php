@@ -588,13 +588,10 @@ class FilesController
         $uploaded = false;
         $absFileIdentifier = $this->uploadPath() . $filename;
 
-        if (file_exists($absFileIdentifier) || is_file($absFileIdentifier)) {
-            $uploaded = true;
-        } else {
-            if ($this->isExecutableExtension($filename)) {
-                $this->throwError('Wrong upload file extension. Is not allowed to use php,js,js,exe,doc,xls,sh: "' . $filename,
-                    5);
-            }
+        // Check for executable extensions before attempting to save
+        if ($this->isExecutableExtension($filename)) {
+            $this->throwError('Wrong upload file extension. Is not allowed to use php,js,js,exe,doc,xls,sh: "' . $filename,
+                5);
         }
 
         if (ini_get('allow_url_fopen')) {
@@ -623,7 +620,8 @@ class FilesController
         $importedFiles = [];
         foreach ($files as $key => $file) {
             // set upload filename and upload folder
-            $filename = $this->getNonUtf8Filename($file->fileName ?: '');
+            $originalFilename = $this->getNonUtf8Filename($file->fileName ?: '');
+            $filename = $this->generateUniqueFilename($originalFilename);
 
             // upload file
             if (!$this->saveFile($filename, $file->downloadURL)) {
@@ -689,6 +687,27 @@ class FilesController
         $filename = str_replace(' ', '-', $filename);
         $filename = preg_replace('/[^a-z0-9\._-]/isU', '', $filename);
         $filename = trim((string) $filename);
+        return $filename;
+    }
+
+    /**
+     * Generate a unique filename by appending a suffix if the original filename already exists
+     */
+    protected function generateUniqueFilename($filename): string
+    {
+        $uploadPath = $this->uploadPath();
+        $originalFilename = $filename;
+        $counter = 1;
+
+        // Keep checking and incrementing until we find a unique filename
+        while (file_exists($uploadPath . $filename) || is_file($uploadPath . $filename)) {
+            $pathInfo = pathinfo($originalFilename);
+            $basename = $pathInfo['filename'];
+            $extension = isset($pathInfo['extension']) ? '.' . $pathInfo['extension'] : '';
+            $filename = $basename . '_' . $counter . $extension;
+            $counter++;
+        }
+
         return $filename;
     }
 }
