@@ -492,23 +492,36 @@ class FilesController
 
             $pixxioFile = $pixxioFile[0];
 
-            $additionalFields = [
-                'title' => $pixxioFile->subject,
-                'description' => $pixxioFile->description,
-                'alternative' => $this->getMetadataField($pixxioFile,
-                    $this->extensionConfiguration['alt_text'] ?: 'Alt Text (Accessibility)'),
-                'pixxio_file_id' => $pixxioFile->id,
-                //'pixxio_mediaspace' => $pixxioFile->originalFileURL,
-                'pixxio_last_sync_stamp' => time()
-            ];
-
-            if ($this->hasExt('filemetadata')) {
-                $additionalFields = array_merge($additionalFields, $this->getMetadataWithFilemetadataExt($pixxioFile));
-            }
+            $additionalFields = $this->getComprehensiveMetadata($pixxioFile);
             $io->writeln('Metadata update for ' . $file['identifier']);
             $metadata->update($file['uid'], $additionalFields);
         }
         return true;
+    }
+
+    /**
+     * Extract comprehensive metadata from a pixx.io file object
+     * This method is used both during sync and import operations
+     *
+     * @param object $pixxioFile The pixx.io file object
+     * @return array Array of metadata fields to be stored
+     */
+    private function getComprehensiveMetadata($pixxioFile)
+    {
+        $additionalFields = [
+            'title' => $pixxioFile->subject,
+            'description' => $pixxioFile->description,
+            'alternative' => $this->getMetadataField($pixxioFile,
+                $this->extensionConfiguration['alt_text'] ?: 'Alt Text (Accessibility)'),
+            'pixxio_file_id' => $pixxioFile->id,
+            'pixxio_last_sync_stamp' => time()
+        ];
+
+        if ($this->hasExt('filemetadata')) {
+            $additionalFields = array_merge($additionalFields, $this->getMetadataWithFilemetadataExt($pixxioFile));
+        }
+
+        return $additionalFields;
     }
 
     private function getMetadataWithFilemetadataExt($pixxioFile)
@@ -620,6 +633,9 @@ class FilesController
 
     private function pullFiles($files)
     {
+        // Authenticate to pixx.io to fetch comprehensive metadata
+        $this->accessToken = $this->pixxioAuth();
+        
         $importedFiles = [];
         foreach ($files as $key => $file) {
             // set upload filename and upload folder
@@ -637,18 +653,29 @@ class FilesController
                     $importedFileUid = $importedFile->getUid();
                     $importedFiles[] = $importedFileUid;
 
-                    // set meta data
-                    $additionalFields = [
-                        'title' => $file->subject,
-                        'description' => $file->description,
-                        'pixxio_file_id' => $file->id,
-                        'pixxio_mediaspace' => $file->downloadURL,
-                        'pixxio_last_sync_stamp' => time(),
-                        'pixxio_downloadformat' => $file->downloadFormat
-                    ];
+                    // Fetch comprehensive metadata from pixx.io
+                    $pixxioFileData = $this->pixxioFile($file->id);
+                    
+                    if ($pixxioFileData) {
+                        // Use comprehensive metadata from pixx.io
+                        $additionalFields = $this->getComprehensiveMetadata($pixxioFileData);
+                        // Add import-specific fields
+                        $additionalFields['pixxio_mediaspace'] = $file->downloadURL;
+                        $additionalFields['pixxio_downloadformat'] = $file->downloadFormat;
+                    } else {
+                        // Fallback to limited metadata from import data
+                        $additionalFields = [
+                            'title' => $file->subject,
+                            'description' => $file->description,
+                            'pixxio_file_id' => $file->id,
+                            'pixxio_mediaspace' => $file->downloadURL,
+                            'pixxio_last_sync_stamp' => time(),
+                            'pixxio_downloadformat' => $file->downloadFormat
+                        ];
 
-                    if (isset($this->extensionConfiguration['alt_text']) && isset($file->metadata->{$this->extensionConfiguration['alt_text']})) {
-                        $additionalFields['alternative'] = $file->metadata->{$this->extensionConfiguration['alt_text']};
+                        if (isset($this->extensionConfiguration['alt_text']) && isset($file->metadata->{$this->extensionConfiguration['alt_text']})) {
+                            $additionalFields['alternative'] = $file->metadata->{$this->extensionConfiguration['alt_text']};
+                        }
                     }
 
                     $metaDataRepository = GeneralUtility::makeInstance(MetaDataRepository::class);
