@@ -290,7 +290,7 @@ class FilesController
                         } elseif ($isMainVersion === false) {
                             $temp[] = [
                                 'oldId' => $f->id,
-                                'newId' => $f->mainVersion ?? null
+                                'newId' => $f->mainVersion
                             ];
                             $foundIds[] = $f->id;
                         } else {
