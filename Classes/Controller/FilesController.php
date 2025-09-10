@@ -305,8 +305,8 @@ class FilesController
 
                     // Only add IDs that were not present in the response at all (e.g. error case)
                     foreach ($fileIds as $id) {
+                        // In case of doubt, keep the file
                         if (!in_array($id, $foundIds, true)) {
-                            // In case of doubt, keep the file
                             $temp[] = [
                                 'oldId' => $id,
                                 'newId' => $id
