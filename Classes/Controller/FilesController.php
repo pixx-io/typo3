@@ -294,7 +294,7 @@ class FilesController
                             ];
                             $foundIds[] = $f->id;
                         } else {
-                            // Im Zweifelsfall Datei behalten (nicht zum Löschen markieren)
+                            // If in doubt, keep the file (don't mark for deletion)
                             $temp[] = [
                                 'oldId' => $f->id,
                                 'newId' => $f->id
@@ -303,10 +303,10 @@ class FilesController
                         }
                     }
 
-                    // Nur IDs ergänzen, die im Response gar nicht vorkamen (z.B. Fehlerfall)
+                    // Only add IDs that were not present in the response at all (e.g. error case)
                     foreach ($fileIds as $id) {
                         if (!in_array($id, $foundIds, true)) {
-                            // Im Zweifelsfall Datei behalten
+                            // In case of doubt, keep the file
                             $temp[] = [
                                 'oldId' => $id,
                                 'newId' => $id
