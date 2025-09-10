@@ -704,7 +704,7 @@ class FilesController
         $counter = 1;
 
         // Keep checking and incrementing until we find a unique filename
-        while (file_exists($uploadPath . $filename) || is_file($uploadPath . $filename)) {
+        while (file_exists($uploadPath . $filename)) {
             $pathInfo = pathinfo($originalFilename);
             $basename = $pathInfo['filename'];
             $extension = isset($pathInfo['extension']) ? '.' . $pathInfo['extension'] : '';
