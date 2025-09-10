@@ -649,6 +649,10 @@ class FilesController
                         $additionalFields['alternative'] = $file->metadata->{$this->extensionConfiguration['alt_text']};
                     }
 
+                    if ($this->hasExt('filemetadata')) {
+                        $additionalFields = array_merge($additionalFields, $this->getMetadataWithFilemetadataExt($file));
+                    }
+
                     $metaDataRepository = GeneralUtility::makeInstance(MetaDataRepository::class);
                     $metaDataRepository->update($importedFileUid, $additionalFields);
                 }
