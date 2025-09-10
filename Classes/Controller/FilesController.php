@@ -277,29 +277,41 @@ class FilesController
             if ($response->getStatusCode() === 200) {
                 $data = json_decode($response->getBody()->getContents());
                 if ($data->success) {
+                    $foundIds = [];
                     foreach ($data->files as $f) {
-                        if ($f->isMainVersion) {
+                        $isMainVersion = isset($f->isMainVersion) ? $f->isMainVersion : null;
+
+                        if ($isMainVersion === true) {
                             $temp[] = [
                                 'oldId' => $f->id,
                                 'newId' => $f->id
                             ];
-                        } else {
+                            $foundIds[] = $f->id;
+                        } elseif ($isMainVersion === false) {
                             $temp[] = [
                                 'oldId' => $f->id,
-                                'newId' => $f->mainVersion
+                                'newId' => $f->mainVersion ?? null
                             ];
+                            $foundIds[] = $f->id;
+                        } else {
+                            // Im Zweifelsfall Datei behalten (nicht zum Löschen markieren)
+                            $temp[] = [
+                                'oldId' => $f->id,
+                                'newId' => $f->id
+                            ];
+                            $foundIds[] = $f->id;
                         }
                     }
 
+                    // Nur IDs ergänzen, die im Response gar nicht vorkamen (z.B. Fehlerfall)
                     foreach ($fileIds as $id) {
-                        if (!array_filter($temp, function ($t) use ($id) {
-                            return $t['oldId'] == $id;
-                        })) {
+                        if (!in_array($id, $foundIds, true)) {
+                            // Im Zweifelsfall Datei behalten
                             $temp[] = [
                                 'oldId' => $id,
-                                'newId' => null
+                                'newId' => $id
                             ];
-                        };
+                        }
                     }
                 }
             }
