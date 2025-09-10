@@ -49,7 +49,7 @@ It's possible to sync the alt text. Therefore you have to define the name of the
 In Sync you can define behaviors that should be done during a running sync.
 
 **Delete:**
-If a file is deleted in pixx.io, it will be deleted in typo3 as well if the flag is set. If not it will decouple the file from pixx.io.
+If a file is deleted in pixx.io, it will be deleted in TYPO3 as well if the flag is set. If not it will decouple the file from pixx.io.
 
 **Update:**
 If you use the version feature of pixx.io you be able to update the main version of a file. If the flag ist set the sync will replace files that aren't the main version to their new main version.
@@ -72,7 +72,7 @@ You can hide the "Select from pixx.io" button for backend users and backend user
 
 ### filemetadata
 
-If you are using the core extension filemetadata it will sync more metadata to typo3 from pixx.io. The mapping of the metadata is defined like this:
+If you are using the core extension `filemetadata` we will sync more metadata from pixx.io to TYPO3. The mapping of the metadata is defined like this:
 
 #### Mapping from pixx.io to TYPO3
 

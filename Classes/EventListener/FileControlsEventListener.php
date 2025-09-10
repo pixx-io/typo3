@@ -20,8 +20,7 @@ final class FileControlsEventListener
 
     public function __construct(
         protected IconFactory $iconFactory
-    )
-    {}
+    ) {}
 
     #[AsEventListener]
     public function __invoke(CustomFileControlsEvent $event)
@@ -68,7 +67,7 @@ final class FileControlsEventListener
             'title' => $buttonText,
             'style' => 'margin-left:5px',
             'data-dom' => htmlspecialchars($objectPrefix),
-            'data-key'=> $this->applicationId,
+            'data-key' => $this->applicationId,
             'data-url' => $extensionConfiguration['url'],
             'data-token' => $extensionConfiguration['token_refresh'],
             'data-uid' => uniqid(),
@@ -89,7 +88,8 @@ final class FileControlsEventListener
         }
 
         // @todo Should be implemented as web component
-        $event->addControl('
+        $event->addControl(
+            '
             <button ' . GeneralUtility::implodeAttributes($attributes, true) . '>
                 ' . $this->iconFactory->getIcon('tx-pixxio-extension-icon', IconSize::SMALL)->render() . '
                 ' . htmlspecialchars($buttonText) . '
@@ -97,14 +97,37 @@ final class FileControlsEventListener
         );
 
         $iframeLanguage = $languageService->getLocale();
-        $iframeUrl = 'https://plugin.pixx.io/static/v1/' . $iframeLanguage . '/media?multiSelect=true&applicationId='.$this->applicationId;
+        $iframeUrl = 'https://plugin.pixx.io/static/v1/' . $iframeLanguage . '/media?multiSelect=true&applicationId=' . $this->applicationId;
+
+        // Load additional metadata to be independed from the sync job
+        $metadataFields = [
+            // 'subject',
+            // 'description',
+            'City',
+            'Country',
+            'Region',
+            'CopyrightNotice',
+            'Model',
+            'Source',
+            'ColorSpace',
+            'Publisher',
+            'location',
+            'createDate',
+            'modifyDate',
+            'creator',
+            'rating'
+        ];
+
+        foreach ($metadataFields as $field) {
+            $iframeUrl .= '&metadata=' . urlencode($field);
+        }
 
         if (isset($extensionConfiguration['alt_text'])) {
             $iframeUrl .= '&metadata=' . urlencode($extensionConfiguration['alt_text']);
         }
 
         $event->addControl(
-            '<div class="pixxio-lightbox"><div class="pixxio-close"></div><div class="pixxio-lightbox-inner"><iframe class="pixxio_sdk" data-src="'.$iframeUrl .'" width="100%" height="100%"></iframe></div></div>'
+            '<div class="pixxio-lightbox"><div class="pixxio-close"></div><div class="pixxio-lightbox-inner"><iframe class="pixxio_sdk" data-src="' . $iframeUrl . '" width="100%" height="100%"></iframe></div></div>'
         );
 
         $resultArray['javaScriptModules'][] = JavaScriptModuleInstruction::create('@pixxio/pixxio-extension/ScriptSDK.js');
