@@ -99,7 +99,7 @@ final class FileControlsEventListener
         $iframeLanguage = $languageService->getLocale();
         $iframeUrl = 'https://plugin.pixx.io/static/v1/' . $iframeLanguage . '/media?multiSelect=true&applicationId=' . $this->applicationId;
 
-        // Load additional metadata to be independed from the sync job
+        // Load additional metadata to be independent from the sync job
         $metadataFields = [
             // 'subject',
             // 'description',
