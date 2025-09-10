@@ -1,6 +1,6 @@
 # Changelog
 
-## 3.2.0
+## NEXT
 
 - [v13.4] Sync metadata when importing images without the need of the scheduler
 
