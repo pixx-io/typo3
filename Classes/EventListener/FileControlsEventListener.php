@@ -101,8 +101,6 @@ final class FileControlsEventListener
 
         // Load additional metadata to be independent from the sync job
         $metadataFields = [
-            // 'subject',
-            // 'description',
             'City',
             'Country',
             'Region',
