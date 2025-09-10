@@ -84,7 +84,21 @@ function downloadFiles(files) {
 
   new AjaxRequest(TYPO3.settings.ajaxUrls.pixxio_files)
     .post(
-      { files: files },
+      {
+        files: files.map((file) => {
+          const metadata = file.metadata || {};
+          return {
+            // Spread the metadata fields to the root level for easier access in PHP
+            // Map the metadata fields to an array of objects with name and value to emulate metadataFields data structure for PHP
+            ...metadata,
+            metadataFields: Object.keys(metadata).map((key) => ({
+              name: key,
+              value: metadata[key],
+            })),
+            ...file,
+          };
+        }),
+      },
       {
         headers: {
           "Content-Type": "application/json; charset=utf-8",
@@ -134,13 +148,17 @@ function handleSdkReady(messageEvent) {
   // If we have a last opened button, use that
   if (window.pixxioLastLightboxOpenerButton) {
     targetButton = window.pixxioLastLightboxOpenerButton;
-    targetIframe = targetButton.parentElement.querySelector("iframe.pixxio_sdk");
+    targetIframe =
+      targetButton.parentElement.querySelector("iframe.pixxio_sdk");
   } else {
     // Otherwise find the first visible iframe
-    const visibleLightboxes = document.querySelectorAll('.pixxio-lightbox[style*="block"]');
+    const visibleLightboxes = document.querySelectorAll(
+      '.pixxio-lightbox[style*="block"]'
+    );
     if (visibleLightboxes.length > 0) {
       targetIframe = visibleLightboxes[0].querySelector("iframe.pixxio_sdk");
-      targetButton = visibleLightboxes[0].parentElement.querySelector(".pixxio-sdk-btn");
+      targetButton =
+        visibleLightboxes[0].parentElement.querySelector(".pixxio-sdk-btn");
     }
   }
 
