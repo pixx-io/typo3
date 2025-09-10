@@ -41,7 +41,7 @@ class FilesControllerTest extends UnitTestCase
     {
         // Setup
         $testDir = '/tmp/test_upload/';
-        mkdir($testDir, 0777, true);
+        mkdir($testDir, 0755, true);
         
         $this->subject->expects(self::any())
             ->method('uploadPath')
