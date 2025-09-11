@@ -34,5 +34,5 @@ use_proxy = false
 # cat=proxy; type=string; label=Provide a proxy URL that contains a scheme like this: http(s)://username:password@host:port (optional)
 proxy_connection =
 
-# cat=plugin; type=options[all,original,preview,jpg,png,pdf,tiff]; label=Allowed download formats: Control which download formats are available in the plugin SDK iframe. Use comma-separated values for multiple formats (e.g. "jpg,png,pdf"). Leave empty for all formats.
+# cat=plugin; type=string; label=Allowed download formats: Control which download formats are available in the plugin SDK iframe. Use comma-separated values for multiple formats (e.g. "jpg,png,pdf"). Valid formats: original, preview, jpg, png, pdf, tiff. Leave empty for all formats.
 allowed_download_formats =
