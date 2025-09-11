@@ -8,7 +8,6 @@ use TYPO3\CMS\Core\Attribute\AsEventListener;
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
 use TYPO3\CMS\Core\Imaging\IconFactory;
 use TYPO3\CMS\Core\Imaging\IconSize;
-use TYPO3\CMS\Core\Log\LogManager;
 use TYPO3\CMS\Core\Localization\LanguageService;
 use TYPO3\CMS\Core\Page\JavaScriptModuleInstruction;
 use TYPO3\CMS\Core\Resource\Filter\FileExtensionFilter;
@@ -18,18 +17,6 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 final class FileControlsEventListener
 {
     private $applicationId = 'ghx8F66X3ix4AJ0VmS0DE8sx7';
-    
-    /**
-     * Valid download formats that can be used in the plugin SDK iframe
-     */
-    private const VALID_DOWNLOAD_FORMATS = [
-        'original',
-        'preview', 
-        'jpg',
-        'png',
-        'pdf',
-        'tiff'
-    ];
 
     public function __construct(
         protected IconFactory $iconFactory
@@ -139,10 +126,19 @@ final class FileControlsEventListener
 
         // Add allowedDownloadFormats parameter if configured
         if (isset($extensionConfiguration['allowed_download_formats']) && !empty($extensionConfiguration['allowed_download_formats'])) {
-            $validFormats = $this->validateAndFilterDownloadFormats($extensionConfiguration['allowed_download_formats']);
+            $allowedFormats = $extensionConfiguration['allowed_download_formats'];
             
-            foreach ($validFormats as $format) {
-                $iframeUrl .= '&allowedDownloadFormats=' . urlencode($format);
+            // Handle comma-separated values
+            if (strpos($allowedFormats, ',') !== false) {
+                $formats = array_map('trim', explode(',', $allowedFormats));
+                foreach ($formats as $format) {
+                    if (!empty($format)) {
+                        $iframeUrl .= '&allowedDownloadFormats=' . urlencode($format);
+                    }
+                }
+            } else {
+                // Single value
+                $iframeUrl .= '&allowedDownloadFormats=' . urlencode($allowedFormats);
             }
         }
 
@@ -163,49 +159,5 @@ final class FileControlsEventListener
     protected function getBackendUserAuthentication(): BackendUserAuthentication
     {
         return $GLOBALS['BE_USER'];
-    }
-    
-    /**
-     * Validates and filters allowed download formats
-     * 
-     * @param string $allowedFormats Comma-separated list of formats
-     * @return array Valid formats only
-     */
-    protected function validateAndFilterDownloadFormats(string $allowedFormats): array
-    {
-        if (empty($allowedFormats)) {
-            return [];
-        }
-        
-        $logger = GeneralUtility::makeInstance(LogManager::class)->getLogger(__CLASS__);
-        $formats = array_map('trim', explode(',', $allowedFormats));
-        $validFormats = [];
-        $invalidFormats = [];
-        
-        foreach ($formats as $format) {
-            if (empty($format)) {
-                continue;
-            }
-            
-            if (in_array($format, self::VALID_DOWNLOAD_FORMATS, true)) {
-                $validFormats[] = $format;
-            } else {
-                $invalidFormats[] = $format;
-            }
-        }
-        
-        // Log warning for invalid formats
-        if (!empty($invalidFormats)) {
-            $logger->warning(
-                'Invalid download formats found in pixx.io extension configuration',
-                [
-                    'invalid_formats' => $invalidFormats,
-                    'valid_formats' => self::VALID_DOWNLOAD_FORMATS,
-                    'message' => 'Invalid formats will be ignored. Valid formats are: ' . implode(', ', self::VALID_DOWNLOAD_FORMATS)
-                ]
-            );
-        }
-        
-        return $validFormats;
     }
 }

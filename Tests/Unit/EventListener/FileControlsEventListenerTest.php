@@ -26,7 +26,7 @@ class FileControlsEventListenerTest extends UnitTestCase
         ];
         
         $expectedSingleParam = '&allowedDownloadFormats=' . urlencode('jpg');
-        $this->assertStringContainsString('allowedDownloadFormats=jpg', $expectedSingleParam);
+        $this->assertStringContains('allowedDownloadFormats=jpg', $expectedSingleParam);
         
         // Test multiple formats (comma-separated)
         $multipleFormatsConfig = [
@@ -64,7 +64,7 @@ class FileControlsEventListenerTest extends UnitTestCase
         // Test with single format
         $singleFormat = 'jpg';
         $expectedSingleUrl = $baseUrl . '&allowedDownloadFormats=' . urlencode($singleFormat);
-        $this->assertStringContainsString('allowedDownloadFormats=jpg', $expectedSingleUrl);
+        $this->assertStringContains('allowedDownloadFormats=jpg', $expectedSingleUrl);
         
         // Test with multiple formats
         $formats = ['jpg', 'png', 'pdf'];
@@ -73,9 +73,9 @@ class FileControlsEventListenerTest extends UnitTestCase
             $multipleFormatsUrl .= '&allowedDownloadFormats=' . urlencode($format);
         }
         
-        $this->assertStringContainsString('allowedDownloadFormats=jpg', $multipleFormatsUrl);
-        $this->assertStringContainsString('allowedDownloadFormats=png', $multipleFormatsUrl);
-        $this->assertStringContainsString('allowedDownloadFormats=pdf', $multipleFormatsUrl);
+        $this->assertStringContains('allowedDownloadFormats=jpg', $multipleFormatsUrl);
+        $this->assertStringContains('allowedDownloadFormats=png', $multipleFormatsUrl);
+        $this->assertStringContains('allowedDownloadFormats=pdf', $multipleFormatsUrl);
     }
     
     /**
@@ -118,44 +118,5 @@ class FileControlsEventListenerTest extends UnitTestCase
             $encoded = urlencode($format);
             $this->assertNotEmpty($encoded);
         }
-    }
-    
-    /**
-     * Test validation of download formats
-     */
-    public function testDownloadFormatValidation(): void
-    {
-        $validFormats = ['original', 'preview', 'jpg', 'png', 'pdf', 'tiff'];
-        
-        // Test valid formats
-        foreach ($validFormats as $format) {
-            $this->assertContains($format, $validFormats);
-        }
-        
-        // Test invalid formats
-        $invalidFormats = ['bla', 'gif', 'invalid', 'xyz'];
-        foreach ($invalidFormats as $format) {
-            $this->assertNotContains($format, $validFormats);
-        }
-        
-        // Test mixed valid and invalid formats
-        $mixedInput = 'jpg,bla,png,invalid,pdf';
-        $inputFormats = array_map('trim', explode(',', $mixedInput));
-        $expectedValid = ['jpg', 'png', 'pdf'];
-        $expectedInvalid = ['bla', 'invalid'];
-        
-        $actualValid = [];
-        $actualInvalid = [];
-        
-        foreach ($inputFormats as $format) {
-            if (in_array($format, $validFormats, true)) {
-                $actualValid[] = $format;
-            } else {
-                $actualInvalid[] = $format;
-            }
-        }
-        
-        $this->assertEquals($expectedValid, $actualValid);
-        $this->assertEquals($expectedInvalid, $actualInvalid);
     }
 }
