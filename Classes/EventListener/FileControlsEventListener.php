@@ -124,6 +124,24 @@ final class FileControlsEventListener
             $iframeUrl .= '&metadata=' . urlencode($extensionConfiguration['alt_text']);
         }
 
+        // Add allowedDownloadFormats parameter if configured
+        if (isset($extensionConfiguration['allowed_download_formats']) && !empty($extensionConfiguration['allowed_download_formats'])) {
+            $allowedFormats = $extensionConfiguration['allowed_download_formats'];
+            
+            // Handle comma-separated values
+            if (strpos($allowedFormats, ',') !== false) {
+                $formats = array_map('trim', explode(',', $allowedFormats));
+                foreach ($formats as $format) {
+                    if (!empty($format)) {
+                        $iframeUrl .= '&allowedDownloadFormats=' . urlencode($format);
+                    }
+                }
+            } else {
+                // Single value
+                $iframeUrl .= '&allowedDownloadFormats=' . urlencode($allowedFormats);
+            }
+        }
+
         $event->addControl(
             '<div class="pixxio-lightbox"><div class="pixxio-close"></div><div class="pixxio-lightbox-inner"><iframe class="pixxio_sdk" data-src="' . $iframeUrl . '" width="100%" height="100%"></iframe></div></div>'
         );
