@@ -1,5 +1,9 @@
 # Changelog
 
+## NEXT
+
+- [v13.4] Add configurable allowedDownloadFormats parameter
+
 ## 3.2.0
 
 - [v13.4] Sync metadata when importing images without the need of the scheduler

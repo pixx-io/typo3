@@ -4,6 +4,9 @@ filestorage_id = 1
 # cat=basic; type=string; label=Default subfolder (of choosen File Storage, e.g. "images")
 subfolder =
 
+# cat=basic; type=string; label=Allowed download formats: Control which download formats are available in the plugin SDK iframe. Use comma-separated values for multiple formats (e.g. "jpg,png,pdf"). Valid formats: original, preview, jpg, png, pdf, tiff. Leave empty for all formats.
+allowed_download_formats =
+
 # cat=metadata; type=string; label=Metadata for alternative Text (default = Alt Text (Accessibility))
 alt_text = Alt Text (Accessibility)
 
@@ -33,6 +36,3 @@ use_proxy = false
 
 # cat=proxy; type=string; label=Provide a proxy URL that contains a scheme like this: http(s)://username:password@host:port (optional)
 proxy_connection =
-
-# cat=plugin; type=string; label=Allowed download formats: Control which download formats are available in the plugin SDK iframe. Use comma-separated values for multiple formats (e.g. "jpg,png,pdf"). Valid formats: original, preview, jpg, png, pdf, tiff. Leave empty for all formats.
-allowed_download_formats =
