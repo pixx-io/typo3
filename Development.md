@@ -64,9 +64,10 @@ After the installation, there is a database error visible. To fix it, run:
 
 - Create a new branch
 - Update the version in `ext_emconf.php` and `composer.json`
+- Update the version in `CHANGELOG.md`
 - Run `composer install`
-- Push the branch and merge it into the master
-- Checkout master
+- Push the branch and merge it into the main
+- Checkout main
 - Create and push a new tag: `git tag 3.1.0 && git push --tags`
 - Login to https://packagist.org/ and click the "Update" button at https://packagist.org/packages/pixxio/pixxio-extension
 - Create a zip `zip -r ../pixxio_extension_3.1.0.zip *`

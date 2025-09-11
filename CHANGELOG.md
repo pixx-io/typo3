@@ -1,6 +1,6 @@
 # Changelog
 
-## NEXT
+## 3.2.0
 
 - [v13.4] Sync metadata when importing images without the need of the scheduler
 - [v13.4] Fix file name collision. When a file was added with the same file name, the import was skipped.
