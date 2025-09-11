@@ -1,8 +1,8 @@
 # Changelog
 
-## NEXT
+## 3.3.0
 
-- [v13.4] Add configurable allowedDownloadFormats parameter
+- [v13.4] Add setting to configure the `allowed_download_formats` in the media selection
 
 ## 3.2.0
 
