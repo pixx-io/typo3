@@ -236,12 +236,24 @@ class FilesControlContainer extends \TYPO3\CMS\Backend\Form\Container\FilesContr
                 $iframe_url .= '&metadata=' . urlencode($extensionConfiguration['alt_text']);
             }
 
-            $tldPos = strpos($extensionConfiguration['url'],'//');
-            if ($tldPos > 0) {
-                $pixxioMediaspace = substr($extensionConfiguration['url'],$tldPos+2);
-            } else {
-                $pixxioMediaspace = $extensionConfiguration['url'];
+            // Add allowedDownloadFormats parameter if configured
+            if (isset($extensionConfiguration['allowed_download_formats']) && !empty($extensionConfiguration['allowed_download_formats'])) {
+                $allowedFormats = $extensionConfiguration['allowed_download_formats'];
+
+                // Handle comma-separated values
+                if (strpos($allowedFormats, ',') !== false) {
+                    $formats = array_map('trim', explode(',', $allowedFormats));
+                    foreach ($formats as $format) {
+                        if (!empty($format)) {
+                            $iframe_url .= '&allowedDownloadFormats=' . urlencode($format);
+                        }
+                    }
+                } else {
+                    // Single value
+                    $iframe_url .= '&allowedDownloadFormats=' . urlencode($allowedFormats);
+                }
             }
+
             $controls[] = '
             <div class="pixxio-lightbox"><div class="pixxio-close"></div><div class="pixxio-lightbox-inner"><iframe class="pixxio_sdk" data-src="'.$iframe_url .'" width="100%" height="100%"></iframe></div></div>
             ';

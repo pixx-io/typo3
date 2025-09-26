@@ -86,27 +86,26 @@ class InlineControlContainer extends \TYPO3\CMS\Backend\Form\Container\InlineCon
 
         $iframe_url = 'https://plugin.pixx.io/static/v1/' .$langCode. '/media?multiSelect=true&applicationId='.$this->applicationId;
 
-        $tldPos = strpos($extensionConfiguration['url'],'//');
-        if (isset($extensionConfiguration['url'])) {
-            if ($tldPos > 0) {
-                $pixxioMediaspace = substr($extensionConfiguration['url'],$tldPos+2);
-            } else {
-                $pixxioMediaspace = $extensionConfiguration['url'];
-            }
-        }
-
         if (isset($extensionConfiguration['alt_text'])) {
             $iframe_url .= '&metadata=' . urlencode($extensionConfiguration['alt_text']);
         }
+        
+        // Add allowedDownloadFormats parameter if configured
+        if (isset($extensionConfiguration['allowed_download_formats']) && !empty($extensionConfiguration['allowed_download_formats'])) {
+            $allowedFormats = $extensionConfiguration['allowed_download_formats'];
 
-        $tokenRefresh = '';
-        $userId = '';
-
-        if(isset($extensionConfiguration['token_refresh'])) {
-            $tokenRefresh = base64_encode($extensionConfiguration['token_refresh']);
-        }
-        if(isset($extensionConfiguration['user_id'])) {
-            $userId = base64_encode($extensionConfiguration['user_id']);
+            // Handle comma-separated values
+            if (strpos($allowedFormats, ',') !== false) {
+                $formats = array_map('trim', explode(',', $allowedFormats));
+                foreach ($formats as $format) {
+                    if (!empty($format)) {
+                        $iframe_url .= '&allowedDownloadFormats=' . urlencode($format);
+                    }
+                }
+            } else {
+                // Single value
+                $iframe_url .= '&allowedDownloadFormats=' . urlencode($allowedFormats);
+            }
         }
 
         $button = '

@@ -29,6 +29,8 @@ For Sync Actions it is necessary to set the URL of your mediaspace and refresh t
 
 The File Storage ID is an optional setting. You can choose a Storage ID, where you would like to upload and store the pixx.io assets. You can also define a subfolder if you wish.
 
+In the `allowed_download_formats` setting you can configure in which format the images are allowed to be imported. With the `original` format, the original file will be imported without conversion. With the `preview` format, images are downscaled to Full HD size and imported as JPEG or PNG. With the formats `jpg`, `png`, `pdf` and `tiff`, images are converted to the respective format if possible.
+
 ### Metadata
 
 It's possible to sync the alt text. Therefore you have to define the name of the metadata, which you would like to synchronize.
