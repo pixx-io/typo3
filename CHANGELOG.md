@@ -2,7 +2,8 @@
 
 ## 2.3.0
 
--  Fix file name collision. When a file was added with the same file name, the import was skipped.
+- Fix file name collision. When a file was added with the same file name, the import was skipped.
+- Add a strict isMainVersion check when synching files
 
 ## 2.2.0
 
