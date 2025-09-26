@@ -603,7 +603,7 @@ class FilesController
 
         // Check for executable extensions before attempting to save
         if ($this->isExecutableExtension($filename)) {
-            $this->throwError('Wrong upload file extension. Is not allowed to use php,js,js,exe,doc,xls,sh: "' . $filename,
+            $this->throwError('Wrong upload file extension. Is not allowed to use php,js,exe,doc,xls,sh: "' . $filename,
                 5);
         }
 
