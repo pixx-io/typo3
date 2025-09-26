@@ -721,6 +721,9 @@ class FilesController
 
     /**
      * Generate a unique filename by appending a suffix if the original filename already exists
+     *
+     * @param string $filename The original filename to check for uniqueness.
+     * @return string The unique filename.
      */
     protected function generateUniqueFilename($filename): string
     {
