@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.3.0
+
+-  Fix file name collision. When a file was added with the same file name, the import was skipped.
+
 ## 2.2.0
 
 - Add setting to enable auto-login with the sync access data in the image picker.
