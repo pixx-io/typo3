@@ -189,6 +189,9 @@ class FilesController
 
                 $responseData = json_decode($responseBody);
 
+                if (json_last_error() !== JSON_ERROR_NONE) {
+                    $this->throwError('Invalid JSON in error response: ' . json_last_error_msg(), 1);
+                }
                 if ($responseData && isset($responseData->errormessage)) {
                     $errorMessage = $responseData->errormessage;
                     $this->throwError($errorMessage, 1);
