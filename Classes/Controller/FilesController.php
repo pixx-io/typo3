@@ -13,7 +13,6 @@ use TYPO3\CMS\Core\Http\RequestFactory;
 use TYPO3\CMS\Core\Information\Typo3Version;
 use TYPO3\CMS\Core\Resource\Index\MetaDataRepository;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use Symfony\Component\Console\Helper\Table;
 
 class FilesController
 {
@@ -396,20 +395,14 @@ class FilesController
         $io->writeln('Checking ' . count($fileIds) . ' files on pixx.io:');
 
         // Log pixx.io IDs with TYPO3 UIDs
-        $tableRows = [];
         foreach ($files as $file) {
-            $tableRows[] = [
+            $io->writeln(sprintf(
+                'TYPO3 UID: %s | pixx.io ID: %s | %s',
                 $file['uid'],
                 $file['pixxio_file_id'],
-                $file['identifier'],
-            ];
+                $file['identifier']
+            ));
         }
-
-        $table = new Table($io);
-        $table
-            ->setHeaders(['TYPO3 UID', 'pixx.io ID', 'identifier'])
-            ->setRows($tableRows);
-        $table->render();
 
         $io->writeln('');
 
