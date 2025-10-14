@@ -172,9 +172,7 @@ class FilesController
                     ])
                 ]), 'GET', $additionalOptions);
 
-            $statusCode = $response->getStatusCode();
-
-            if ($statusCode === 200) {
+            if ($response->getStatusCode() === 200) {
                 $data = json_decode($response->getBody()->getContents());
                 return $data->success ? $data->files : [];
             }
