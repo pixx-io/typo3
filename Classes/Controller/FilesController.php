@@ -480,7 +480,8 @@ class FilesController extends ActionController
                     }
                     if ($newId) {
                         $pixxioFile = $this->pixxioFile($newId);
-                        $absFileIdentifier = $this->saveFile($file['name'], $pixxioFile->originalFileURL);
+                        $filename = $this->generateUniqueFilename($file['name'], $file);
+                        $absFileIdentifier = $this->saveFile($filename, $pixxioFile->originalFileURL);
                         $storage = $this->getStorage();
                         $storage->replaceFile($storage->getFileByIdentifier($file['identifier']), $absFileIdentifier);
                         $io->writeln('File to updated:' . $file['identifier']);
@@ -650,16 +651,16 @@ class FilesController extends ActionController
         foreach ($files as $key => $file) {
             // set upload filename and upload folder
             $originalFilename = $this->getNonUtf8Filename($file->fileName ?: '');
-            $filename = $this->generateUniqueFilename($originalFilename);
+            $filename = $this->generateUniqueFilename($originalFilename, $file);
 
             // upload file
             if (isset($file->directLink) && $file->directLink != '' && !$this->saveFile($filename, $file->directLink)) {
                 $this->throwError('Copying file "' . $filename . '" to path "' . '" failed.', 4);
             } else if (!isset($file->directLink) && !$this->saveFile($filename, $file->downloadURL)) {
-                //if (!$this->saveFile($filename, $file->url)) {
                 $this->throwError('Copying file "' . $filename . '" to path "' . '" failed.', 4);
             } else {
                 $importedFile = $this->getStorage()->getFile($this->extensionConfiguration['subfolder'] . '/' . $filename);
+
                 if ($importedFile) {
 
                     // import file to FAL
@@ -787,26 +788,22 @@ class FilesController extends ActionController
     }
 
     /**
-     * Generate a unique filename by appending a suffix if the original filename already exists
+     * Filenames should be unique per unique file in pixxio (that's why to use pixxio id)
      *
      * @param string $filename The original filename to check for uniqueness.
      * @return string The unique filename.
      */
-    protected function generateUniqueFilename($filename): string
+    protected function generateUniqueFilename($originalFilename, $file): string
     {
-        $uploadPath = $this->uploadPath();
-        $originalFilename = $filename;
-        $counter = 1;
+        $fileExtension = explode('.', $originalFilename);
+        $fileExtension = $fileExtension[count($fileExtension) - 1];
 
-        // Keep checking and incrementing until we find a unique filename
-        while (file_exists($uploadPath . $filename)) {
-            $pathInfo = pathinfo($originalFilename);
-            $basename = $pathInfo['filename'];
-            $extension = isset($pathInfo['extension']) ? '.' . $pathInfo['extension'] : '';
-            $filename = $basename . '_' . $counter . $extension;
-            $counter++;
+        if (is_array($file) && !empty($file['pixxio_file_id'])) {
+            $originalFilename = $file['pixxio_file_id'].'.'.$fileExtension;
+            return $originalFilename;
         }
 
-        return $filename;
+        $originalFilename = $file->id.'.'.$fileExtension;
+        return $originalFilename;
     }
 }
