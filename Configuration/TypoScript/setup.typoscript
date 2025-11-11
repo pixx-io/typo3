@@ -1,0 +1,13 @@
+[extension.isLoaded('bootstrap_package') == 1]
+lib.contentElement {
+  partialRootPaths {
+    15 = EXT:pixxio_extension/Resources/Private/Partials/bootstrap_package/
+  }
+}
+[ELSE]
+lib.contentElement {
+  partialRootPaths {
+    15 = EXT:pixxio_extension/Resources/Private/Partials/fluid_styled_content/
+  }
+}
+[END]

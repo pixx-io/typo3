@@ -12,7 +12,7 @@ use TYPO3\CMS\Core\Page\AssetCollector;
  */
 class InlineControlContainer extends \TYPO3\CMS\Backend\Form\Container\InlineControlContainer
 {
-    private $applicationId = 'ghx8F66X3ix4AJ0VmS0DE8sx7';
+    private $applicationId = 'eS9Pb3S5bsEa2Z6527lUwUBp8';
 
     /**
      * @param array $inlineConfiguration
@@ -63,7 +63,7 @@ class InlineControlContainer extends \TYPO3\CMS\Backend\Form\Container\InlineCon
             'data-token' => $extensionConfiguration['token_refresh'],
             'data-uid' => uniqid()
         ];
-        
+
         // Add auto-login data attributes if enabled
         if (isset($extensionConfiguration['auto_login']) && $extensionConfiguration['auto_login']) {
             $attributes['data-auto-login'] = '1';
@@ -86,10 +86,19 @@ class InlineControlContainer extends \TYPO3\CMS\Backend\Form\Container\InlineCon
 
         $iframe_url = 'https://plugin.pixx.io/static/v1/' .$langCode. '/media?multiSelect=true&applicationId='.$this->applicationId;
 
+        $tldPos = strpos($extensionConfiguration['url'],'//');
+        if (isset($extensionConfiguration['url'])) {
+            if ($tldPos > 0) {
+                $pixxioMediaspace = substr($extensionConfiguration['url'],$tldPos+2);
+            } else {
+                $pixxioMediaspace = $extensionConfiguration['url'];
+            }
+        }
+
         if (isset($extensionConfiguration['alt_text'])) {
             $iframe_url .= '&metadata=' . urlencode($extensionConfiguration['alt_text']);
         }
-        
+
         // Add allowedDownloadFormats parameter if configured
         if (isset($extensionConfiguration['allowed_download_formats']) && !empty($extensionConfiguration['allowed_download_formats'])) {
             $allowedFormats = $extensionConfiguration['allowed_download_formats'];

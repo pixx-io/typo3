@@ -19,6 +19,11 @@ return Map::fromEntries([
             MutationMode::Extend,
             Directive::FrameSrc,
             new UriValue('https://plugin.pixx.io')
-        )
+        ),
+        new Mutation(
+            MutationMode::Extend,
+            Directive::ImgSrc,
+            new UriValue('*')
+        ),
     ),
 ]);

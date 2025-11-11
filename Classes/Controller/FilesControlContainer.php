@@ -114,7 +114,7 @@ class FilesControlContainer extends \TYPO3\CMS\Backend\Form\Container\FilesContr
         $showUpload = (bool)($inlineConfiguration['appearance']['fileUploadAllowed'] ?? true);
         $showByUrl = ($inlineConfiguration['appearance']['fileByUrlAllowed'] ?? true) && $onlineMediaAllowed !== [];
         $pixxioUploadAllowed = (isset($backendUser->uc['show_pixxioUpload']) &&  $backendUser->uc['show_pixxioUpload'] === '0') ? false : true;
-        
+
         if (($showUpload || $showByUrl) && $pixxioUploadAllowed) {
             $defaultUploadFolderResolver = GeneralUtility::makeInstance(DefaultUploadFolderResolver::class);
             $folder = $defaultUploadFolderResolver->resolve(
@@ -232,10 +232,13 @@ class FilesControlContainer extends \TYPO3\CMS\Backend\Form\Container\FilesContr
             $iframe_lang = $languageService->getLocale();
             $iframe_url = 'https://plugin.pixx.io/static/v1/' . $iframe_lang . '/media?multiSelect=true&applicationId='.$this->applicationId;
 
+            if (isset($extensionConfiguration['use_directlink']) && $extensionConfiguration['use_directlink'] == true) {
+                $iframe_url .= '&useDirectLinks=true';
+            }
+
             if (isset($extensionConfiguration['alt_text'])) {
                 $iframe_url .= '&metadata=' . urlencode($extensionConfiguration['alt_text']);
             }
-
             // Add allowedDownloadFormats parameter if configured
             if (isset($extensionConfiguration['allowed_download_formats']) && !empty($extensionConfiguration['allowed_download_formats'])) {
                 $allowedFormats = $extensionConfiguration['allowed_download_formats'];
@@ -252,8 +255,16 @@ class FilesControlContainer extends \TYPO3\CMS\Backend\Form\Container\FilesContr
                     // Single value
                     $iframe_url .= '&allowedDownloadFormats=' . urlencode($allowedFormats);
                 }
+            } else {
+                $iframe_url .= '&allowedDownloadFormats=original&allowedDownloadFormats=preview';
             }
 
+            $tldPos = strpos($extensionConfiguration['url'],'//');
+            if ($tldPos > 0) {
+                $pixxioMediaspace = substr($extensionConfiguration['url'],$tldPos+2);
+            } else {
+                $pixxioMediaspace = $extensionConfiguration['url'];
+            }
             $controls[] = '
             <div class="pixxio-lightbox"><div class="pixxio-close"></div><div class="pixxio-lightbox-inner"><iframe class="pixxio_sdk" data-src="'.$iframe_url .'" width="100%" height="100%"></iframe></div></div>
             ';

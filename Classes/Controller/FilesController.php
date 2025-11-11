@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Pixxio\PixxioExtension\Controller;
 
+use Pixxio\PixxioExtension\Domain\Model\LicenceRelease;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Symfony\Component\Lock\Key;
@@ -14,8 +15,11 @@ use TYPO3\CMS\Core\Http\RequestFactory;
 use TYPO3\CMS\Core\Information\Typo3Version;
 use TYPO3\CMS\Core\Resource\Index\MetaDataRepository;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
+use TYPO3\CMS\Extbase\Persistence\Generic\PersistenceManager;
+use TYPO3\CMS\Extbase\Utility\DebuggerUtility;
 
-class FilesController
+class FilesController extends ActionController
 {
 
     private $metadataMapping = [
@@ -649,7 +653,9 @@ class FilesController
             $filename = $this->generateUniqueFilename($originalFilename);
 
             // upload file
-            if (!$this->saveFile($filename, $file->downloadURL)) {
+            if (isset($file->directLink) && $file->directLink != '' && !$this->saveFile($filename, $file->directLink)) {
+                $this->throwError('Copying file "' . $filename . '" to path "' . '" failed.', 4);
+            } else if (!isset($file->directLink) && !$this->saveFile($filename, $file->downloadURL)) {
                 //if (!$this->saveFile($filename, $file->url)) {
                 $this->throwError('Copying file "' . $filename . '" to path "' . '" failed.', 4);
             } else {
@@ -669,6 +675,55 @@ class FilesController
                         'pixxio_last_sync_stamp' => time(),
                         'pixxio_downloadformat' => $file->downloadFormat
                     );
+
+                    $licenseReleaseUids = [];
+                    if (isset($file->licenseReleases)) {
+
+                        $connectionPool = GeneralUtility::makeInstance(ConnectionPool::class);
+                        $connection = $connectionPool->getConnectionForTable('tx_pixxioextension_domain_model_licenserelease');
+
+                        $persistenceManager = GeneralUtility::makeInstance( PersistenceManager::class);
+                        $persistenceManager->persistAll();
+
+                        foreach ($file->licenseReleases as $licenseRelease) {
+
+                            $insertData = [];
+                            if (isset($licenseRelease->licenseRelease)) {
+                                if (isset($licenseRelease->licenseRelease->license)
+                                    && isset($licenseRelease->licenseRelease->license->provider)) {
+                                    $insertData['license_provider'] = $licenseRelease->licenseRelease->license->provider;
+                                }
+
+                                if (isset($licenseRelease->licenseRelease->name)) {
+                                    $insertData['name'] = $licenseRelease->licenseRelease->name;
+                                }
+
+                                if (isset($licenseRelease->licenseRelease->showWarningMessage)) {
+                                    $insertData['show_warning_message'] = (bool) $licenseRelease->licenseRelease->showWarningMessage;
+                                }
+
+                                if (isset($licenseRelease->licenseRelease->warningMessage)) {
+                                    $insertData['show_warning_message'] = $licenseRelease->licenseRelease->warningMessage;
+                                }
+                            }
+
+                            if (isset($licenseRelease->expires)) {
+                                $insertData['expires'] = $licenseRelease->expires;
+                            }
+
+                            $connection->insert('tx_pixxioextension_domain_model_licenserelease', $insertData);
+
+                            $licenseReleaseUids[] = $connection->lastInsertId('tx_pixxioextension_domain_model_licenserelease');
+                        }
+
+                    }
+
+                    $additionalFields['tx_pixxioextension_licensereleases'] = implode(',', $licenseReleaseUids);
+
+                    if (isset($file->directLink)) {
+                        $additionalFields['pixxio_is_direct_link'] = isset( $file->directLink ) && $file->directLink != '' ? 1 : 0;
+                        $additionalFields['pixxio_direct_link'] = isset( $file->directLink ) && $file->directLink != '' ? $file->directLink : '0';
+                    }
 
                     if (isset($this->extensionConfiguration['alt_text']) && isset($file->metadata->{$this->extensionConfiguration['alt_text']})) {
                         $additionalFields['alternative'] = $file->metadata->{$this->extensionConfiguration['alt_text']};

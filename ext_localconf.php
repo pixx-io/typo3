@@ -13,7 +13,7 @@ $GLOBALS['TYPO3_CONF_VARS']['SYS']['locallangXMLOverride']['de']['EXT:pixxio_ext
 
 if (\TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance(\TYPO3\CMS\Core\Information\Typo3Version::class)->getMajorVersion() < 12) {
     // adds pixx.io button by overwriting TYPO3 InlineController
-    $GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1554937800] = [
+    $GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][TYPO3_PIXXIO_EXT_NUM] = [
         'nodeName' => 'inline',
         'priority' => 55,
         'class' => \Pixxio\PixxioExtension\Backend\InlineControlContainer::class,
@@ -21,7 +21,7 @@ if (\TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance(\TYPO3\CMS\Core\Informa
 
 } else {
     // adds pixx.io button by overwriting TYPO3 FilesControlContainer
-    $GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1554937800] = [
+    $GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][TYPO3_PIXXIO_EXT_NUM] = [
         'nodeName' => FilesControlContainer::NODE_TYPE_IDENTIFIER,
         'priority' => 55,
         'class' => \Pixxio\PixxioExtension\Controller\FilesControlContainer::class,
@@ -40,4 +40,9 @@ $iconRegistry->registerIcon(
 );
 unset($iconRegistry);
 
-
+$extensionKey = 'pixxio_extension';
+\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTypoScript(
+    $extensionKey,
+    'setup',
+    "@import 'EXT:" . $extensionKey . "/Configuration/TypoScript/setup.typoscript'"
+);
