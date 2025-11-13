@@ -411,7 +411,7 @@ class FilesController
 
         if (empty($fileIds)) {
             $io->writeln('no pixx.io files found');
-            return false;
+            return true;
         }
 
         $io->writeln('Authenticate to pixx.io');
