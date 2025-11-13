@@ -88,11 +88,8 @@ return [
     'types' => [
         '1' => [
             'showitem' => implode(',', [
-                'hidden',
                 'license_provider',
                 'name',
-                'show_warning_message',
-                'warning_message',
                 'expires',
             ]),
         ],

@@ -746,83 +746,84 @@ class FilesController extends ActionController
                 $this->throwError('Copying file "' . $filename . '" to path "' . '" failed.', 4);
             } else if (!isset($file->directLink) && !$this->saveFile($filename, $file->downloadURL)) {
                 $this->throwError('Copying file "' . $filename . '" to path "' . '" failed.', 4);
-            } else {
-                $importedFile = $this->getStorage()->getFile($this->extensionConfiguration['subfolder'] . '/' . $filename);
+            }
 
-                if ($importedFile) {
 
-                    // import file to FAL
-                    $importedFileUid = $importedFile->getUid();
-                    $importedFiles[] = $importedFileUid;
+            $importedFile = $this->getStorage()->getFile($this->extensionConfiguration['subfolder'] . '/' . $filename);
 
-                    // set meta data
-                    $additionalFields = array(
-                        'title' => $file->subject,
-                        'description' => $file->description,
-                        'pixxio_file_id' => $file->id,
-                        'pixxio_mediaspace' => $file->downloadURL,
-                        'pixxio_last_sync_stamp' => time(),
-                        'pixxio_downloadformat' => $file->downloadFormat
-                    );
+            if ($importedFile) {
 
-                    $licenseReleaseUids = [];
-                    if (isset($file->licenseReleases)) {
+                // import file to FAL
+                $importedFileUid = $importedFile->getUid();
+                $importedFiles[] = $importedFileUid;
 
-                        $connectionPool = GeneralUtility::makeInstance(ConnectionPool::class);
-                        $connection = $connectionPool->getConnectionForTable('tx_pixxioextension_domain_model_licenserelease');
+                // set meta data
+                $additionalFields = array(
+                    'title' => $file->subject,
+                    'description' => $file->description,
+                    'pixxio_file_id' => $file->id,
+                    'pixxio_mediaspace' => $file->downloadURL,
+                    'pixxio_last_sync_stamp' => time(),
+                    'pixxio_downloadformat' => $file->downloadFormat
+                );
 
-                        $persistenceManager = GeneralUtility::makeInstance( PersistenceManager::class);
-                        $persistenceManager->persistAll();
+                $licenseReleaseUids = [];
+                if (isset($file->licenseReleases)) {
 
-                        foreach ($file->licenseReleases as $licenseRelease) {
+                    $connectionPool = GeneralUtility::makeInstance(ConnectionPool::class);
+                    $connection = $connectionPool->getConnectionForTable('tx_pixxioextension_domain_model_licenserelease');
 
-                            $insertData = [];
-                            if (isset($licenseRelease->licenseRelease)) {
-                                if (isset($licenseRelease->licenseRelease->license)
-                                    && isset($licenseRelease->licenseRelease->license->provider)) {
-                                    $insertData['license_provider'] = $licenseRelease->licenseRelease->license->provider;
-                                }
+                    $persistenceManager = GeneralUtility::makeInstance( PersistenceManager::class);
+                    $persistenceManager->persistAll();
 
-                                if (isset($licenseRelease->licenseRelease->name)) {
-                                    $insertData['name'] = $licenseRelease->licenseRelease->name;
-                                }
+                    foreach ($file->licenseReleases as $licenseRelease) {
 
-                                if (isset($licenseRelease->licenseRelease->showWarningMessage)) {
-                                    $insertData['show_warning_message'] = (bool) $licenseRelease->licenseRelease->showWarningMessage;
-                                }
-
-                                if (isset($licenseRelease->licenseRelease->warningMessage)) {
-                                    $insertData['show_warning_message'] = $licenseRelease->licenseRelease->warningMessage;
-                                }
+                        $insertData = [];
+                        if (isset($licenseRelease->licenseRelease)) {
+                            if (isset($licenseRelease->licenseRelease->license)
+                                && isset($licenseRelease->licenseRelease->license->provider)) {
+                                $insertData['license_provider'] = $licenseRelease->licenseRelease->license->provider;
                             }
 
-                            if (isset($licenseRelease->expires)) {
-                                $insertData['expires'] = $licenseRelease->expires;
+                            if (isset($licenseRelease->licenseRelease->name)) {
+                                $insertData['name'] = $licenseRelease->licenseRelease->name;
                             }
 
-                            $connection->insert('tx_pixxioextension_domain_model_licenserelease', $insertData);
+                            if (isset($licenseRelease->licenseRelease->showWarningMessage)) {
+                                $insertData['show_warning_message'] = (bool) $licenseRelease->licenseRelease->showWarningMessage;
+                            }
 
-                            $licenseReleaseUids[] = $connection->lastInsertId('tx_pixxioextension_domain_model_licenserelease');
+                            if (isset($licenseRelease->licenseRelease->warningMessage)) {
+                                $insertData['show_warning_message'] = $licenseRelease->licenseRelease->warningMessage;
+                            }
                         }
 
+                        if (isset($licenseRelease->expires)) {
+                            $insertData['expires'] = $licenseRelease->expires;
+                        }
+
+                        $connection->insert('tx_pixxioextension_domain_model_licenserelease', $insertData);
+
+                        $licenseReleaseUids[] = $connection->lastInsertId('tx_pixxioextension_domain_model_licenserelease');
                     }
 
-                    $additionalFields['tx_pixxioextension_licensereleases'] = implode(',', $licenseReleaseUids);
-
-                    if (isset($file->directLink)) {
-                        $additionalFields['pixxio_is_direct_link'] = isset( $file->directLink ) && $file->directLink != '' ? 1 : 0;
-                        $additionalFields['pixxio_direct_link'] = isset( $file->directLink ) && $file->directLink != '' ? $file->directLink : '0';
-                    }
-
-                    if (isset($this->extensionConfiguration['alt_text']) && isset($file->metadata->{$this->extensionConfiguration['alt_text']})) {
-                        $additionalFields['alternative'] = $file->metadata->{$this->extensionConfiguration['alt_text']};
-                    }
-
-                    $metaDataRepository = GeneralUtility::makeInstance(MetaDataRepository::class);
-                    $metaDataRepository->update($importedFileUid, $additionalFields);
                 }
 
+                $additionalFields['tx_pixxioextension_licensereleases'] = implode(',', $licenseReleaseUids);
+
+                if (isset($file->directLink)) {
+                    $additionalFields['pixxio_is_direct_link'] = isset( $file->directLink ) && $file->directLink != '' ? 1 : 0;
+                    $additionalFields['pixxio_direct_link'] = isset( $file->directLink ) && $file->directLink != '' ? $file->directLink : '0';
+                }
+
+                if (isset($this->extensionConfiguration['alt_text']) && isset($file->metadata->{$this->extensionConfiguration['alt_text']})) {
+                    $additionalFields['alternative'] = $file->metadata->{$this->extensionConfiguration['alt_text']};
+                }
+
+                $metaDataRepository = GeneralUtility::makeInstance(MetaDataRepository::class);
+                $metaDataRepository->update($importedFileUid, $additionalFields);
             }
+
         }
         return $importedFiles;
     }
