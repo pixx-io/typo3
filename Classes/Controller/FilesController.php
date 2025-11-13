@@ -381,6 +381,10 @@ class FilesController
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('sys_file_metadata');
         $queryBuilder->getRestrictions()->add(GeneralUtility::makeInstance(RootLevelRestriction::class));
 
+        $maxItems = isset($this->extensionConfiguration['limit']) 
+            ? (int)$this->extensionConfiguration['limit'] 
+            : 10;
+
         $files = $queryBuilder
             ->select('*')
             ->from('sys_file_metadata')
@@ -388,7 +392,7 @@ class FilesController
                 $queryBuilder->expr()->gt('pixxio_file_id', $queryBuilder->createNamedParameter(0, \PDO::PARAM_INT)),
             )
             ->orderBy('pixxio_last_sync_stamp')
-            ->setMaxResults(10)
+            ->setMaxResults($maxItems)
             ->leftJoin('sys_file_metadata', 'sys_file', 'f', $queryBuilder->expr()->eq(
                 'sys_file_metadata.file',
                 $queryBuilder->quoteIdentifier('f.uid')
@@ -418,7 +422,7 @@ class FilesController
         $this->accessToken = $this->pixxioAuth();
         $io->writeln('Authenticated');
 
-        $io->writeln('Check Existence and Version on pixx.io');
+        $io->writeln('Check Existence and Version of ' . count($fileIds) . ' files on pixx.io');
         $pixxioDiff = $this->pixxioCheckExistence($fileIds);
 
         if (!is_array($pixxioDiff)) {
