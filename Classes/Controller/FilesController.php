@@ -642,8 +642,96 @@ class FilesController extends ActionController
             fclose($fp);
         }
 
+        if ($uploaded) {
+            // Resize to max 400px width
+            $this->resizeImageToMaxWidth($absFileIdentifier, 400);
+        }
+
         return $uploaded ? $absFileIdentifier : false;
     }
+
+    private function resizeImageToMaxWidth(string $filePath, int $maxWidth): void
+    {
+        if (!file_exists($filePath)) {
+            return;
+        }
+
+        [$width, $height, $type] = @getimagesize($filePath);
+        if (!$width || !$height) {
+            // Not an image, or unreadable
+            return;
+        }
+
+        // Only shrink images that are wider than the max width
+        if ($width <= $maxWidth) {
+            return;
+        }
+
+        $ratio      = $height / $width;
+        $newWidth   = $maxWidth;
+        $newHeight  = (int)round($maxWidth * $ratio);
+
+        switch ($type) {
+            case IMAGETYPE_JPEG:
+                $src = imagecreatefromjpeg($filePath);
+                break;
+            case IMAGETYPE_PNG:
+                $src = imagecreatefrompng($filePath);
+                break;
+            case IMAGETYPE_GIF:
+                $src = imagecreatefromgif($filePath);
+                break;
+            default:
+                // Unsupported format – do nothing
+                return;
+        }
+
+        if (!$src) {
+            return;
+        }
+
+        $dst = imagecreatetruecolor($newWidth, $newHeight);
+
+        // Handle transparency for PNG/GIF
+        if ($type === IMAGETYPE_PNG || $type === IMAGETYPE_GIF) {
+            imagecolortransparent(
+                $dst,
+                imagecolorallocatealpha($dst, 0, 0, 0, 127)
+            );
+            imagealphablending($dst, false);
+            imagesavealpha($dst, true);
+        }
+
+        imagecopyresampled(
+            $dst,
+            $src,
+            0,
+            0,
+            0,
+            0,
+            $newWidth,
+            $newHeight,
+            $width,
+            $height
+        );
+
+        // Overwrite the original file
+        switch ($type) {
+            case IMAGETYPE_JPEG:
+                imagejpeg($dst, $filePath, 85);
+                break;
+            case IMAGETYPE_PNG:
+                imagepng($dst, $filePath);
+                break;
+            case IMAGETYPE_GIF:
+                imagegif($dst, $filePath);
+                break;
+        }
+
+        imagedestroy($src);
+        imagedestroy($dst);
+    }
+
 
     private function pullFiles($files)
     {
