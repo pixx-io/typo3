@@ -1,7 +1,7 @@
 <html xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers" data-namespace-typo3-fluid="true">
 <f:if condition="{file.properties.pixxio_direct_link} != ''">
     <f:then>
-        <img loading="lazy" src="{file.properties.pixxio_direct_link}" title="{file.properties.title}" alt="{file.properties.alternative}" width="{dimensions.width}" height="{dimensions.height}" loading="{settings.media.lazyLoading}" decoding="{settings.media.imageDecoding}">
+        <img src="{file.properties.pixxio_direct_link}" title="{file.properties.title}" alt="{file.properties.alternative}" width="{dimensions.width}" height="{dimensions.height}" loading="{settings.media.lazyLoading}" decoding="{settings.media.imageDecoding}">
     </f:then>
     <f:else>
         <f:media class="image-embed-item" file="{file}" width="{dimensions.width}" height="{dimensions.height}" alt="{file.alternative}" title="{file.title}" loading="{settings.media.lazyLoading}" decoding="{settings.media.imageDecoding}" />

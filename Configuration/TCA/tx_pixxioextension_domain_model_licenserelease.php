@@ -19,7 +19,6 @@ return [
             'show_warning_message',
             'warning_message',
             'expires',
-            'images',
         ]),
     ],
     'columns' => [

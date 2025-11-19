@@ -200,7 +200,7 @@ class FilesControlContainer extends \TYPO3\CMS\Backend\Form\Container\FilesContr
                 'type' => 'button',
                 'class' => 'btn btn-default pixxio pixxio-sdk-btn',
                 'title' => $buttonText,
-                'style' => 'margin-left:5px',
+                'style' => 'margin-left:5px;'.!($inlineConfiguration['inline']['showCreateNewRelationButton'] ?? true) ? 'display: none;' : '',
                 'data-dom' => htmlspecialchars($objectPrefix),
                 'data-key'=> $this->applicationId,
                 'data-url' => $extensionConfiguration['url'],

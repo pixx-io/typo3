@@ -17,7 +17,6 @@ use TYPO3\CMS\Core\Resource\Index\MetaDataRepository;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
 use TYPO3\CMS\Extbase\Persistence\Generic\PersistenceManager;
-use TYPO3\CMS\Extbase\Utility\DebuggerUtility;
 
 class FilesController extends ActionController
 {
@@ -773,9 +772,6 @@ class FilesController extends ActionController
                     $connectionPool = GeneralUtility::makeInstance(ConnectionPool::class);
                     $connection = $connectionPool->getConnectionForTable('tx_pixxioextension_domain_model_licenserelease');
 
-                    $persistenceManager = GeneralUtility::makeInstance( PersistenceManager::class);
-                    $persistenceManager->persistAll();
-
                     foreach ($file->licenseReleases as $licenseRelease) {
 
                         $insertData = [];
@@ -794,7 +790,7 @@ class FilesController extends ActionController
                             }
 
                             if (isset($licenseRelease->licenseRelease->warningMessage)) {
-                                $insertData['show_warning_message'] = $licenseRelease->licenseRelease->warningMessage;
+                                $insertData['warning_message'] = $licenseRelease->licenseRelease->warningMessage;
                             }
                         }
 
@@ -811,10 +807,9 @@ class FilesController extends ActionController
 
                 $additionalFields['tx_pixxioextension_licensereleases'] = implode(',', $licenseReleaseUids);
 
-                if (isset($file->directLink)) {
-                    $additionalFields['pixxio_is_direct_link'] = isset( $file->directLink ) && $file->directLink != '' ? 1 : 0;
-                    $additionalFields['pixxio_direct_link'] = isset( $file->directLink ) && $file->directLink != '' ? $file->directLink : '0';
-                }
+                $hasDirectLink = isset($file->directLink) && $file->directLink != '';
+                $additionalFields['pixxio_is_direct_link'] = $hasDirectLink ? 1 : 0;
+                $additionalFields['pixxio_direct_link'] = $hasDirectLink ? $file->directLink : '0';
 
                 if (isset($this->extensionConfiguration['alt_text']) && isset($file->metadata->{$this->extensionConfiguration['alt_text']})) {
                     $additionalFields['alternative'] = $file->metadata->{$this->extensionConfiguration['alt_text']};
@@ -884,8 +879,7 @@ class FilesController extends ActionController
      */
     protected function generateUniqueFilename($originalFilename, $file): string
     {
-        $fileExtension = explode('.', $originalFilename);
-        $fileExtension = $fileExtension[count($fileExtension) - 1];
+        $fileExtension = pathinfo($originalFilename, PATHINFO_EXTENSION);
 
         if (is_array($file) && !empty($file['pixxio_file_id'])) {
             $originalFilename = $file['pixxio_file_id'].'.'.$fileExtension;
