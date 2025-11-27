@@ -21,6 +21,14 @@ $temporaryPixxioFields = array(
         'type' => 'input',
       )
     ),
+    'pixxio_file_id_removed' => array (
+        'exclude' => 0,
+        'label' => 'pixx.io File ID was removed in pixx.io',
+        'config' => array (
+            'readOnly' => true,
+            'type' => 'check',
+        )
+    ),
     'pixxio_downloadformat' => array (
       'exclude' => 0,
       'label' => 'pixx.io Download Format',
@@ -78,7 +86,7 @@ $temporaryPixxioFields = array(
 
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addToAllTCAtypes(
   'sys_file_metadata',
-  'pixxio_file_id',
+  'pixxio_file_id, pixxio_file_id_removed',
   '',
   'after:title'
 );
