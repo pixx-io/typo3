@@ -72,7 +72,7 @@ class FilesController extends ActionController
         }
 
         // pull files from pixx.io
-        if($files) {
+        if ($files) {
             $importedFiles = $this->pullFiles($files);
             $response->getBody()->write(json_encode(['files' => $importedFiles]));
         }
@@ -170,15 +170,15 @@ class FilesController extends ActionController
             $this->getProxySettings($additionalOptions);
 
             $response = $this->requestFactory->request($this->extensionConfiguration['url'] . '/gobackend/files?' . http_build_query([
-                    'pageSize' => $this->extensionConfiguration['limit'] > 500 ? 500 : (int)$this->extensionConfiguration['limit'],
-                    'page' => 1,
-                    'responseFields' => json_encode($this->getResponseFields()),
-                    'licenseReleasesResponseFields' => json_encode(['id', 'name', 'license', 'showWarningMessage']),
-                    'filter' => json_encode([
-                        'filterType' => 'files',
-                        'fileIDs' => $fileIds
-                    ])
-                ]), 'GET', $additionalOptions);
+                'pageSize' => $this->extensionConfiguration['limit'] > 500 ? 500 : (int)$this->extensionConfiguration['limit'],
+                'page' => 1,
+                'responseFields' => json_encode($this->getResponseFields()),
+                'licenseReleasesResponseFields' => json_encode(['id', 'name', 'license', 'showWarningMessage']),
+                'filter' => json_encode([
+                    'filterType' => 'files',
+                    'fileIDs' => $fileIds
+                ])
+            ]), 'GET', $additionalOptions);
 
             if ($response->getStatusCode() === 200) {
                 $data = json_decode($response->getBody()->getContents());
@@ -233,8 +233,8 @@ class FilesController extends ActionController
         $this->getProxySettings($additionalOptions);
 
         $response = $this->requestFactory->request($this->extensionConfiguration['url'] . '/gobackend/files/' . $fileId . '?' . http_build_query([
-                'responseFields' => json_encode($this->getResponseFields())
-            ]), 'GET', $additionalOptions);
+            'responseFields' => json_encode($this->getResponseFields())
+        ]), 'GET', $additionalOptions);
 
         if ($response->getStatusCode() === 200) {
             $data = json_decode($response->getBody()->getContents());
@@ -246,11 +246,11 @@ class FilesController extends ActionController
 
     private function pixxioAuth()
     {
-        if($this->extensionConfiguration['url'] == "") {
+        if ($this->extensionConfiguration['url'] == "") {
             $this->throwError('Authentication to pixx.io failed. Please check pixx.io URL in your extension configuration', 9);
             return false;
         }
-        if($this->extensionConfiguration['token_refresh'] == "") {
+        if ($this->extensionConfiguration['token_refresh'] == "") {
             $this->throwError('Authentication to pixx.io failed. Please check pixx.io refresh token in your extension configuration', 10);
             return false;
         }
@@ -303,13 +303,13 @@ class FilesController extends ActionController
             $this->getProxySettings($additionalOptions);
 
             $response = $this->requestFactory->request($this->extensionConfiguration['url'] . '/gobackend/files/existence?' . http_build_query([
-                    'ids' => json_encode($fileIds),
-                    'responseFields' => json_encode([
-                        'id',
-                        'isMainVersion',
-                        'mainVersion'
-                    ])
-                ]), 'GET', $additionalOptions);
+                'ids' => json_encode($fileIds),
+                'responseFields' => json_encode([
+                    'id',
+                    'isMainVersion',
+                    'mainVersion'
+                ])
+            ]), 'GET', $additionalOptions);
 
             $temp = [];
             if ($response->getStatusCode() === 200) {
@@ -448,11 +448,15 @@ class FilesController extends ActionController
             )
             ->orderBy('pixxio_last_sync_stamp', 'ASC')
             ->setMaxResults(10)
-            ->leftJoin('sys_file_metadata', 'sys_file', 'f', $queryBuilder->expr()->eq(
-                'sys_file_metadata.file',
-                $queryBuilder->quoteIdentifier('f.uid')
-            )
-        );
+            ->leftJoin(
+                'sys_file_metadata',
+                'sys_file',
+                'f',
+                $queryBuilder->expr()->eq(
+                    'sys_file_metadata.file',
+                    $queryBuilder->quoteIdentifier('f.uid')
+                )
+            );
 
         if (GeneralUtility::makeInstance(Typo3Version::class)->getMajorVersion() < 11) {
             $files = $files->execute()->fetchAll();
@@ -792,11 +796,13 @@ class FilesController extends ActionController
 
         // Check for executable extensions before attempting to save
         if ($this->isExecutableExtension($filename)) {
-            $this->throwError('Wrong upload file extension. Is not allowed to use php,js,exe,doc,xls,sh: "' . $filename,
-                5);
+            $this->throwError(
+                'Wrong upload file extension. Is not allowed to use php,js,exe,doc,xls,sh: "' . $filename,
+                5
+            );
         }
 
-        if( ini_get('allow_url_fopen') ) {
+        if (ini_get('allow_url_fopen')) {
             $uploaded = file_put_contents($absFileIdentifier, file_get_contents($url));
         } else {
             $ch = curl_init($url);
@@ -805,7 +811,7 @@ class FilesController extends ActionController
             curl_setopt($ch, CURLOPT_HEADER, 0);
 
             $uploaded = true;
-            if( ! curl_exec($ch)) {
+            if (! curl_exec($ch)) {
                 $this->throwError('CURL Error while transferring file.', 7);
                 $uploaded = false;
             }
@@ -813,7 +819,6 @@ class FilesController extends ActionController
             curl_close($ch);
             fclose($fp);
         }
-
 
         if ($uploaded && $isDirectLink) {
             // Resize to max 400px width
@@ -921,7 +926,6 @@ class FilesController extends ActionController
                 $this->throwError('Copying file "' . $filename . '" to path "' . '" failed.', 4);
             }
 
-
             $importedFile = $this->getStorage()->getFile($this->extensionConfiguration['subfolder'] . '/' . $filename);
 
             if ($importedFile) {
@@ -930,14 +934,34 @@ class FilesController extends ActionController
                 $importedFileUid = $importedFile->getUid();
                 $importedFiles[] = $importedFileUid;
 
+                $mediaspaceUrl = '';
+                $link = '';
+                if (isset($file->downloadURL)) {
+                    $link = $file->downloadURL;
+                } else if (isset($file->directLink)) {
+                    $link = $file->directLink;
+                }
+
+                $parsedUrl = parse_url($link);
+                if (is_array($parsedUrl) && isset($parsedUrl['scheme'], $parsedUrl['host'])) {
+                    $mediaspaceUrl = $parsedUrl['scheme'] . '://' . $parsedUrl['host'];
+                }
+
+                $downloadFormat = '';
+                if (isset($file->downloadFormat)) {
+                    $downloadFormat = $file->downloadFormat;
+                } else if (isset($file->directLinkFormat)) {
+                    $downloadFormat = $file->directLinkFormat;
+                }
+
                 // set meta data
                 $additionalFields = array(
                     'title' => $file->subject,
                     'description' => $file->description,
                     'pixxio_file_id' => $file->id,
-                    'pixxio_mediaspace' => $file->downloadURL,
+                    'pixxio_mediaspace' => $mediaspaceUrl,
                     'pixxio_last_sync_stamp' => time(),
-                    'pixxio_downloadformat' => $file->downloadFormat
+                    'pixxio_downloadformat' => $downloadFormat
                 );
 
                 $licenseReleaseUids = [];
@@ -950,8 +974,10 @@ class FilesController extends ActionController
 
                         $insertData = [];
                         if (isset($licenseRelease->licenseRelease)) {
-                            if (isset($licenseRelease->licenseRelease->license)
-                                && isset($licenseRelease->licenseRelease->license->provider)) {
+                            if (
+                                isset($licenseRelease->licenseRelease->license)
+                                && isset($licenseRelease->licenseRelease->license->provider)
+                            ) {
                                 $insertData['license_provider'] = $licenseRelease->licenseRelease->license->provider;
                             }
 
@@ -976,7 +1002,6 @@ class FilesController extends ActionController
 
                         $licenseReleaseUids[] = $connection->lastInsertId('tx_pixxioextension_domain_model_licenserelease');
                     }
-
                 }
 
                 $additionalFields['tx_pixxioextension_licensereleases'] = implode(',', $licenseReleaseUids);
@@ -992,7 +1017,6 @@ class FilesController extends ActionController
                 $metaDataRepository = GeneralUtility::makeInstance(MetaDataRepository::class);
                 $metaDataRepository->update($importedFileUid, $additionalFields);
             }
-
         }
         return $importedFiles;
     }
@@ -1022,7 +1046,8 @@ class FilesController extends ActionController
         $filename = str_replace(
             array('ä', 'ö', 'ü', 'ß', ' - ', ' + ', '_', ' / ', '/'),
             array('ae', 'oe', 'ue', 'ss', '-', '-', '-', '-', '-'),
-            $filename);
+            $filename
+        );
         $filename = str_replace(' ', '-', $filename);
         $filename = preg_replace('/[^a-z0-9\._-]/isU', '', $filename);
         $filename = trim($filename);
@@ -1056,11 +1081,11 @@ class FilesController extends ActionController
         $fileExtension = pathinfo($originalFilename, PATHINFO_EXTENSION);
 
         if (is_array($file) && !empty($file['pixxio_file_id'])) {
-            $originalFilename = $file['pixxio_file_id'].'.'.$fileExtension;
+            $originalFilename = $file['pixxio_file_id'] . '.' . $fileExtension;
             return $originalFilename;
         }
 
-        $originalFilename = $file->id.'.'.$fileExtension;
+        $originalFilename = $file->id . '.' . $fileExtension;
         return $originalFilename;
     }
 }
