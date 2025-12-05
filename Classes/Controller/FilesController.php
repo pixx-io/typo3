@@ -186,36 +186,6 @@ class FilesController extends ActionController
             }
             return [];
         } catch (\Exception $error) {
-            if (str_contains(strtolower($error->getMessage()), strtolower('The specified file ID does not exist.'))) {
-                // sync have an issue with one of the files, but we don't know which one
-                // we have to call one by one, until we find the missing item.
-                // Then it's possible again to call all of them
-                $files = [];
-                foreach ($fileIds as $fileId) {
-                    $skip = false;
-                    $remove = false;
-
-                    try {
-                        $pixxioFile = $this->pixxioFile($fileId);
-                    } catch (\Exception $e) {
-                        if (str_contains(strtolower($error->getMessage()), strtolower('The specified file ID does not exist.'))) {
-                            $remove = true;
-                        } else {
-                            $skip = true;
-                        }
-                    }
-
-                    if (!$skip) {
-                        if (!$remove && $pixxioFile) {
-                            $files[] = $pixxioFile;
-                        } else {
-                            $this->syncRemovedPixxioFile($fileId);
-                        }
-                    }
-                }
-                return $files;
-            }
-
             $this->throwError($error->getMessage(), 1);
         }
     }
@@ -407,26 +377,6 @@ class FilesController extends ActionController
         return null;
     }
 
-    protected function syncRemovedPixxioFile($fileId)
-    {
-        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)
-            ->getQueryBuilderForTable('sys_file_metadata');
-
-        // For updates it's usually safest to remove restrictions
-        $queryBuilder->getRestrictions()->removeAll();
-
-        $queryBuilder
-            ->update('sys_file_metadata')
-            ->set('pixxio_file_id_removed', 1)
-            ->where(
-                $queryBuilder->expr()->eq(
-                    'pixxio_file_id',
-                    $fileId
-                )
-            )
-            ->executeStatement();
-    }
-
     public function syncAction($io): bool
     {
         // check if extension configuration is set to update/delete media by sync command
@@ -444,7 +394,6 @@ class FilesController extends ActionController
             ->from('sys_file_metadata')
             ->where(
                 $queryBuilder->expr()->gt('pixxio_file_id', $queryBuilder->createNamedParameter(0, \PDO::PARAM_INT)),
-                $queryBuilder->expr()->eq('pixxio_file_id_removed', $queryBuilder->createNamedParameter(0, \PDO::PARAM_INT)),
             )
             ->orderBy('pixxio_last_sync_stamp', 'ASC')
             ->setMaxResults(10)

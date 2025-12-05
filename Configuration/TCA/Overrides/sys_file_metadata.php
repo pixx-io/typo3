@@ -21,14 +21,6 @@ $temporaryPixxioFields = array(
         'type' => 'input',
       )
     ),
-    'pixxio_file_id_removed' => array (
-        'exclude' => 0,
-        'label' => 'pixx.io File ID was removed in pixx.io',
-        'config' => array (
-            'readOnly' => true,
-            'type' => 'check',
-        )
-    ),
     'pixxio_downloadformat' => array (
       'exclude' => 0,
       'label' => 'pixx.io Download Format',
