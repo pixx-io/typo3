@@ -12,6 +12,12 @@
 			<trans-unit id="pixxio_downloadformat.description" resname="pixxio_downloadformat.description">
 				<source>pixxioDownloadformat</source>
 			</trans-unit>
+			<trans-unit id="pixxio_is_direct_link.description" resname="pixxio_is_direct_link.description">
+				<source>pixxio_is_direct_link</source>
+			</trans-unit>
+			<trans-unit id="pixxio_direct_link.description" resname="pixxio_direct_link.description">
+				<source>pixxio_direct_link</source>
+			</trans-unit>
 		</body>
 	</file>
 </xliff>
