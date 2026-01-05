@@ -63,7 +63,7 @@ class InlineControlContainer extends \TYPO3\CMS\Backend\Form\Container\InlineCon
             'data-token' => $extensionConfiguration['token_refresh'],
             'data-uid' => uniqid()
         ];
-        
+
         // Add auto-login data attributes if enabled
         if (isset($extensionConfiguration['auto_login']) && $extensionConfiguration['auto_login']) {
             $attributes['data-auto-login'] = '1';
@@ -89,7 +89,7 @@ class InlineControlContainer extends \TYPO3\CMS\Backend\Form\Container\InlineCon
         if (isset($extensionConfiguration['alt_text'])) {
             $iframe_url .= '&metadata=' . urlencode($extensionConfiguration['alt_text']);
         }
-        
+
         // Add allowedDownloadFormats parameter if configured
         if (isset($extensionConfiguration['allowed_download_formats']) && !empty($extensionConfiguration['allowed_download_formats'])) {
             $allowedFormats = $extensionConfiguration['allowed_download_formats'];
