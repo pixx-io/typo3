@@ -39,7 +39,7 @@ Anschließend werden die Datei-IDs für die weitere Verarbeitung aufbereitet.
 
 Falls keine Dateien mit pixx.io-Verknüpfung gefunden werden, wird der Sync erfolgreich beendet.
 
-**Ausgabe:** "no pixx.io files found"
+**Ausgabe:** "No pixx.io files found"
 
 ### 3. Authentifizierung bei pixx.io
 
@@ -65,7 +65,12 @@ Für alle gefundenen Dateien wird bei pixx.io überprüft:
 - **Ist die Datei unverändert?** → Die Metadaten werden in jedem Fall später aktualisiert (siehe Schritt 9)
 
 **Ausgabe:** "Check Existence and Version of X files on pixx.io" (wobei X die Anzahl der zu prüfenden Dateien ist)
+**Tabellen-Ausgabe:** Es wird eine formatierte Tabelle mit folgenden Spalten angezeigt:
+- TYPO3 UID
+- pixx.io ID
+- Identifier (Dateipfad)
 
+Diese Tabelle gibt einen Überblick über alle Dateien, die im aktuellen Sync-Durchlauf verarbeitet werden.
 **Wichtig:** Bei dieser Prüfung werden **nur die Versionsnummern** verglichen, nicht die Metadaten. Metadaten werden unabhängig vom Versionsstatus immer am Ende des Sync-Prozesses aktualisiert.
 
 **Ergebnis:**
@@ -80,7 +85,7 @@ Vor der Durchführung wird eine Übersicht angezeigt:
 **Ausgaben:**
 
 - "Files to delete: X" (Anzahl der zu löschenden Dateien)
-- "Files to update: X" (Anzahl der zu aktualisierenden Dateien)
+- "Files with a new version: X" (Anzahl der Dateien mit neuer Version)
 
 ### 6. Dateien löschen (falls aktiviert)
 
@@ -121,7 +126,7 @@ Wenn in der Extension-Konfiguration "Update" aktiviert ist:
 
 Für alle verbliebenen Dateien (die nicht gelöscht wurden) werden die aktuellen Dateiinformationen von pixx.io abgerufen.
 
-**Ausgabe:** "start to sync: [Liste der pixx.io-IDs]"
+**Ausgabe:** "Start to sync metadata: [kommagetrennte Liste der pixx.io-IDs]"
 
 ### 9. Metadaten synchronisieren
 
@@ -145,9 +150,7 @@ Für jede Datei werden die Metadaten von pixx.io in TYPO3 übertragen und gespei
 - **Weitere Informationen:** Bewertung/Ranking, Schlagwörter/Keywords, Herausgeber, Modell
 - **Beschreibungen:** Caption (aus Beschreibung), Download-Name (aus Titel)
 
-**Ausgabe pro Datei:** "Metadata update for /pfad/zur/datei.jpg"
-
-**Ausgabe am Ende:** "Start Syncing metadata"
+**Ausgabe pro Datei:** "Update metadata for [pixx.io-ID]"
 
 ### 10. Abschluss
 
