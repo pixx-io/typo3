@@ -162,9 +162,10 @@ define([
       const refreshToken = targetButton.getAttribute("data-refresh-token");
       const mediaspaceUrl = targetButton.getAttribute("data-mediaspace-url");
 
+      if (refreshToken && mediaspaceUrl) {
         // Decode the base64 encoded values
         const decodedRefreshToken = atob(refreshToken);
-        const decodedMediaspaceUrl = atob(mediaspaceUrl).replace(
+        const decodedMediaspaceDomain = atob(mediaspaceUrl).replace(
           "https://",
           ""
         );
@@ -176,7 +177,7 @@ define([
           parameters: [
             {
               refreshToken: decodedRefreshToken,
-              mediaspaceDomain: decodedMediaspaceUrl,
+              mediaspaceDomain: decodedMediaspaceDomain,
             },
           ],
         };

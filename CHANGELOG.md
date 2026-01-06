@@ -4,7 +4,10 @@
 
 - Feature: Add support for CDN links
 - Feature: Add sync for license releases
+- Feat: Update Plugin SDK to latest version
+- Feat: Improve logging
 - Fix: Sync command now exits successfully when no pixx.io files in the system
+- Fix: Use configured limit for sync action
 - Fix: Missing files are deleted if activated in the settings
 - Docs: Add documentation for sync command
 

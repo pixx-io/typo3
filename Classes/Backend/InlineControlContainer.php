@@ -27,7 +27,7 @@ class InlineControlContainer extends \TYPO3\CMS\Backend\Form\Container\InlineCon
         // Inject button before help-block
         if (strpos($selector, '</div><div class="help-block">') > 0) {
             $selector = str_replace('</div><div class="help-block">', $button . '</div><div class="help-block">', $selector);
-        // Try to inject it into the form-control container
+            // Try to inject it into the form-control container
         } elseif (preg_match('/<\/div><\/div>$/i', $selector)) {
             $selector = preg_replace('/<\/div><\/div>$/i', $button . '</div></div>', $selector);
         } else {
@@ -58,7 +58,7 @@ class InlineControlContainer extends \TYPO3\CMS\Backend\Form\Container\InlineCon
             'title' => $buttonText,
             'style' => 'margin-left:5px',
             'data-dom' => htmlspecialchars($objectPrefix),
-            'data-key'=> $this->applicationId,
+            'data-key' => $this->applicationId,
             'data-url' => $extensionConfiguration['url'],
             'data-token' => $extensionConfiguration['token_refresh'],
             'data-uid' => uniqid()
@@ -77,7 +77,7 @@ class InlineControlContainer extends \TYPO3\CMS\Backend\Form\Container\InlineCon
 
         $langCode = $GLOBALS['BE_USER']->uc['lang'] ?? '';
 
-        if ($langCode == 'default' OR $langCode == '') {
+        if ($langCode == 'default' or $langCode == '') {
             $langCode = 'en';
         }
 
@@ -107,15 +107,15 @@ class InlineControlContainer extends \TYPO3\CMS\Backend\Form\Container\InlineCon
 
         $button = '
         <span ' . GeneralUtility::implodeAttributes($attributes, true) . '>
-          '.$this->iconFactory->getIcon('actions-pixxio-extension-modal-view', \TYPO3\CMS\Core\Imaging\Icon::SIZE_SMALL)->render().$buttonText.'
+          ' . $this->iconFactory->getIcon('actions-pixxio-extension-modal-view', \TYPO3\CMS\Core\Imaging\Icon::SIZE_SMALL)->render() . $buttonText . '
         </span>
-        <div class="pixxio-lightbox" style="display:none"><div class="pixxio-close"></div><div class="pixxio-lightbox-inner"><iframe class="pixxio_sdk" data-src="'.$iframe_url .'" width="100%" height="100%"></iframe></div></div>
+        <div class="pixxio-lightbox" style="display:none"><div class="pixxio-close"></div><div class="pixxio-lightbox-inner"><iframe class="pixxio_sdk" data-src="' . $iframe_url . '" width="100%" height="100%"></iframe></div></div>
         ';
 
         $this->requireJsModules[] = 'TYPO3/CMS/PixxioExtension/ScriptSDK_v11';
 
         $assetsCollector = GeneralUtility::makeInstance(AssetCollector::class);
-        $assetsCollector->addStylesheet('pixxio_extension','EXT:pixxio_extension/Resources/Public/StyleSheet/StyleSDK.css');
+        $assetsCollector->addStylesheet('pixxio_extension', 'EXT:pixxio_extension/Resources/Public/StyleSheet/StyleSDK.css');
 
         return $button;
     }
