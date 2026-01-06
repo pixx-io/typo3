@@ -35,9 +35,8 @@ class SyncCommand extends Command
               return Command::SUCCESS;
           }
           $io->error('💥 synchronization failed');
-          return Command::FAILURE;
+        return Command::FAILURE;
       } catch (\RuntimeException $error) {
-          var_dump($error->getMessage());
           $io->error('😱 got a runtime exception: ' . $error->getMessage());
           return Command::FAILURE;
       }
