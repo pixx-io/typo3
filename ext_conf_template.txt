@@ -7,13 +7,16 @@ subfolder =
 # cat=basic; type=string; label=Allowed download formats: Control which download formats are available in the plugin SDK iframe. Use comma-separated values for multiple formats (e.g. "jpg,png,pdf"). Valid formats: original, preview, jpg, png, pdf, tiff. Leave empty for all formats.
 allowed_download_formats =
 
+# cat=basic; type=boolean; label=Use CDN Links: The system won't create local copy of the file, but will use always up-to-date file from pixx.io. A plan with CDN links is required for that.
+use_cdn_links = false
+
 # cat=metadata; type=string; label=Metadata for alternative Text (default = Alt Text (Accessibility))
 alt_text = Alt Text (Accessibility)
 
 # cat=sync; type=string; label=pixx.io URL (domain.px.media)
 url =
 
-# cat=sync; type=string; label=pixx.io user id or email: This value is used only for automatic sync.
+# cat=sync; type=string; label=pixx.io user name or email: This value is not needed. You can use it to remember which user the refresh token belongs to.
 user_id =
 
 # cat=sync; type=string; label=pixx.io refresh token: This value is used only for automatic sync.

@@ -9,6 +9,7 @@ The pixx.io Typo3 Extension allows pixx.io users to select the assets directly f
 - Includes Proxy support
 - Works with the popular core extension: typo3/filemetadata
 
+
 ## Installation:
 
 The installation of the extension is straight forward. Type `composer req pixxio/pixxio-extension` for installation. ext-curl is installed automatically, if not already installed.
@@ -37,16 +38,18 @@ It's possible to sync the alt text. Therefore you have to define the name of the
 
 ### Sync
 
-In Sync you can define behaviors that should be done during a running sync.
+See [docs/sync.md](./docs/sync.md) for detailed information about the sync process.
+
+In Sync you can define behaviors that should be done during a running sync. **Note:** At least one of the following options must be enabled for the sync to run.
 
 **Delete:**
-If a file is deleted in pixx.io, it will be deleted in typo3 as well if the flag is set. If not it will decouple the file from pixx.io.
+If a file is deleted in pixx.io, it will also be deleted in TYPO3 when this flag is set. If this flag is disabled, files that no longer exist in pixx.io will be kept in TYPO3 (a warning will be logged).
 
 **Update:**
-If you use the version feature of pixx.io you be able to update the main version of a file. If the flag ist set the sync will replace files that aren't the main version to their new main version.
+If you use the version feature of pixx.io, you can automatically update files to their new main version. When this flag is set, the sync will replace files that aren't the main version with their new main version.
 
-**Limit:**
-You can define a limit from 1 to 50. This limit defines the amount of files that should be checked through a single sync run.
+**Note:** The sync processes up to 10 files per run, prioritizing files that haven't been synchronized recently. Metadata is always synchronized for all files, regardless of whether the file version has changed.
+
 
 ### Proxy Settings:
 
@@ -83,3 +86,7 @@ If you are using the core extension filemetadata it will sync more metadata to t
 - `Date created` / `Erstellungsdatum` (Type: Internal) => `Content Creation Date`
 - `Zuletzt bearbeitet` (Type: Internal) => `Content Modification Date`
 - `ModifyDate` / `Farbraum` (Type: Internal) => `Color Space`
+
+### 2.0.3
+
+- Fix bugs to support multiple image fields

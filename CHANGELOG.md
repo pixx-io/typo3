@@ -2,7 +2,10 @@
 
 ## NEXT
 
+- Feat: Update Plugin SDK to latest version
 - Fix: Use configured limit for sync action
+- Fix: Missing files are deleted if activated in the settings
+- Add documentation for sync command
 
 ## 2.3.0
 
