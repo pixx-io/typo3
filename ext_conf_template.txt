@@ -31,7 +31,7 @@ update = false
 # cat=sync; type=boolean; label=Auto-login with the sync access data in the image picker.
 auto_login = false
 
-# cat=sync; type=int [1-50]; label=The amount of files that should be synchronized through a single run
+# cat=sync; type=int [1-500]; label=The amount of files that should be synchronized through a single run
 limit = 20
 
 # cat=proxy; type=boolean; label=Use proxy configuration
