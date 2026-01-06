@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Pixxio\PixxioExtension\Controller;
 
+use Pixxio\PixxioExtension\Domain\Model\LicenceRelease;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Symfony\Component\Console\Helper\Table;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\Restriction\RootLevelRestriction;
 use TYPO3\CMS\Core\Http\JsonResponse;
@@ -13,8 +15,12 @@ use TYPO3\CMS\Core\Http\RequestFactory;
 use TYPO3\CMS\Core\Information\Typo3Version;
 use TYPO3\CMS\Core\Resource\Index\MetaDataRepository;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
+use TYPO3\CMS\Extbase\Persistence\Generic\PersistenceManager;
+use TYPO3\CMS\Core\Database\Connection;
 
-class FilesController
+
+class FilesController extends ActionController
 {
 
     private $metadataMapping = [
@@ -66,7 +72,7 @@ class FilesController
         }
 
         // pull files from pixx.io
-        if($files) {
+        if ($files) {
             $importedFiles = $this->pullFiles($files);
             $response->getBody()->write(json_encode(['files' => $importedFiles]));
         }
@@ -118,7 +124,8 @@ class FilesController
             'subject',
             'description',
             'originalFileURL',
-            'previewFileURL'
+            'previewFileURL',
+            'licenseReleases',
         ];
 
         if ($this->hasExt('filemetadata')) {
@@ -162,15 +169,18 @@ class FilesController
 
             $this->getProxySettings($additionalOptions);
 
+            $maxSyncItems = $this->getMaxSyncItems();
+
             $response = $this->requestFactory->request($this->extensionConfiguration['url'] . '/gobackend/files?' . http_build_query([
-                    'pageSize' => $this->extensionConfiguration['limit'] > 500 ? 500 : (int)$this->extensionConfiguration['limit'],
-                    'page' => 1,
-                    'responseFields' => json_encode($this->getResponseFields()),
-                    'filter' => json_encode([
-                        'filterType' => 'files',
-                        'fileIDs' => $fileIds
-                    ])
-                ]), 'GET', $additionalOptions);
+                'pageSize' => $maxSyncItems,
+                'page' => 1,
+                'responseFields' => json_encode($this->getResponseFields()),
+                'licenseReleasesResponseFields' => json_encode(['id', 'name', 'license', 'showWarningMessage']),
+                'filter' => json_encode([
+                    'filterType' => 'files',
+                    'fileIDs' => $fileIds
+                ])
+            ]), 'GET', $additionalOptions);
 
             if ($response->getStatusCode() === 200) {
                 $data = json_decode($response->getBody()->getContents());
@@ -201,6 +211,21 @@ class FilesController
         }
     }
 
+    private function getMaxSyncItems()
+    {
+        $limit = isset($this->extensionConfiguration['limit'])
+            ? (int)$this->extensionConfiguration['limit']
+            : 20;
+
+        if ($limit < 1) {
+            $limit = 20;
+        } elseif ($limit > 500) {
+            $limit = 500;
+        }
+
+        return $limit;
+    }
+
     private function pixxioFile($fileId)
     {
         $additionalOptions = [
@@ -214,8 +239,8 @@ class FilesController
         $this->getProxySettings($additionalOptions);
 
         $response = $this->requestFactory->request($this->extensionConfiguration['url'] . '/gobackend/files/' . $fileId . '?' . http_build_query([
-                'responseFields' => json_encode($this->getResponseFields())
-            ]), 'GET', $additionalOptions);
+            'responseFields' => json_encode($this->getResponseFields())
+        ]), 'GET', $additionalOptions);
 
         if ($response->getStatusCode() === 200) {
             $data = json_decode($response->getBody()->getContents());
@@ -227,12 +252,11 @@ class FilesController
 
     private function pixxioAuth()
     {
-
-        if($this->extensionConfiguration['url'] == "") {
+        if ($this->extensionConfiguration['url'] == "") {
             $this->throwError('Authentication to pixx.io failed. Please check pixx.io URL in your extension configuration', 9);
             return false;
         }
-        if($this->extensionConfiguration['token_refresh'] == "") {
+        if ($this->extensionConfiguration['token_refresh'] == "") {
             $this->throwError('Authentication to pixx.io failed. Please check pixx.io refresh token in your extension configuration', 10);
             return false;
         }
@@ -285,13 +309,13 @@ class FilesController
             $this->getProxySettings($additionalOptions);
 
             $response = $this->requestFactory->request($this->extensionConfiguration['url'] . '/gobackend/files/existence?' . http_build_query([
-                    'ids' => json_encode($fileIds),
-                    'responseFields' => json_encode([
-                        'id',
-                        'isMainVersion',
-                        'mainVersion'
-                    ])
-                ]), 'GET', $additionalOptions);
+                'ids' => json_encode($fileIds),
+                'responseFields' => json_encode([
+                    'id',
+                    'isMainVersion',
+                    'mainVersion'
+                ])
+            ]), 'GET', $additionalOptions);
 
             $temp = [];
             if ($response->getStatusCode() === 200) {
@@ -314,7 +338,8 @@ class FilesController
                             ];
                             $foundIds[] = $f->id;
                         } else {
-                            // If in doubt, keep the file (don't mark for deletion)
+                            // The file was found but we cannot determine if it's the main version
+                            // We keep the file (don't mark for deletion)
                             $temp[] = [
                                 'oldId' => $f->id,
                                 'newId' => $f->id
@@ -329,7 +354,7 @@ class FilesController
                         if (!in_array($id, $foundIds, true)) {
                             $temp[] = [
                                 'oldId' => $id,
-                                'newId' => $id
+                                'newId' => null
                             ];
                         }
                     }
@@ -351,7 +376,9 @@ class FilesController
 
         $metadata = GeneralUtility::makeInstance(MetaDataRepository::class);
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('sys_file_metadata');
-        $queryBuilder->getRestrictions()->add(GeneralUtility::makeInstance(RootLevelRestriction::class));
+        $queryBuilder->getRestrictions()->removeAll();
+
+        $maxSyncItems = $this->getMaxSyncItems();
 
         $files = $queryBuilder
             ->select('*')
@@ -359,12 +386,16 @@ class FilesController
             ->where(
                 $queryBuilder->expr()->gt('pixxio_file_id', $queryBuilder->createNamedParameter(0, \PDO::PARAM_INT)),
             )
-            ->orderBy('pixxio_last_sync_stamp')
-            ->setMaxResults(10)
-            ->leftJoin('sys_file_metadata', 'sys_file', 'f', $queryBuilder->expr()->eq(
-                'sys_file_metadata.file',
-                $queryBuilder->quoteIdentifier('f.uid')
-            )
+            ->orderBy('pixxio_last_sync_stamp', 'ASC')
+            ->setMaxResults($maxSyncItems)
+            ->leftJoin(
+                'sys_file_metadata',
+                'sys_file',
+                'f',
+                $queryBuilder->expr()->eq(
+                    'sys_file_metadata.file',
+                    $queryBuilder->quoteIdentifier('f.uid')
+                )
             );
 
         if (GeneralUtility::makeInstance(Typo3Version::class)->getMajorVersion() < 11) {
@@ -389,21 +420,25 @@ class FilesController
         $io->writeln('Authenticate to pixx.io');
         $this->accessToken = $this->pixxioAuth();
         $io->writeln('Authenticated');
-
-        $io->writeln('Check Existence and Version on pixx.io');
-
+        
+        $io->writeln('Check existence and version of ' . count($fileIds) . ' files on pixx.io');
         $io->writeln('');
-        $io->writeln('Checking ' . count($fileIds) . ' files on pixx.io:');
 
-        // Log pixx.io IDs with TYPO3 UIDs
+        // Display files as table
+        $tableRows = [];
         foreach ($files as $file) {
-            $io->writeln(sprintf(
-                'TYPO3 UID: %s | pixx.io ID: %s | %s',
+            $tableRows[] = [
                 $file['uid'],
                 $file['pixxio_file_id'],
                 $file['identifier']
-            ));
+            ];
         }
+        
+        $table = new Table($io);
+        $table
+            ->setHeaders(['TYPO3 UID', 'pixx.io ID', 'Identifier'])
+            ->setRows($tableRows);
+        $table->render();
 
         $io->writeln('');
 
@@ -425,7 +460,6 @@ class FilesController
             return $diff['newId'] !== null && $diff['newId'] !== $diff['oldId'];
         }));
 
-
         // do the sync
         //check if file exists and update their versions
         // delete files that aren't existing in pixx.io
@@ -436,7 +470,7 @@ class FilesController
             // delete files
             if (in_array($file['pixxio_file_id'], $pixxioIdsToDelete)) {
                 if ($this->extensionConfiguration['delete']) {
-                    $io->writeln('File to deleted:' . $file['identifier']);
+                    $io->writeln('File deleted: ' . $file['identifier']);
                     $storage = $this->getStorage();
                     $storage->deleteFile($storage->getFileByIdentifier($file['identifier']));
                     unset($files[$index]);
@@ -464,10 +498,11 @@ class FilesController
                     }
                     if ($newId) {
                         $pixxioFile = $this->pixxioFile($newId);
-                        $absFileIdentifier = $this->saveFile($file['name'], $pixxioFile->originalFileURL);
+                        $filename = $this->generateUniqueFilename($file['name'], $file);
+                        $absFileIdentifier = $this->saveFile($filename, $pixxioFile->originalFileURL);
                         $storage = $this->getStorage();
                         $storage->replaceFile($storage->getFileByIdentifier($file['identifier']), $absFileIdentifier);
-                        $io->writeln('File to updated:' . $file['identifier']);
+                        $io->writeln('File updated: ' . $file['identifier']);
                         foreach ($fileIds as $key => $id) {
                             if ($id === $file['pixxio_file_id']) {
                                 $fileIds[$key] = $newId;
@@ -517,10 +552,128 @@ class FilesController
             if ($this->hasExt('filemetadata')) {
                 $additionalFields = array_merge($additionalFields, $this->getMetadataWithFilemetadataExt($pixxioFile));
             }
+
+            $additionalFields['tx_pixxioextension_licensereleases'] = $this->licensereleasesSync($pixxioFile, $file);
+
             $io->writeln('Update metadata for ' . $pixxioFile->id);
             $metadata->update($file['uid'], $additionalFields);
         }
         return true;
+    }
+
+    protected function licensereleasesSync($pixxioFile, array $file): string
+    {
+        $licenseReleaseUids = [];
+
+        $connectionPool = GeneralUtility::makeInstance(ConnectionPool::class);
+        $connection = $connectionPool->getConnectionForTable('tx_pixxioextension_domain_model_licenserelease');
+
+        // Pixxio HAS license releases
+        if (!empty($pixxioFile->licenseReleases)) {
+            // 1) Existing relations from TYPO3 (ordered list of UIDs as stored in metadata)
+            $existingLicenseReleaseUids = [];
+            if (!empty($file['tx_pixxioextension_licensereleases'])) {
+                $existingLicenseReleaseUids = GeneralUtility::intExplode(
+                    ',',
+                    (string)$file['tx_pixxioextension_licensereleases'],
+                    true
+                );
+            }
+
+            $index = 0;
+            // 2) For each Pixxio license, use the UID at the same position if it exists; otherwise insert a new record
+            foreach ($pixxioFile->licenseReleases as $licenseRelease) {
+                $insertData = [];
+
+                if (isset($licenseRelease->licenseRelease)) {
+                    if (isset($licenseReleaselicenseReleaselicense, $licenseRelease->licenseRelease->license->provider)) {
+                        $insertData['license_provider'] = $licenseRelease->licenseRelease->license->provider;
+                    }
+
+                    if (isset($licenseRelease->licenseRelease->name)) {
+                        $insertData['name'] = $licenseRelease->licenseRelease->name;
+                    }
+
+                    if (isset($licenseRelease->licenseRelease->showWarningMessage)) {
+                        $insertData['show_warning_message'] = (bool)$licenseRelease->licenseRelease->showWarningMessage;
+                    }
+
+                    if (isset($licenseRelease->licenseRelease->warningMessage)) {
+                        $insertData['warning_message'] = $licenseRelease->licenseRelease->warningMessage;
+                    }
+                }
+
+                if (isset($licenseRelease->expires)) {
+                    $insertData['expires'] = $licenseRelease->expires;
+                }
+
+                // existing UID at this position? -> update
+                if (!empty($existingLicenseReleaseUids[$index])) {
+                    $uid = (int)$existingLicenseReleaseUids[$index];
+
+                    $connection->update(
+                        'tx_pixxioextension_domain_model_licenserelease',
+                        $insertData,
+                        ['uid' => $uid]
+                    );
+                } else {
+                    // no existing UID -> insert new
+                    $connection->insert('tx_pixxioextension_domain_model_licenserelease', $insertData);
+                    $uid = (int)$connection->lastInsertId('tx_pixxioextension_domain_model_licenserelease');
+                }
+
+                $licenseReleaseUids[] = $uid;
+                $index++;
+            }
+
+            // 3) Delete leftover old licenses if there are more existing UIDs than new Pixxio licenses
+            if (!empty($existingLicenseReleaseUids) && \count($existingLicenseReleaseUids) > \count($licenseReleaseUids)) {
+                $uidsToDelete = \array_slice(
+                    $existingLicenseReleaseUids,
+                    \count($licenseReleaseUids)
+                );
+
+                if (!empty($uidsToDelete)) {
+                    $queryBuilder = $connectionPool->getQueryBuilderForTable('tx_pixxioextension_domain_model_licenserelease');
+                    $queryBuilder
+                        ->delete('tx_pixxioextension_domain_model_licenserelease')
+                        ->where(
+                            $queryBuilder->expr()->in(
+                                'uid',
+                                $queryBuilder->createNamedParameter($uidsToDelete, Connection::PARAM_INT_ARRAY)
+                            )
+                        )
+                        ->executeStatement();
+                }
+            }
+
+            // 4) Return the new ordered UID list for metadata field
+            return implode(',', $licenseReleaseUids);
+        }
+
+        // Pixxio has NO licenseReleases anymore – remove all previous ones
+        if (!empty($file['tx_pixxioextension_licensereleases'])) {
+            $existingLicenseReleaseUids = GeneralUtility::intExplode(
+                ',',
+                (string)$file['tx_pixxioextension_licensereleases'],
+                true
+            );
+
+            if (!empty($existingLicenseReleaseUids)) {
+                $queryBuilder = $connectionPool->getQueryBuilderForTable('tx_pixxioextension_domain_model_licenserelease');
+                $queryBuilder
+                    ->delete('tx_pixxioextension_domain_model_licenserelease')
+                    ->where(
+                        $queryBuilder->expr()->in(
+                            'uid',
+                            $queryBuilder->createNamedParameter($existingLicenseReleaseUids, Connection::PARAM_INT_ARRAY)
+                        )
+                    )
+                    ->executeStatement();
+            }
+        }
+
+        return '';
     }
 
     private function getMetadataWithFilemetadataExt($pixxioFile)
@@ -595,18 +748,20 @@ class FilesController
         return $resourceFactory->getStorageObject($storageUid);
     }
 
-    private function saveFile($filename, $url)
+    private function saveFile($filename, $url, $isDirectLink = false)
     {
         $uploaded = false;
         $absFileIdentifier = $this->uploadPath() . $filename;
 
         // Check for executable extensions before attempting to save
         if ($this->isExecutableExtension($filename)) {
-            $this->throwError('Wrong upload file extension. Is not allowed to use php,js,exe,doc,xls,sh: "' . $filename,
-                5);
+            $this->throwError(
+                'Wrong upload file extension. Is not allowed to use php,js,exe,doc,xls,sh: "' . $filename,
+                5
+            );
         }
 
-        if( ini_get('allow_url_fopen') ) {
+        if (ini_get('allow_url_fopen')) {
             $uploaded = file_put_contents($absFileIdentifier, file_get_contents($url));
         } else {
             $ch = curl_init($url);
@@ -615,7 +770,7 @@ class FilesController
             curl_setopt($ch, CURLOPT_HEADER, 0);
 
             $uploaded = true;
-            if( ! curl_exec($ch)) {
+            if (! curl_exec($ch)) {
                 $this->throwError('CURL Error while transferring file.', 7);
                 $uploaded = false;
             }
@@ -624,8 +779,96 @@ class FilesController
             fclose($fp);
         }
 
+        if ($uploaded && $isDirectLink) {
+            // Resize to max 400px width
+            $this->resizeImageToMaxWidth($absFileIdentifier, 250);
+        }
+
         return $uploaded ? $absFileIdentifier : false;
     }
+
+    private function resizeImageToMaxWidth(string $filePath, int $maxWidth): void
+    {
+        if (!file_exists($filePath)) {
+            return;
+        }
+
+        [$width, $height, $type] = @getimagesize($filePath);
+        if (!$width || !$height) {
+            // Not an image, or unreadable
+            return;
+        }
+
+        // Only shrink images that are wider than the max width
+        if ($width <= $maxWidth) {
+            return;
+        }
+
+        $ratio      = $height / $width;
+        $newWidth   = $maxWidth;
+        $newHeight  = (int)round($maxWidth * $ratio);
+
+        switch ($type) {
+            case IMAGETYPE_JPEG:
+                $src = imagecreatefromjpeg($filePath);
+                break;
+            case IMAGETYPE_PNG:
+                $src = imagecreatefrompng($filePath);
+                break;
+            case IMAGETYPE_GIF:
+                $src = imagecreatefromgif($filePath);
+                break;
+            default:
+                // Unsupported format – do nothing
+                return;
+        }
+
+        if (!$src) {
+            return;
+        }
+
+        $dst = imagecreatetruecolor($newWidth, $newHeight);
+
+        // Handle transparency for PNG/GIF
+        if ($type === IMAGETYPE_PNG || $type === IMAGETYPE_GIF) {
+            imagecolortransparent(
+                $dst,
+                imagecolorallocatealpha($dst, 0, 0, 0, 127)
+            );
+            imagealphablending($dst, false);
+            imagesavealpha($dst, true);
+        }
+
+        imagecopyresampled(
+            $dst,
+            $src,
+            0,
+            0,
+            0,
+            0,
+            $newWidth,
+            $newHeight,
+            $width,
+            $height
+        );
+
+        // Overwrite the original file
+        switch ($type) {
+            case IMAGETYPE_JPEG:
+                imagejpeg($dst, $filePath, 85);
+                break;
+            case IMAGETYPE_PNG:
+                imagepng($dst, $filePath);
+                break;
+            case IMAGETYPE_GIF:
+                imagegif($dst, $filePath);
+                break;
+        }
+
+        imagedestroy($src);
+        imagedestroy($dst);
+    }
+
 
     private function pullFiles($files)
     {
@@ -633,38 +876,105 @@ class FilesController
         foreach ($files as $key => $file) {
             // set upload filename and upload folder
             $originalFilename = $this->getNonUtf8Filename($file->fileName ?: '');
-            $filename = $this->generateUniqueFilename($originalFilename);
+            $filename = $this->generateUniqueFilename($originalFilename, $file);
 
             // upload file
-            if (!$this->saveFile($filename, $file->downloadURL)) {
-                //if (!$this->saveFile($filename, $file->url)) {
+            if (isset($file->directLink) && $file->directLink != '' && !$this->saveFile($filename, $file->directLink, true)) {
                 $this->throwError('Copying file "' . $filename . '" to path "' . '" failed.', 4);
-            } else {
-                $importedFile = $this->getStorage()->getFile($this->extensionConfiguration['subfolder'] . '/' . $filename);
-                if ($importedFile) {
+            } else if (!isset($file->directLink) && !$this->saveFile($filename, $file->downloadURL)) {
+                $this->throwError('Copying file "' . $filename . '" to path "' . '" failed.', 4);
+            }
 
-                    // import file to FAL
-                    $importedFileUid = $importedFile->getUid();
-                    $importedFiles[] = $importedFileUid;
+            $importedFile = $this->getStorage()->getFile($this->extensionConfiguration['subfolder'] . '/' . $filename);
 
-                    // set meta data
-                    $additionalFields = array(
-                        'title' => $file->subject,
-                        'description' => $file->description,
-                        'pixxio_file_id' => $file->id,
-                        'pixxio_mediaspace' => $file->downloadURL,
-                        'pixxio_last_sync_stamp' => time(),
-                        'pixxio_downloadformat' => $file->downloadFormat
-                    );
+            if ($importedFile) {
 
-                    if (isset($this->extensionConfiguration['alt_text']) && isset($file->metadata->{$this->extensionConfiguration['alt_text']})) {
-                        $additionalFields['alternative'] = $file->metadata->{$this->extensionConfiguration['alt_text']};
-                    }
+                // import file to FAL
+                $importedFileUid = $importedFile->getUid();
+                $importedFiles[] = $importedFileUid;
 
-                    $metaDataRepository = GeneralUtility::makeInstance(MetaDataRepository::class);
-                    $metaDataRepository->update($importedFileUid, $additionalFields);
+                $mediaspaceUrl = '';
+                $link = '';
+                if (isset($file->downloadURL)) {
+                    $link = $file->downloadURL;
+                } else if (isset($file->directLink)) {
+                    $link = $file->directLink;
                 }
 
+                $parsedUrl = parse_url($link);
+                if (is_array($parsedUrl) && isset($parsedUrl['scheme'], $parsedUrl['host'])) {
+                    $mediaspaceUrl = $parsedUrl['scheme'] . '://' . $parsedUrl['host'];
+                }
+
+                $downloadFormat = '';
+                if (isset($file->downloadFormat)) {
+                    $downloadFormat = $file->downloadFormat;
+                } else if (isset($file->directLinkFormat)) {
+                    $downloadFormat = $file->directLinkFormat;
+                }
+
+                // set meta data
+                $additionalFields = array(
+                    'title' => $file->subject,
+                    'description' => $file->description,
+                    'pixxio_file_id' => $file->id,
+                    'pixxio_mediaspace' => $mediaspaceUrl,
+                    'pixxio_last_sync_stamp' => time(),
+                    'pixxio_downloadformat' => $downloadFormat
+                );
+
+                $licenseReleaseUids = [];
+                if (isset($file->licenseReleases)) {
+
+                    $connectionPool = GeneralUtility::makeInstance(ConnectionPool::class);
+                    $connection = $connectionPool->getConnectionForTable('tx_pixxioextension_domain_model_licenserelease');
+
+                    foreach ($file->licenseReleases as $licenseRelease) {
+
+                        $insertData = [];
+                        if (isset($licenseRelease->licenseRelease)) {
+                            if (
+                                isset($licenseRelease->licenseRelease->license)
+                                && isset($licenseRelease->licenseRelease->license->provider)
+                            ) {
+                                $insertData['license_provider'] = $licenseRelease->licenseRelease->license->provider;
+                            }
+
+                            if (isset($licenseRelease->licenseRelease->name)) {
+                                $insertData['name'] = $licenseRelease->licenseRelease->name;
+                            }
+
+                            if (isset($licenseRelease->licenseRelease->showWarningMessage)) {
+                                $insertData['show_warning_message'] = (bool) $licenseRelease->licenseRelease->showWarningMessage;
+                            }
+
+                            if (isset($licenseRelease->licenseRelease->warningMessage)) {
+                                $insertData['warning_message'] = $licenseRelease->licenseRelease->warningMessage;
+                            }
+                        }
+
+                        if (isset($licenseRelease->expires)) {
+                            $insertData['expires'] = $licenseRelease->expires;
+                        }
+
+                        $connection->insert('tx_pixxioextension_domain_model_licenserelease', $insertData);
+
+                        $licenseReleaseUids[] = $connection->lastInsertId('tx_pixxioextension_domain_model_licenserelease');
+                    }
+                }
+
+                $additionalFields['tx_pixxioextension_licensereleases'] = implode(',', $licenseReleaseUids);
+
+                $hasDirectLink = isset($file->directLink) && $file->directLink != '';
+                $additionalFields['pixxio_is_direct_link'] = $hasDirectLink ? 1 : 0;
+                $additionalFields['pixxio_direct_link'] = $hasDirectLink ? $file->directLink : '0';
+
+                if (isset($this->extensionConfiguration['alt_text']) && isset($file->metadata->{$this->extensionConfiguration['alt_text']})) {
+                    $additionalFields['alternative'] = $file->metadata->{$this->extensionConfiguration['alt_text']};
+                }
+
+                $metaDataRepository = GeneralUtility::makeInstance(MetaDataRepository::class);
+                $metaDataRepository->update($importedFileUid, $additionalFields);
             }
         }
         return $importedFiles;
@@ -695,7 +1005,8 @@ class FilesController
         $filename = str_replace(
             array('ä', 'ö', 'ü', 'ß', ' - ', ' + ', '_', ' / ', '/'),
             array('ae', 'oe', 'ue', 'ss', '-', '-', '-', '-', '-'),
-            $filename);
+            $filename
+        );
         $filename = str_replace(' ', '-', $filename);
         $filename = preg_replace('/[^a-z0-9\._-]/isU', '', $filename);
         $filename = trim($filename);
@@ -719,26 +1030,21 @@ class FilesController
     }
 
     /**
-     * Generate a unique filename by appending a suffix if the original filename already exists
+     * Filenames should be unique per unique file in pixxio (that's why to use pixxio id)
      *
      * @param string $filename The original filename to check for uniqueness.
      * @return string The unique filename.
      */
-    protected function generateUniqueFilename($filename): string
+    protected function generateUniqueFilename($originalFilename, $file): string
     {
-        $uploadPath = $this->uploadPath();
-        $originalFilename = $filename;
-        $counter = 1;
+        $fileExtension = pathinfo($originalFilename, PATHINFO_EXTENSION);
 
-        // Keep checking and incrementing until we find a unique filename
-        while (file_exists($uploadPath . $filename)) {
-            $pathInfo = pathinfo($originalFilename);
-            $basename = $pathInfo['filename'];
-            $extension = isset($pathInfo['extension']) ? '.' . $pathInfo['extension'] : '';
-            $filename = $basename . '_' . $counter . $extension;
-            $counter++;
+        if (is_array($file) && !empty($file['pixxio_file_id'])) {
+            $originalFilename = $file['pixxio_file_id'] . '.' . $fileExtension;
+            return $originalFilename;
         }
 
-        return $filename;
+        $originalFilename = $file->id . '.' . $fileExtension;
+        return $originalFilename;
     }
 }
