@@ -210,30 +210,7 @@ Wenn während des Sync-Prozesses ein Fehler auftritt:
 - Bereits durchgeführte Änderungen bleiben bestehen
 - Nicht verarbeitete Dateien werden beim nächsten Durchlauf erneut geprüft
 
-## Häufige Ausgaben und ihre Bedeutung
-
-| Ausgabe                                     | Bedeutung                                                  |
-| ------------------------------------------- | ---------------------------------------------------------- |
-| "Got files from database"                   | Erfolgreich Dateien aus TYPO3 geladen                      |
-| "Mapped files from database to pixx.io IDs" | Datei-IDs wurden für Verarbeitung aufbereitet              |
-| "no pixx.io files found"                    | Keine synchronisierbaren Dateien vorhanden (normaler Exit) |
-| "Authenticate to pixx.io"                   | Verbindung zu pixx.io wird hergestellt                     |
-| "Authenticated"                             | Erfolgreich bei pixx.io angemeldet                         |
-| "Check Existence and Version on pixx.io"    | Prüfung der Dateien läuft                                  |
-| "Files to delete: 0"                        | Keine Dateien müssen gelöscht werden                       |
-| "Files to update: 3"                        | 3 Dateien haben neue Versionen                             |
-| "File to deleted:..."                       | Eine Datei wurde gelöscht                                  |
-| "File to updated:..."                       | Eine Datei wurde aktualisiert                              |
-| "Start Syncing metadata"                    | Metadaten-Synchronisation beginnt                          |
-| "Metadata update for ..."                   | Metadaten einer Datei wurden aktualisiert                  |
-
 ## Häufige Probleme und Lösungen
-
-### "No pixx.io files found"
-
-**Ursache:** Es gibt keine Dateien in TYPO3, die mit pixx.io verknüpft sind.
-
-**Lösung:** Dies ist normal, wenn Sie noch keine Dateien von pixx.io importiert haben. Importieren Sie Dateien über den pixx.io-Browser in TYPO3.
 
 ### "Authentication to pixx.io failed"
 
@@ -369,20 +346,3 @@ php bin/typo3 pixxio:sync
 ```
 
 Sie sehen dann alle Ausgaben in Echtzeit.
-
-### Häufig gestellte Fragen
-
-**Werden Dateien, die manuell in TYPO3 hochgeladen wurden, gelöscht?**
-Nein. Nur Dateien mit einer pixx.io-ID werden vom Sync-Prozess berücksichtigt.
-
-**Was passiert, wenn eine Datei in TYPO3 verwendet wird und gelöscht werden soll?**
-Die Datei wird gelöscht, auch wenn sie verwendet wird. Stellen Sie die Verwendung vorher in pixx.io sicher, oder deaktivieren Sie die "Delete"-Option.
-
-**Kann ich den Sync rückgängig machen?**
-Nein. Gelöschte Dateien können nicht automatisch wiederhergestellt werden. Erstellen Sie regelmäßige Backups.
-
-**Wie lange dauert ein Sync-Durchlauf?**
-Je nach Anzahl der Dateien, Dateigröße und Netzwerkgeschwindigkeit zwischen 5 Sekunden und 2 Minuten.
-
-**Was passiert, wenn der Sync während der Ausführung abbricht?**
-Bereits durchgeführte Änderungen bleiben bestehen. Beim nächsten Durchlauf werden die verbleibenden Dateien verarbeitet.
