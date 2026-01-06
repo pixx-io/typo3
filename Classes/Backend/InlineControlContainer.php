@@ -70,9 +70,6 @@ class InlineControlContainer extends \TYPO3\CMS\Backend\Form\Container\InlineCon
             if (isset($extensionConfiguration['token_refresh'])) {
                 $attributes['data-refresh-token'] = base64_encode($extensionConfiguration['token_refresh']);
             }
-            if (isset($extensionConfiguration['user_id'])) {
-                $attributes['data-user-id'] = base64_encode($extensionConfiguration['user_id']);
-            }
             if (isset($extensionConfiguration['url'])) {
                 $attributes['data-mediaspace-url'] = base64_encode($extensionConfiguration['url']);
             }
@@ -84,7 +81,7 @@ class InlineControlContainer extends \TYPO3\CMS\Backend\Form\Container\InlineCon
             $langCode = 'en';
         }
 
-        $iframe_url = 'https://plugin.pixx.io/static/v1/' .$langCode. '/media?multiSelect=true&applicationId='.$this->applicationId;
+        $iframe_url = 'https://plugin.pixx.io/static/v2/' . $langCode . '/media?multiSelect=true&applicationId=' . $this->applicationId;
 
         if (isset($extensionConfiguration['alt_text'])) {
             $iframe_url .= '&metadata=' . urlencode($extensionConfiguration['alt_text']);
