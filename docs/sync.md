@@ -110,7 +110,7 @@ Wenn in der Extension-Konfiguration "Update" aktiviert ist:
 3. Die pixx.io-ID wird aktualisiert (falls sich diese geändert hat)
 4. Die ID wird in der Verarbeitungsliste aktualisiert
 
-**Ausgabe pro Datei:** "File to updated:/pfad/zur/datei.jpg" (Hinweis: Dies ist ein Formatierungsfehler im Code ohne Leerzeichen vor dem Doppelpunkt)
+**Ausgabe pro Datei:** "File updated: /pfad/zur/datei.jpg"
 
 **Falls "Update" deaktiviert ist:**
 
