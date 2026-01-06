@@ -1,5 +1,10 @@
 # Changelog
 
+## NEXT
+
+- Fix: Missing files are deleted if activated in the settings
+- Add documentation for sync command
+
 ## 2.3.0
 
 - Fix file name collision. When a file was added with the same file name, the import was skipped.
