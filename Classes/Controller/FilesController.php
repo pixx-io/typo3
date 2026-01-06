@@ -449,7 +449,7 @@ class FilesController
             // delete files
             if (in_array($file['pixxio_file_id'], $pixxioIdsToDelete)) {
                 if ($this->extensionConfiguration['delete']) {
-                    $io->writeln('File to deleted:' . $file['identifier']);
+                    $io->writeln('File deleted: ' . $file['identifier']);
                     $storage = $this->getStorage();
                     $storage->deleteFile($storage->getFileByIdentifier($file['identifier']));
                     unset($files[$index]);
@@ -480,7 +480,7 @@ class FilesController
                         $absFileIdentifier = $this->saveFile($file['name'], $pixxioFile->originalFileURL);
                         $storage = $this->getStorage();
                         $storage->replaceFile($storage->getFileByIdentifier($file['identifier']), $absFileIdentifier);
-                        $io->writeln('File to updated:' . $file['identifier']);
+                        $io->writeln('File updated: ' . $file['identifier']);
                         foreach ($fileIds as $key => $id) {
                             if ($id === $file['pixxio_file_id']) {
                                 $fileIds[$key] = $newId;

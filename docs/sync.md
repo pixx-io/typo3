@@ -12,6 +12,7 @@ Bevor der Sync gestartet werden kann, muss **mindestens eine** der folgenden Ein
 Sie können auch beide Optionen gleichzeitig aktivieren. Wenn jedoch **beide Optionen deaktiviert** sind, wird der Sync mit einer entsprechenden Meldung abgebrochen, da keine Aktionen durchgeführt werden können.
 
 **Empfehlung:**
+
 - Für reine Metadaten-Synchronisation: **Update** aktivieren, **Delete** deaktivieren
 - Für vollständige Synchronisation: Beide Optionen aktivieren (mit Vorsicht bei Delete!)
 
@@ -22,12 +23,17 @@ Sie können auch beide Optionen gleichzeitig aktivieren. Wenn jedoch **beide Opt
 Der Prozess startet damit, dass alle Dateien aus TYPO3 geladen werden, die bereits mit pixx.io verknüpft sind. Dabei werden maximal 10 Dateien pro Durchlauf verarbeitet (beginnend mit den ältesten synchronisierten Dateien).
 
 **Was wird geladen:**
+
 - TYPO3 Datei-ID (UID)
 - pixx.io Datei-ID
 - Datei-Identifier (Pfad zur Datei)
 - Letzte Synchronisations-Zeit
 
 **Ausgabe:** "Got files from database"
+
+Anschließend werden die Datei-IDs für die weitere Verarbeitung aufbereitet.
+
+**Ausgabe:** "Mapped files from database to pixx.io IDs"
 
 ### 2. Prüfung auf vorhandene Dateien
 
@@ -40,10 +46,12 @@ Falls keine Dateien mit pixx.io-Verknüpfung gefunden werden, wird der Sync erfo
 Mit dem in der Extension-Konfiguration hinterlegten Refresh-Token wird ein temporärer Access-Token von pixx.io angefordert. Dieser wird für alle folgenden API-Aufrufe verwendet.
 
 **Ausgaben:**
+
 - "Authenticate to pixx.io"
 - "Authenticated"
 
 **Mögliche Fehler:**
+
 - Fehlende pixx.io-URL in der Konfiguration
 - Fehlender oder ungültiger Refresh-Token
 - Netzwerkprobleme
@@ -61,16 +69,16 @@ Für alle gefundenen Dateien wird bei pixx.io überprüft:
 **Wichtig:** Bei dieser Prüfung werden **nur die Versionsnummern** verglichen, nicht die Metadaten. Metadaten werden unabhängig vom Versionsstatus immer am Ende des Sync-Prozesses aktualisiert.
 
 **Ergebnis:**
+
 - Liste der zu löschenden Dateien (Dateien, die in pixx.io nicht mehr existieren)
 - Liste der zu aktualisierenden Dateien (Dateien, bei denen eine neue **Datei-Version** vorliegt - neue Metadaten lösen keine Aktualisierung aus)
-
-**Sicherheitsaspekt:** Im Zweifelsfall (z.B. bei API-Fehlern oder unklaren Antworten) wird die Datei NICHT zum Löschen vorgemerkt, sondern beibehalten.
 
 ### 5. Übersicht der geplanten Änderungen
 
 Vor der Durchführung wird eine Übersicht angezeigt:
 
 **Ausgaben:**
+
 - "Files to delete: X" (Anzahl der zu löschenden Dateien)
 - "Files to update: X" (Anzahl der zu aktualisierenden Dateien)
 
@@ -79,13 +87,15 @@ Vor der Durchführung wird eine Übersicht angezeigt:
 Wenn in der Extension-Konfiguration "Delete" aktiviert ist:
 
 **Für jede zu löschende Datei:**
+
 1. Datei wird aus dem TYPO3 File Storage gelöscht
 2. Datei wird aus der Verarbeitungsliste entfernt
 3. Die pixx.io-ID wird aus der Liste der zu verarbeitenden IDs entfernt
 
-**Ausgabe pro Datei:** "File to deleted: /pfad/zur/datei.jpg"
+**Ausgabe pro Datei:** "File deleted: /pfad/zur/datei.jpg"
 
 **Falls "Delete" deaktiviert ist:**
+
 - **Ausgabe:** "File which should be deleted, but extension configuration is set to not delete files: [pixx.io-ID]"
 - Die Datei bleibt erhalten
 
@@ -94,14 +104,16 @@ Wenn in der Extension-Konfiguration "Delete" aktiviert ist:
 Wenn in der Extension-Konfiguration "Update" aktiviert ist:
 
 **Für jede zu aktualisierende Datei:**
+
 1. Die neue Version wird von pixx.io heruntergeladen
 2. Die alte Datei in TYPO3 wird durch die neue ersetzt (gleicher Pfad, gleicher Name)
 3. Die pixx.io-ID wird aktualisiert (falls sich diese geändert hat)
 4. Die ID wird in der Verarbeitungsliste aktualisiert
 
-**Ausgabe pro Datei:** "File to updated: /pfad/zur/datei.jpg"
+**Ausgabe pro Datei:** "File updated: /pfad/zur/datei.jpg"
 
 **Falls "Update" deaktiviert ist:**
+
 - **Ausgabe:** "File which should be updated, but extension configuration is set to not update files: /pfad/zur/datei.jpg"
 - Die alte Version bleibt erhalten
 
@@ -116,6 +128,7 @@ Für alle verbliebenen Dateien (die nicht gelöscht wurden) werden die aktuellen
 Für jede Datei werden die Metadaten von pixx.io in TYPO3 übertragen und gespeichert.
 
 **Standard-Metadaten (immer):**
+
 - Titel
 - Beschreibung
 - Alt-Text (für Barrierefreiheit, basierend auf konfiguriertem Feld)
@@ -123,6 +136,7 @@ Für jede Datei werden die Metadaten von pixx.io in TYPO3 übertragen und gespei
 - Zeitstempel der letzten Synchronisation
 
 **Erweiterte Metadaten (wenn Extension "filemetadata" installiert ist):**
+
 - **Standort:** Stadt, Land, Region
 - **GPS-Koordinaten:** Längen-/Breitengrad
 - **Copyright-Informationen:** Copyright-Hinweis, Quelle
@@ -167,6 +181,7 @@ Sie sehen alle Ausgaben in Echtzeit im Terminal.
 Um die Server-Last zu begrenzen und Timeouts zu vermeiden, werden pro Durchlauf maximal 10 Dateien synchronisiert. Bei regelmäßiger Ausführung (z.B. stündlich) stellt dies sicher, dass alle Dateien zeitnah aktuell gehalten werden.
 
 **Beispiel:**
+
 - Sie haben 100 Dateien mit pixx.io-Verknüpfung
 - Bei stündlicher Ausführung sind alle Dateien nach ca. 10 Stunden einmal durchlaufen
 - Dateien, die älter synchronisiert wurden, werden priorisiert
@@ -180,8 +195,6 @@ Die Dateien werden nach dem Zeitstempel der letzten Synchronisation sortiert, wo
 ### Schutz vor Datenverlust
 
 - Dateien werden nur gelöscht, wenn dies explizit in der Konfiguration aktiviert wurde
-- Im Zweifelsfall (z.B. bei API-Fehlern oder unklaren Antworten) werden Dateien NICHT gelöscht
-- Jede Aktion wird protokolliert
 
 ### Schutz vor Überschreiben
 
@@ -192,25 +205,27 @@ Die Dateien werden nach dem Zeitstempel der letzten Synchronisation sortiert, wo
 ### Bei Problemen
 
 Wenn während des Sync-Prozesses ein Fehler auftritt:
+
 - Der Prozess wird abgebrochen
 - Bereits durchgeführte Änderungen bleiben bestehen
 - Nicht verarbeitete Dateien werden beim nächsten Durchlauf erneut geprüft
 
 ## Häufige Ausgaben und ihre Bedeutung
 
-| Ausgabe | Bedeutung |
-|---------|-----------|
-| "Got files from database" | Erfolgreich Dateien aus TYPO3 geladen |
-| "no pixx.io files found" | Keine synchronisierbaren Dateien vorhanden (normaler Exit) |
-| "Authenticate to pixx.io" | Verbindung zu pixx.io wird hergestellt |
-| "Authenticated" | Erfolgreich bei pixx.io angemeldet |
-| "Check Existence and Version on pixx.io" | Prüfung der Dateien läuft |
-| "Files to delete: 0" | Keine Dateien müssen gelöscht werden |
-| "Files to update: 3" | 3 Dateien haben neue Versionen |
-| "File to deleted: ..." | Eine Datei wurde gelöscht |
-| "File to updated: ..." | Eine Datei wurde aktualisiert |
-| "Start Syncing metadata" | Metadaten-Synchronisation beginnt |
-| "Metadata update for ..." | Metadaten einer Datei wurden aktualisiert |
+| Ausgabe                                     | Bedeutung                                                  |
+| ------------------------------------------- | ---------------------------------------------------------- |
+| "Got files from database"                   | Erfolgreich Dateien aus TYPO3 geladen                      |
+| "Mapped files from database to pixx.io IDs" | Datei-IDs wurden für Verarbeitung aufbereitet              |
+| "no pixx.io files found"                    | Keine synchronisierbaren Dateien vorhanden (normaler Exit) |
+| "Authenticate to pixx.io"                   | Verbindung zu pixx.io wird hergestellt                     |
+| "Authenticated"                             | Erfolgreich bei pixx.io angemeldet                         |
+| "Check Existence and Version on pixx.io"    | Prüfung der Dateien läuft                                  |
+| "Files to delete: 0"                        | Keine Dateien müssen gelöscht werden                       |
+| "Files to update: 3"                        | 3 Dateien haben neue Versionen                             |
+| "File to deleted:..."                       | Eine Datei wurde gelöscht                                  |
+| "File to updated:..."                       | Eine Datei wurde aktualisiert                              |
+| "Start Syncing metadata"                    | Metadaten-Synchronisation beginnt                          |
+| "Metadata update for ..."                   | Metadaten einer Datei wurden aktualisiert                  |
 
 ## Häufige Probleme und Lösungen
 
@@ -225,6 +240,7 @@ Wenn während des Sync-Prozesses ein Fehler auftritt:
 **Ursache:** Der Refresh-Token ist ungültig oder abgelaufen, oder die pixx.io-URL ist falsch.
 
 **Lösung:**
+
 1. Überprüfen Sie die pixx.io-URL in der Extension-Konfiguration
 2. Generieren Sie einen neuen Refresh-Token in pixx.io
 3. Hinterlegen Sie den neuen Token in der Extension-Konfiguration
@@ -234,6 +250,7 @@ Wenn während des Sync-Prozesses ein Fehler auftritt:
 **Ursache:** Weder "Update" noch "Delete" ist in der Extension-Konfiguration aktiviert.
 
 **Lösung:** Aktivieren Sie mindestens eine der beiden Optionen:
+
 - **Update** für automatische Aktualisierungen
 - **Delete** für automatisches Löschen (mit Vorsicht!)
 
@@ -244,6 +261,7 @@ Wenn während des Sync-Prozesses ein Fehler auftritt:
 **Bedeutung:** Dies ist eine Warnung, keine Fehler. Die Datei bleibt erhalten.
 
 **Lösung:** Entscheiden Sie, ob Sie:
+
 - Die Option "Delete" aktivieren möchten
 - Die Datei manuell in TYPO3 löschen möchten
 - Die Datei behalten möchten (dann können Sie die Warnung ignorieren)
@@ -255,6 +273,7 @@ Wenn während des Sync-Prozesses ein Fehler auftritt:
 **Bedeutung:** Dies ist eine Warnung, keine Fehler. Die alte Version bleibt erhalten.
 
 **Lösung:** Entscheiden Sie, ob Sie:
+
 - Die Option "Update" aktivieren möchten
 - Die Datei manuell aktualisieren möchten
 - Die alte Version behalten möchten (dann können Sie die Warnung ignorieren)
@@ -264,17 +283,20 @@ Wenn während des Sync-Prozesses ein Fehler auftritt:
 ### Für den produktiven Einsatz
 
 **Extension-Konfiguration:**
+
 - ✅ **Update**: Aktiviert (damit Dateien immer aktuell bleiben)
 - ⚠️ **Delete**: Mit Vorsicht aktivieren (nur wenn Sie sicher sind, dass gelöschte Dateien nicht mehr benötigt werden)
 - **Subfolder**: Definieren Sie einen Unterordner für pixx.io-Dateien (z.B. "pixxio/")
 - **Alt Text Field**: Konfigurieren Sie das Feld für Alt-Texte (z.B. "Alt Text (Accessibility)")
 
 **Scheduler-Einstellungen:**
+
 - **Häufigkeit**: Täglich oder stündlich (je nach Anzahl der Dateien)
 - **Zeitpunkt**: Außerhalb der Hauptnutzungszeiten (z.B. nachts um 2 Uhr)
 - **Priorität**: Normal (nicht zeitkritisch)
 
 **Monitoring:**
+
 - Richten Sie ein Monitoring für die Log-Dateien ein
 - Prüfen Sie regelmäßig auf Fehler oder Warnungen
 - Überwachen Sie die Anzahl der synchronisierten Dateien
@@ -287,38 +309,38 @@ Wenn während des Sync-Prozesses ein Fehler auftritt:
 
 ## Technische Details
 
-| Parameter | Wert | Beschreibung |
-|-----------|------|--------------|
-| **Verarbeitungsrate** | 10 Dateien | Pro Sync-Durchlauf |
-| **Sortierung** | Nach Sync-Zeitstempel | Älteste zuerst |
-| **Timeout** | Variabel | Abhängig von Dateigröße und Netzwerk |
-| **API-Limits** | Vertragabhängig | Siehe pixx.io-Vertrag |
-| **Storage** | Konfigurierbar | Standard: Storage ID 1 |
-| **Metadaten-Mapping** | Fest definiert | Siehe Abschnitt 9 |
+| Parameter             | Wert                  | Beschreibung                         |
+| --------------------- | --------------------- | ------------------------------------ |
+| **Verarbeitungsrate** | 10 Dateien            | Pro Sync-Durchlauf                   |
+| **Sortierung**        | Nach Sync-Zeitstempel | Älteste zuerst                       |
+| **Timeout**           | Variabel              | Abhängig von Dateigröße und Netzwerk |
+| **API-Limits**        | Vertragabhängig       | Siehe pixx.io-Vertrag                |
+| **Storage**           | Konfigurierbar        | Standard: Storage ID 1               |
+| **Metadaten-Mapping** | Fest definiert        | Siehe Abschnitt 9                    |
 
 ## Metadaten-Mapping im Detail
 
 Die folgende Tabelle zeigt, welche pixx.io-Felder auf welche TYPO3-Felder gemappt werden:
 
-| pixx.io-Feld | TYPO3-Feld (filemetadata) | Datentyp |
-|--------------|---------------------------|----------|
-| City | location_city | Text |
-| Country | location_country | Text |
-| Region | location_region | Text |
-| latitude | latitude | Dezimalzahl |
-| longitude | longitude | Dezimalzahl |
-| CopyrightNotice | copyright | Text |
-| Model | creator_tool | Text |
-| Source | source | Text |
-| ColorSpace | color_space | Text |
-| Publisher | publisher | Text |
-| creator | creator | Text |
-| keywords | keywords | Komma-getrennte Liste |
-| rating | ranking | Zahl |
-| createDate | content_creation_date | Unix-Timestamp |
-| modifyDate | content_modification_date | Unix-Timestamp |
-| subject | title, download_name | Text |
-| description | description, caption | Text |
+| pixx.io-Feld    | TYPO3-Feld (filemetadata) | Datentyp              |
+| --------------- | ------------------------- | --------------------- |
+| City            | location_city             | Text                  |
+| Country         | location_country          | Text                  |
+| Region          | location_region           | Text                  |
+| latitude        | latitude                  | Dezimalzahl           |
+| longitude       | longitude                 | Dezimalzahl           |
+| CopyrightNotice | copyright                 | Text                  |
+| Model           | creator_tool              | Text                  |
+| Source          | source                    | Text                  |
+| ColorSpace      | color_space               | Text                  |
+| Publisher       | publisher                 | Text                  |
+| creator         | creator                   | Text                  |
+| keywords        | keywords                  | Komma-getrennte Liste |
+| rating          | ranking                   | Zahl                  |
+| createDate      | content_creation_date     | Unix-Timestamp        |
+| modifyDate      | content_modification_date | Unix-Timestamp        |
+| subject         | title, download_name      | Text                  |
+| description     | description, caption      | Text                  |
 
 **Hinweis:** Die erweiterten Metadaten werden nur synchronisiert, wenn die TYPO3-Extension "filemetadata" installiert ist.
 
@@ -327,10 +349,12 @@ Die folgende Tabelle zeigt, welche pixx.io-Felder auf welche TYPO3-Felder gemapp
 ### Log-Dateien prüfen
 
 **PHP Error Log:**
+
 - Speicherort variiert je nach Server-Konfiguration
 - Enthält Fehler und API-Responses im Fehlerfall
 
 **TYPO3 System Log:**
+
 - Pfad: `var/log/typo3_*.log`
 - Enthält detaillierte Informationen zum Sync-Prozess
 
