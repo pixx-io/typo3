@@ -302,7 +302,8 @@ class FilesController extends ActionController
                             ];
                             $foundIds[] = $f->id;
                         } else {
-                            // If in doubt, keep the file (don't mark for deletion)
+                            // The file was found but we cannot determine if it's the main version
+                            // We keep the file (don't mark for deletion)
                             $temp[] = [
                                 'oldId' => $f->id,
                                 'newId' => $f->id
@@ -317,7 +318,7 @@ class FilesController extends ActionController
                         if (!in_array($id, $foundIds, true)) {
                             $temp[] = [
                                 'oldId' => $id,
-                                'newId' => $id
+                                'newId' => null
                             ];
                         }
                     }
@@ -452,14 +453,14 @@ class FilesController extends ActionController
         // do the sync
         //check if file exists and update their versions
         // delete files that aren't existing in pixx.io
-        $io->writeln('Files to delete:' . count($pixxioIdsToDelete));
-        $io->writeln('Files to update:' . count($pixxioIdsToUpdate));
+        $io->writeln('Files to delete: ' . count($pixxioIdsToDelete));
+        $io->writeln('Files to update: ' . count($pixxioIdsToUpdate));
 
         foreach ($files as $index => $file) {
             // delete files
             if (in_array($file['pixxio_file_id'], $pixxioIdsToDelete)) {
                 if ($this->extensionConfiguration['delete']) {
-                    $io->writeln('File to deleted:' . $file['identifier']);
+                    $io->writeln('File deleted: ' . $file['identifier']);
                     $storage = $this->getStorage();
                     $storage->deleteFile($storage->getFileByIdentifier($file['identifier']));
                     unset($files[$index]);
@@ -491,7 +492,7 @@ class FilesController extends ActionController
                         $absFileIdentifier = $this->saveFile($filename, $pixxioFile->originalFileURL);
                         $storage = $this->getStorage();
                         $storage->replaceFile($storage->getFileByIdentifier($file['identifier']), $absFileIdentifier);
-                        $io->writeln('File to updated:' . $file['identifier']);
+                        $io->writeln('File updated: ' . $file['identifier']);
                         foreach ($fileIds as $key => $id) {
                             if ($id === $file['pixxio_file_id']) {
                                 $fileIds[$key] = $newId;
