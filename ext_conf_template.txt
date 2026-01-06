@@ -16,6 +16,9 @@ alt_text = Alt Text (Accessibility)
 # cat=sync; type=string; label=pixx.io URL (domain.px.media)
 url =
 
+# cat=sync; type=string; label=pixx.io user name or email: This value is not needed. You can use it to remember which user the refresh token belongs to.
+user_id =
+
 # cat=sync; type=string; label=pixx.io refresh token: This value is used only for automatic sync.
 token_refresh =
 
