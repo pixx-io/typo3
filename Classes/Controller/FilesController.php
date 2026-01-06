@@ -169,8 +169,10 @@ class FilesController extends ActionController
 
             $this->getProxySettings($additionalOptions);
 
+            $maxSyncItems = $this->getMaxSyncItems();
+
             $response = $this->requestFactory->request($this->extensionConfiguration['url'] . '/gobackend/files?' . http_build_query([
-                'pageSize' => $this->extensionConfiguration['limit'] > 500 ? 500 : (int)$this->extensionConfiguration['limit'],
+                'pageSize' => $maxSyncItems,
                 'page' => 1,
                 'responseFields' => json_encode($this->getResponseFields()),
                 'licenseReleasesResponseFields' => json_encode(['id', 'name', 'license', 'showWarningMessage']),
@@ -188,6 +190,21 @@ class FilesController extends ActionController
         } catch (\Exception $error) {
             $this->throwError($error->getMessage(), 1);
         }
+    }
+
+    private function getMaxSyncItems()
+    {
+        $limit = isset($this->extensionConfiguration['limit'])
+            ? (int)$this->extensionConfiguration['limit']
+            : 20;
+
+        if ($limit < 1) {
+            $limit = 20;
+        } elseif ($limit > 500) {
+            $limit = 500;
+        }
+
+        return $limit;
     }
 
     private function pixxioFile($fileId)
@@ -390,9 +407,7 @@ class FilesController extends ActionController
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('sys_file_metadata');
         $queryBuilder->getRestrictions()->removeAll();
 
-        $maxItems = isset($this->extensionConfiguration['limit'])
-            ? (int)$this->extensionConfiguration['limit']
-            : 10;
+        $maxSyncItems = $this->getMaxSyncItems();
 
         $files = $queryBuilder
             ->select('*')
@@ -401,7 +416,7 @@ class FilesController extends ActionController
                 $queryBuilder->expr()->gt('pixxio_file_id', $queryBuilder->createNamedParameter(0, \PDO::PARAM_INT)),
             )
             ->orderBy('pixxio_last_sync_stamp', 'ASC')
-            ->setMaxResults($maxItems)
+            ->setMaxResults($maxSyncItems)
             ->leftJoin(
                 'sys_file_metadata',
                 'sys_file',

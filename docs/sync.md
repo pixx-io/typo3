@@ -20,7 +20,7 @@ Sie können auch beide Optionen gleichzeitig aktivieren. Wenn jedoch **beide Opt
 
 ### 1. Dateien aus der Datenbank laden
 
-Der Prozess startet damit, dass alle Dateien aus TYPO3 geladen werden, die bereits mit pixx.io verknüpft sind. Dabei werden maximal 10 Dateien pro Durchlauf verarbeitet (beginnend mit den ältesten synchronisierten Dateien).
+Der Prozess startet damit, dass alle Dateien aus TYPO3 geladen werden, die bereits mit pixx.io verknüpft sind. Dabei werden maximal so viele Dateien pro Durchlauf verarbeitet, wie in der Extension-Konfiguration unter "limit" definiert ist (Standard: 20, Maximum: 500). Die Verarbeitung beginnt mit den ältesten synchronisierten Dateien.
 
 **Was wird geladen:**
 
@@ -64,7 +64,7 @@ Für alle gefundenen Dateien wird bei pixx.io überprüft:
 - **Gibt es eine neuere Version?** → Falls ja, wird sie zur Aktualisierung vorgemerkt
 - **Ist die Datei unverändert?** → Die Metadaten werden in jedem Fall später aktualisiert (siehe Schritt 9)
 
-**Ausgabe:** "Check Existence and Version on pixx.io"
+**Ausgabe:** "Check Existence and Version of X files on pixx.io" (wobei X die Anzahl der zu prüfenden Dateien ist)
 
 **Wichtig:** Bei dieser Prüfung werden **nur die Versionsnummern** verglichen, nicht die Metadaten. Metadaten werden unabhängig vom Versionsstatus immer am Ende des Sync-Prozesses aktualisiert.
 
@@ -110,7 +110,7 @@ Wenn in der Extension-Konfiguration "Update" aktiviert ist:
 3. Die pixx.io-ID wird aktualisiert (falls sich diese geändert hat)
 4. Die ID wird in der Verarbeitungsliste aktualisiert
 
-**Ausgabe pro Datei:** "File updated: /pfad/zur/datei.jpg"
+**Ausgabe pro Datei:** "File to updated:/pfad/zur/datei.jpg" (Hinweis: Dies ist ein Formatierungsfehler im Code ohne Leerzeichen vor dem Doppelpunkt)
 
 **Falls "Update" deaktiviert ist:**
 
@@ -168,7 +168,7 @@ Sie sehen alle Ausgaben in Echtzeit im Terminal.
 ### 2. Automatisch über den TYPO3 Scheduler
 
 - Empfohlen: Täglich oder stündlich
-- Verarbeitet jeweils die 10 ältesten Dateien
+- Verarbeitet jeweils die konfigurierten ältesten Dateien (Standard: 20)
 - Läuft im Hintergrund ohne angemeldeten Benutzer
 - Logs werden in die TYPO3-Log-Dateien geschrieben
 
@@ -176,14 +176,21 @@ Sie sehen alle Ausgaben in Echtzeit im Terminal.
 
 ## Verarbeitungslogik
 
-### Warum werden nur 10 Dateien pro Durchlauf verarbeitet?
+### Wie viele Dateien werden pro Durchlauf verarbeitet?
 
-Um die Server-Last zu begrenzen und Timeouts zu vermeiden, werden pro Durchlauf maximal 10 Dateien synchronisiert. Bei regelmäßiger Ausführung (z.B. stündlich) stellt dies sicher, dass alle Dateien zeitnah aktuell gehalten werden.
+Um die Server-Last zu begrenzen und Timeouts zu vermeiden, ist die Anzahl der pro Durchlauf synchronisierten Dateien konfigurierbar:
+
+- **Standard:** 20 Dateien pro Durchlauf
+- **Minimum:** 1 Datei
+- **Maximum:** 500 Dateien
+- **Konfiguration:** In der Extension-Konfiguration unter "limit" einstellbar
+
+Bei regelmäßiger Ausführung (z.B. stündlich) stellt dies sicher, dass alle Dateien zeitnah aktuell gehalten werden.
 
 **Beispiel:**
 
 - Sie haben 100 Dateien mit pixx.io-Verknüpfung
-- Bei stündlicher Ausführung sind alle Dateien nach ca. 10 Stunden einmal durchlaufen
+- Bei stündlicher Ausführung mit Standard-Limit (20) sind alle Dateien nach ca. 5 Stunden einmal durchlaufen
 - Dateien, die älter synchronisiert wurden, werden priorisiert
 
 ### Sortierung
@@ -286,14 +293,14 @@ Wenn während des Sync-Prozesses ein Fehler auftritt:
 
 ## Technische Details
 
-| Parameter             | Wert                  | Beschreibung                         |
-| --------------------- | --------------------- | ------------------------------------ |
-| **Verarbeitungsrate** | 10 Dateien            | Pro Sync-Durchlauf                   |
-| **Sortierung**        | Nach Sync-Zeitstempel | Älteste zuerst                       |
-| **Timeout**           | Variabel              | Abhängig von Dateigröße und Netzwerk |
-| **API-Limits**        | Vertragabhängig       | Siehe pixx.io-Vertrag                |
-| **Storage**           | Konfigurierbar        | Standard: Storage ID 1               |
-| **Metadaten-Mapping** | Fest definiert        | Siehe Abschnitt 9                    |
+| Parameter             | Wert                  | Beschreibung                               |
+| --------------------- | --------------------- | ------------------------------------------ |
+| **Verarbeitungsrate** | 20 Dateien (Standard) | Pro Sync-Durchlauf, konfigurierbar (1-500) |
+| **Sortierung**        | Nach Sync-Zeitstempel | Älteste zuerst                             |
+| **Timeout**           | Variabel              | Abhängig von Dateigröße und Netzwerk       |
+| **API-Limits**        | Vertragabhängig       | Siehe pixx.io-Vertrag                      |
+| **Storage**           | Konfigurierbar        | Standard: Storage ID 1                     |
+| **Metadaten-Mapping** | Fest definiert        | Siehe Abschnitt 9                          |
 
 ## Metadaten-Mapping im Detail
 
