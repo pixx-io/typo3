@@ -884,17 +884,21 @@ class FilesController extends ActionController
                 $importedFileUid = $importedFile->getUid();
                 $importedFiles[] = $importedFileUid;
 
-                $mediaspaceUrl = '';
                 $link = '';
-                if (isset($file->downloadURL)) {
+                if (isset($file->mediaspaceURL)) {
+                    $link = $file->mediaspaceURL;
+                } else if (isset($file->downloadURL)) {
                     $link = $file->downloadURL;
                 } else if (isset($file->directLink)) {
-                    $link = $file->directLink;
+                    // I can not use the direct link URL as Mediaspace URL because its the URL of the CDN
                 }
 
-                $parsedUrl = parse_url($link);
-                if (is_array($parsedUrl) && isset($parsedUrl['scheme'], $parsedUrl['host'])) {
-                    $mediaspaceUrl = $parsedUrl['scheme'] . '://' . $parsedUrl['host'];
+                $mediaspaceUrl = '';
+                if (isset($link) && $link != '') {
+                    $parsedUrl = parse_url($link);
+                    if (is_array($parsedUrl) && isset($parsedUrl['scheme'], $parsedUrl['host'])) {
+                        $mediaspaceUrl = $parsedUrl['scheme'] . '://' . $parsedUrl['host'];
+                    }
                 }
 
                 $downloadFormat = '';
