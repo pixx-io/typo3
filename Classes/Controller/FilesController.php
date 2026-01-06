@@ -7,7 +7,7 @@ namespace Pixxio\PixxioExtension\Controller;
 use Pixxio\PixxioExtension\Domain\Model\LicenceRelease;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Symfony\Component\Lock\Key;
+use Symfony\Component\Console\Helper\Table;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\Restriction\RootLevelRestriction;
 use TYPO3\CMS\Core\Http\JsonResponse;
@@ -186,7 +186,26 @@ class FilesController extends ActionController
                 $data = json_decode($response->getBody()->getContents());
                 return $data->success ? $data->files : [];
             }
+
             return [];
+        } catch (\GuzzleHttp\Exception\RequestException $e) {
+            if ($e->hasResponse()) {
+                $response = $e->getResponse();
+                $statusCode = $response->getStatusCode();
+                $responseBody = $response->getBody()->getContents();
+
+                $responseData = json_decode($responseBody);
+
+                if (json_last_error() !== JSON_ERROR_NONE) {
+                    $this->throwError('Invalid JSON in error response: ' . json_last_error_msg(), 1);
+                }
+                if ($responseData && isset($responseData->errormessage)) {
+                    $errorMessage = $responseData->errormessage;
+                    $this->throwError($errorMessage, 1);
+                }
+            }
+
+            $this->throwError($e->getMessage(), 1);
         } catch (\Exception $error) {
             $this->throwError($error->getMessage(), 1);
         }
@@ -347,54 +366,6 @@ class FilesController extends ActionController
         }
     }
 
-
-
-    private function getTypo3FileByPixxioId($id)
-    {
-        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('sys_file_metadata');
-        $queryBuilder->getRestrictions()->add(GeneralUtility::makeInstance(RootLevelRestriction::class));
-        $fileMetaData = $queryBuilder
-            ->select('*')
-            ->from('sys_file_metadata')
-            ->where(
-                $queryBuilder->expr()->eq('pixxio_file_id', (int)$id),
-            )
-            ->orderBy('pixxio_last_sync_stamp')
-            ->setMaxResults(1);
-
-        if (GeneralUtility::makeInstance(Typo3Version::class)->getMajorVersion() < 11) {
-            $fileMetaData = $fileMetaData->execute()->fetch();
-        } else {
-            $fileMetaData = $fileMetaData->executeQuery()->fetchAssociative();
-        }
-
-        if ($fileMetaData) {
-            $file = $queryBuilder
-                ->select('*')
-                ->from('sys_file')
-                ->where(
-                    $queryBuilder->expr()->eq('uid', (int)$fileMetaData['file']),
-                )
-                ->orderBy('pixxio_last_sync_stamp')
-                ->setMaxResults(1);
-
-            if (GeneralUtility::makeInstance(Typo3Version::class)->getMajorVersion() < 11) {
-                $file = $file->execute()->fetch();
-            } else {
-                $file = $file->executeQuery()->fetchAssociative();
-            }
-        }
-
-        if ($fileMetaData && $file) {
-            return [
-                'file' => $file,
-                'metadata' => $fileMetaData
-            ];
-        }
-
-        return null;
-    }
-
     public function syncAction($io): bool
     {
         // check if extension configuration is set to update/delete media by sync command
@@ -449,8 +420,28 @@ class FilesController extends ActionController
         $io->writeln('Authenticate to pixx.io');
         $this->accessToken = $this->pixxioAuth();
         $io->writeln('Authenticated');
+        
+        $io->writeln('Check existence and version of ' . count($fileIds) . ' files on pixx.io');
+        $io->writeln('');
 
-        $io->writeln('Check Existence and Version of ' . count($fileIds) . ' files on pixx.io');
+        // Display files as table
+        $tableRows = [];
+        foreach ($files as $file) {
+            $tableRows[] = [
+                $file['uid'],
+                $file['pixxio_file_id'],
+                $file['identifier']
+            ];
+        }
+        
+        $table = new Table($io);
+        $table
+            ->setHeaders(['TYPO3 UID', 'pixx.io ID', 'Identifier'])
+            ->setRows($tableRows);
+        $table->render();
+
+        $io->writeln('');
+
         $pixxioDiff = $this->pixxioCheckExistence($fileIds);
 
         if (!is_array($pixxioDiff)) {
@@ -473,7 +464,7 @@ class FilesController extends ActionController
         //check if file exists and update their versions
         // delete files that aren't existing in pixx.io
         $io->writeln('Files to delete: ' . count($pixxioIdsToDelete));
-        $io->writeln('Files to update: ' . count($pixxioIdsToUpdate));
+        $io->writeln('Files with a new version: ' . count($pixxioIdsToUpdate));
 
         foreach ($files as $index => $file) {
             // delete files
@@ -522,7 +513,7 @@ class FilesController extends ActionController
                         $files[$index]['pixxio_file_id'] = $newId;
                     }
                 } else {
-                    $io->writeln('File which should be updated, but extension configuration is set to not update files: ' . $file['identifier']);
+                    $io->writeln('File which should be updated, but extension configuration is set to not update files: ' . $file['pixxio_file_id']);
                 }
             }
         }
@@ -533,10 +524,9 @@ class FilesController extends ActionController
             return !in_array($id, $pixxioIdsToDelete);
         }));
 
-        $io->writeln('start to sync: ' . json_encode($fileIdsWithoutDeletedFiles));
+        $io->writeln('Start to sync metadata: ' . join(', ', $fileIdsWithoutDeletedFiles));
         $pixxioFiles = $this->pixxioFiles($fileIdsWithoutDeletedFiles);
 
-        $io->writeln('Start Syncing metadata');
         foreach ($files as $file) {
             // set meta data
             $pixxioFile = array_values(array_filter($pixxioFiles, function ($pFile) use ($file) {
@@ -565,7 +555,7 @@ class FilesController extends ActionController
 
             $additionalFields['tx_pixxioextension_licensereleases'] = $this->licensereleasesSync($pixxioFile, $file);
 
-            $io->writeln('Metadata update for ' . $file['identifier']);
+            $io->writeln('Update metadata for ' . $pixxioFile->id);
             $metadata->update($file['uid'], $additionalFields);
         }
         return true;
