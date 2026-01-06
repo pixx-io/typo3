@@ -39,7 +39,7 @@ Anschließend werden die Datei-IDs für die weitere Verarbeitung aufbereitet.
 
 Falls keine Dateien mit pixx.io-Verknüpfung gefunden werden, wird der Sync erfolgreich beendet.
 
-**Ausgabe:** "no pixx.io files found"
+**Ausgabe:** "No pixx.io files found"
 
 ### 3. Authentifizierung bei pixx.io
 

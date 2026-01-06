@@ -413,7 +413,7 @@ class FilesController extends ActionController
         $io->writeln('Mapped files from database to pixx.io IDs');
 
         if (empty($fileIds)) {
-            $io->writeln('no pixx.io files found');
+            $io->writeln('No pixx.io files found');
             return true;
         }
 
