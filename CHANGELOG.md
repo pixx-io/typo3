@@ -2,6 +2,7 @@
 
 ## NEXT
 
+- Feat: Update Plugin SDK to latest version
 - Fix: Missing files are deleted if activated in the settings
 - Add documentation for sync command
 
