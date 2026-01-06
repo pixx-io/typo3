@@ -31,7 +31,7 @@ $temporaryPixxioFields = array(
     ),
     'pixxio_is_direct_link' => array (
       'exclude' => 0,
-      'label' => 'pixx.io Is a direct link',
+      'label' => 'pixx.io Is a CDN link',
       'config' => array (
         'readOnly' => true,
         'type' => 'check',
@@ -39,8 +39,9 @@ $temporaryPixxioFields = array(
     ),
     'pixxio_direct_link' => array (
       'exclude' => 0,
-      'label' => 'pixx.io Direct link',
+      'label' => 'pixx.io CDN link',
       'config' => array (
+        'readOnly' => true,
         'type' => 'input',
       )
     ),
