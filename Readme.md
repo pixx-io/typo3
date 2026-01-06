@@ -9,6 +9,7 @@ The pixx.io Typo3 Extension allows pixx.io users to select the assets directly f
 - Includes Proxy support
 - Works with the popular core extension: typo3/filemetadata
 
+
 ## Installation:
 
 The installation of the extension is straight forward. Type `composer req pixxio/pixxio-extension` for installation. ext-curl is installed automatically, if not already installed.
@@ -49,6 +50,7 @@ If you use the version feature of pixx.io, you can automatically update files to
 
 **Note:** The sync processes up to 10 files per run, prioritizing files that haven't been synchronized recently. Metadata is always synchronized for all files, regardless of whether the file version has changed.
 
+
 ### Proxy Settings:
 
 You be able to run the pixx.io connection via a proxy. Therefore you have to set in the extension configuration under the tab "Proxy" the flag “use_proxy” and add a valid connection string to the “proxy_connection”.
@@ -84,3 +86,7 @@ If you are using the core extension filemetadata it will sync more metadata to t
 - `Date created` / `Erstellungsdatum` (Type: Internal) => `Content Creation Date`
 - `Zuletzt bearbeitet` (Type: Internal) => `Content Modification Date`
 - `ModifyDate` / `Farbraum` (Type: Internal) => `Color Space`
+
+### 2.0.3
+
+- Fix bugs to support multiple image fields
