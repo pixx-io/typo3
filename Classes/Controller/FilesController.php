@@ -586,7 +586,7 @@ class FilesController extends ActionController
                 $insertData = [];
 
                 if (isset($licenseRelease->licenseRelease)) {
-                    if (isset($licenseReleaselicenseReleaselicense, $licenseRelease->licenseRelease->license->provider)) {
+                    if (isset($licenseRelease->licenseRelease->license->provider)) {
                         $insertData['license_provider'] = $licenseRelease->licenseRelease->license->provider;
                     }
 
