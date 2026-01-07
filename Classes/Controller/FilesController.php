@@ -971,7 +971,7 @@ class FilesController extends ActionController
 
                 $hasDirectLink = isset($file->directLink) && $file->directLink != '';
                 $additionalFields['pixxio_is_direct_link'] = $hasDirectLink ? 1 : 0;
-                $additionalFields['pixxio_direct_link'] = $hasDirectLink ? $file->directLink : '0';
+                $additionalFields['pixxio_direct_link'] = $hasDirectLink ? $file->directLink : '';
 
                 if (isset($this->extensionConfiguration['alt_text']) && isset($file->metadata->{$this->extensionConfiguration['alt_text']})) {
                     $additionalFields['alternative'] = $file->metadata->{$this->extensionConfiguration['alt_text']};
