@@ -755,7 +755,6 @@ class FilesController extends ActionController
 
     private function saveFile($filename, $url, $isDirectLink = false)
     {
-        $uploaded = false;
         $absFileIdentifier = $this->uploadPath() . $filename;
 
         // Check for executable extensions before attempting to save
@@ -766,30 +765,42 @@ class FilesController extends ActionController
             );
         }
 
-        if (ini_get('allow_url_fopen')) {
-            $uploaded = file_put_contents($absFileIdentifier, file_get_contents($url));
-        } else {
-            $ch = curl_init($url);
-            $fp = fopen($absFileIdentifier, 'wb');
-            curl_setopt($ch, CURLOPT_FILE, $fp);
-            curl_setopt($ch, CURLOPT_HEADER, 0);
+        try {
+            $options = [
+                'sink' => $absFileIdentifier,
+                'timeout' => 300,
+                'allow_redirects' => true
+            ];
 
-            $uploaded = true;
-            if (! curl_exec($ch)) {
-                $this->throwError('CURL Error while transferring file.', 7);
-                $uploaded = false;
+            // Apply proxy settings from extension configuration
+            $this->getProxySettings($options);
+
+            $response = $this->requestFactory->request($url, 'GET', $options);
+
+            if ($response->getStatusCode() !== 200) {
+                $this->throwError(
+                    'Failed to download file from URL: "' . $url . '". HTTP Status: ' . $response->getStatusCode(),
+                    8
+                );
             }
 
-            curl_close($ch);
-            fclose($fp);
-        }
+            if ($isDirectLink) {
+                $this->resizeImageToMaxWidth($absFileIdentifier, 250);
+            }
 
-        if ($uploaded && $isDirectLink) {
-            // Resize to max 400px width
-            $this->resizeImageToMaxWidth($absFileIdentifier, 250);
+            return $absFileIdentifier;
+        } catch (\GuzzleHttp\Exception\RequestException $e) {
+            $statusCode = $e->hasResponse() ? $e->getResponse()->getStatusCode() : 'unknown';
+            $this->throwError(
+                'Failed to download file from "' . $url . '". HTTP Status: ' . $statusCode . '. Error: ' . $e->getMessage(),
+                7
+            );
+        } catch (\Exception $e) {
+            $this->throwError(
+                'Failed to save file "' . $filename . '". Error: ' . $e->getMessage(),
+                9
+            );
         }
-
-        return $uploaded ? $absFileIdentifier : false;
     }
 
     private function resizeImageToMaxWidth(string $filePath, int $maxWidth): void
