@@ -1,20 +1,22 @@
 # pixx.io Sync-Prozess
 
-Dieser Prozess synchronisiert Mediendateien zwischen pixx.io (Ihrer Digital Asset Management Plattform) und TYPO3 (Ihrem Content Management System).
+Dieser Prozess synchronisiert Mediendateien zwischen pixx.io (deiner Digital Asset Management Plattform) und TYPO3 (deinem Content Management System).
 
 ## Voraussetzungen
 
 Bevor der Sync gestartet werden kann, muss **mindestens eine** der folgenden Einstellungen in der Extension-Konfiguration aktiviert sein:
 
-- **Update**: Erlaubt das Aktualisieren von Dateien auf neue Versionen
+- **Update**: Erlaubt das Aktualisieren von Dateien auf neue Versionen (ersetzt die Datei durch die neue Version)
+- **Update Metadata**: Erlaubt das Aktualisieren von Metadaten (Titel, Beschreibung, Alt-Text, etc.)
 - **Delete**: Erlaubt das Löschen von Dateien, die in pixx.io nicht mehr existieren
 
-Sie können auch beide Optionen gleichzeitig aktivieren. Wenn jedoch **beide Optionen deaktiviert** sind, wird der Sync mit einer entsprechenden Meldung abgebrochen, da keine Aktionen durchgeführt werden können.
+Du kannst auch mehrere Optionen gleichzeitig aktivieren. Wenn jedoch **alle drei Optionen deaktiviert** sind, wird der Sync mit einer entsprechenden Meldung abgebrochen, da keine Aktionen durchgeführt werden können.
 
 **Empfehlung:**
 
-- Für reine Metadaten-Synchronisation: **Update** aktivieren, **Delete** deaktivieren
-- Für vollständige Synchronisation: Beide Optionen aktivieren (mit Vorsicht bei Delete!)
+- Für reine Metadaten-Synchronisation: **Update Metadata** aktivieren, **Update** und **Delete** deaktivieren
+- Für Versionsaktualisierungen mit Metadaten: **Update** und **Update Metadata** aktivieren
+- Für vollständige Synchronisation: Alle drei Optionen aktivieren (mit Vorsicht bei Delete!)
 
 ## Ablauf des Sync-Prozesses
 
@@ -62,7 +64,7 @@ Für alle gefundenen Dateien wird bei pixx.io überprüft:
 
 - **Existiert die Datei noch?** → Falls nein, wird sie zur Löschung vorgemerkt
 - **Gibt es eine neuere Version?** → Falls ja, wird sie zur Aktualisierung vorgemerkt
-- **Ist die Datei unverändert?** → Die Metadaten werden in jedem Fall später aktualisiert (siehe Schritt 9)
+- **Ist die Datei unverändert?** → Die Metadaten können später aktualisiert werden (siehe Schritt 9), falls "Update Metadata" aktiviert ist
 
 **Ausgabe:** "Check Existence and Version of X files on pixx.io" (wobei X die Anzahl der zu prüfenden Dateien ist)
 **Tabellen-Ausgabe:** Es wird eine formatierte Tabelle mit folgenden Spalten angezeigt:
@@ -71,7 +73,7 @@ Für alle gefundenen Dateien wird bei pixx.io überprüft:
 - Identifier (Dateipfad)
 
 Diese Tabelle gibt einen Überblick über alle Dateien, die im aktuellen Sync-Durchlauf verarbeitet werden.
-**Wichtig:** Bei dieser Prüfung werden **nur die Versionsnummern** verglichen, nicht die Metadaten. Metadaten werden unabhängig vom Versionsstatus immer am Ende des Sync-Prozesses aktualisiert.
+**Wichtig:** Bei dieser Prüfung werden **nur die Versionsnummern** verglichen, nicht die Metadaten. Metadaten werden unabhängig vom Versionsstatus am Ende des Sync-Prozesses aktualisiert, sofern "Update Metadata" in der Extension-Konfiguration aktiviert ist.
 
 **Ergebnis:**
 
@@ -122,13 +124,17 @@ Wenn in der Extension-Konfiguration "Update" aktiviert ist:
 - **Ausgabe:** "File which should be updated, but extension configuration is set to not update files: /pfad/zur/datei.jpg"
 - Die alte Version bleibt erhalten
 
-### 8. Metadaten abrufen
+### 8. Metadaten abrufen (falls aktiviert)
+
+**Dieser Schritt wird nur ausgeführt, wenn "Update Metadata" in der Extension-Konfiguration aktiviert ist.**
 
 Für alle verbliebenen Dateien (die nicht gelöscht wurden) werden die aktuellen Dateiinformationen von pixx.io abgerufen.
 
 **Ausgabe:** "Start to sync metadata: [kommagetrennte Liste der pixx.io-IDs]"
 
-### 9. Metadaten synchronisieren
+### 9. Metadaten synchronisieren (falls aktiviert)
+
+**Dieser Schritt wird nur ausgeführt, wenn "Update Metadata" in der Extension-Konfiguration aktiviert ist.**
 
 Für jede Datei werden die Metadaten von pixx.io in TYPO3 übertragen und gespeichert.
 
@@ -166,7 +172,7 @@ Der Sync kann auf zwei Arten ausgeführt werden:
 php bin/typo3 pixxio:sync
 ```
 
-Sie sehen alle Ausgaben in Echtzeit im Terminal.
+Du siehst alle Ausgaben in Echtzeit im Terminal.
 
 ### 2. Automatisch über den TYPO3 Scheduler
 
@@ -192,7 +198,7 @@ Bei regelmäßiger Ausführung (z.B. stündlich) stellt dies sicher, dass alle D
 
 **Beispiel:**
 
-- Sie haben 100 Dateien mit pixx.io-Verknüpfung
+- Du hast 100 Dateien mit pixx.io-Verknüpfung
 - Bei stündlicher Ausführung mit Standard-Limit (20) sind alle Dateien nach ca. 5 Stunden einmal durchlaufen
 - Dateien, die älter synchronisiert wurden, werden priorisiert
 
@@ -210,7 +216,7 @@ Die Dateien werden nach dem Zeitstempel der letzten Synchronisation sortiert, wo
 
 - Dateien werden nur aktualisiert, wenn dies explizit aktiviert wurde
 - Die alte Version wird durch die neue ersetzt (kein Versionsverlauf in TYPO3)
-- Wenn Sie einen Versionsverlauf benötigen, sollten Sie ein zusätzliches Backup-System verwenden
+- Wenn du einen Versionsverlauf benötigst, solltest du ein zusätzliches Backup-System verwenden
 
 ### Bei Problemen
 
@@ -228,17 +234,18 @@ Wenn während des Sync-Prozesses ein Fehler auftritt:
 
 **Lösung:**
 
-1. Überprüfen Sie die pixx.io-URL in der Extension-Konfiguration
-2. Generieren Sie einen neuen Refresh-Token in pixx.io
-3. Hinterlegen Sie den neuen Token in der Extension-Konfiguration
+1. Überprüfe die pixx.io-URL in der Extension-Konfiguration
+2. Generiere einen neuen Refresh-Token in pixx.io
+3. Hinterlege den neuen Token in der Extension-Konfiguration
 
 ### "Please update extension configuration"
 
-**Ursache:** Weder "Update" noch "Delete" ist in der Extension-Konfiguration aktiviert.
+**Ursache:** Weder "Update", "Update Metadata" noch "Delete" ist in der Extension-Konfiguration aktiviert.
 
-**Lösung:** Aktivieren Sie mindestens eine der beiden Optionen:
+**Lösung:** Aktiviere mindestens eine der drei Optionen:
 
-- **Update** für automatische Aktualisierungen
+- **Update** für automatische Datei-Versionsaktualisierungen
+- **Update Metadata** für automatische Metadaten-Synchronisation
 - **Delete** für automatisches Löschen (mit Vorsicht!)
 
 ### "File which should be deleted, but..."
@@ -247,11 +254,11 @@ Wenn während des Sync-Prozesses ein Fehler auftritt:
 
 **Bedeutung:** Dies ist eine Warnung, keine Fehler. Die Datei bleibt erhalten.
 
-**Lösung:** Entscheiden Sie, ob Sie:
+**Lösung:** Entscheide, ob du:
 
-- Die Option "Delete" aktivieren möchten
-- Die Datei manuell in TYPO3 löschen möchten
-- Die Datei behalten möchten (dann können Sie die Warnung ignorieren)
+- Die Option "Delete" aktivieren möchtest
+- Die Datei manuell in TYPO3 löschen möchtest
+- Die Datei behalten möchtest (dann kannst du die Warnung ignorieren)
 
 ### "File which should be updated, but..."
 
@@ -259,11 +266,11 @@ Wenn während des Sync-Prozesses ein Fehler auftritt:
 
 **Bedeutung:** Dies ist eine Warnung, keine Fehler. Die alte Version bleibt erhalten.
 
-**Lösung:** Entscheiden Sie, ob Sie:
+**Lösung:** Entscheide, ob du:
 
-- Die Option "Update" aktivieren möchten
-- Die Datei manuell aktualisieren möchten
-- Die alte Version behalten möchten (dann können Sie die Warnung ignorieren)
+- Die Option "Update" aktivieren möchtest
+- Die Datei manuell aktualisieren möchtest
+- Die alte Version behalten möchtest (dann kannst du die Warnung ignorieren)
 
 ## Empfohlene Einstellungen
 
@@ -271,10 +278,11 @@ Wenn während des Sync-Prozesses ein Fehler auftritt:
 
 **Extension-Konfiguration:**
 
-- ✅ **Update**: Aktiviert (damit Dateien immer aktuell bleiben)
-- ⚠️ **Delete**: Mit Vorsicht aktivieren (nur wenn Sie sicher sind, dass gelöschte Dateien nicht mehr benötigt werden)
-- **Subfolder**: Definieren Sie einen Unterordner für pixx.io-Dateien (z.B. "pixxio/")
-- **Alt Text Field**: Konfigurieren Sie das Feld für Alt-Texte (z.B. "Alt Text (Accessibility)")
+- ✅ **Update**: Aktiviert (damit Dateiversionen immer aktuell bleiben)
+- ✅ **Update Metadata**: Aktiviert (damit Metadaten wie Titel, Beschreibung, Alt-Texte synchronisiert werden)
+- ⚠️ **Delete**: Mit Vorsicht aktivieren (nur wenn du sicher bist, dass gelöschte Dateien nicht mehr benötigt werden)
+- **Subfolder**: Definiere einen Unterordner für pixx.io-Dateien (z.B. "pixxio/")
+- **Alt Text Field**: Konfiguriere das Feld für Alt-Texte (z.B. "Alt Text (Accessibility)")
 
 **Scheduler-Einstellungen:**
 
@@ -284,15 +292,16 @@ Wenn während des Sync-Prozesses ein Fehler auftritt:
 
 **Monitoring:**
 
-- Richten Sie ein Monitoring für die Log-Dateien ein
-- Prüfen Sie regelmäßig auf Fehler oder Warnungen
-- Überwachen Sie die Anzahl der synchronisierten Dateien
+- Richte ein Monitoring für die Log-Dateien ein
+- Prüfe regelmäßig auf Fehler oder Warnungen
+- Überwache die Anzahl der synchronisierten Dateien
 
 ### Für Test-/Entwicklungsumgebungen
 
 - **Delete**: Deaktiviert (Sicherheit beim Testen)
 - **Update**: Aktiviert (aber bewusst testen)
-- Führen Sie Sync manuell aus, um Ausgaben zu sehen
+- **Update Metadata**: Aktiviert (zum Testen der Metadaten-Synchronisation)
+- Führe Sync manuell aus, um Ausgaben zu sehen
 
 ## Technische Details
 
@@ -347,12 +356,12 @@ Die folgende Tabelle zeigt, welche pixx.io-Felder auf welche TYPO3-Felder gemapp
 
 ### Debug-Modus
 
-Für detaillierte Fehleranalysen können Sie den Sync manuell ausführen:
+Für detaillierte Fehleranalysen kannst du den Sync manuell ausführen:
 
 ```bash
 # Im Terminal ausführen
-cd /pfad/zu/ihrem/typo3
+cd /pfad/zu/deinem/typo3
 php bin/typo3 pixxio:sync
 ```
 
-Sie sehen dann alle Ausgaben in Echtzeit.
+Du siehst dann alle Ausgaben in Echtzeit.

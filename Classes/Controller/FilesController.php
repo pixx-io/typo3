@@ -369,8 +369,12 @@ class FilesController extends ActionController
     public function syncAction($io): bool
     {
         // check if extension configuration is set to update/delete media by sync command
-        if (!($this->extensionConfiguration['delete'] || $this->extensionConfiguration['update'])) {
-            $io->writeln('Please update extension configuration to enable update/deletion of media by sync command');
+        if (!(
+            $this->extensionConfiguration['delete'] ||
+            $this->extensionConfiguration['update'] ||
+            $this->extensionConfiguration['update_metadata']
+        )) {
+            $io->writeln('Please update extension configuration to enable update/update_metadata/deletion of media by sync command');
             return true;
         }
 
@@ -518,46 +522,48 @@ class FilesController extends ActionController
             }
         }
 
-        $files = array_values($files);
+        if ($this->extensionConfiguration['update_metadata']) {
+            $files = array_values($files);
 
-        $fileIdsWithoutDeletedFiles = array_values(array_filter($fileIds, function ($id) use ($pixxioIdsToDelete) {
-            return !in_array($id, $pixxioIdsToDelete);
-        }));
-
-        $io->writeln('Start to sync metadata: ' . join(', ', $fileIdsWithoutDeletedFiles));
-        $pixxioFiles = $this->pixxioFiles($fileIdsWithoutDeletedFiles);
-
-        foreach ($files as $file) {
-            // set meta data
-            $pixxioFile = array_values(array_filter($pixxioFiles, function ($pFile) use ($file) {
-                return $pFile->id === $file['pixxio_file_id'];
+            $fileIdsWithoutDeletedFiles = array_values(array_filter($fileIds, function ($id) use ($pixxioIdsToDelete) {
+                return !in_array($id, $pixxioIdsToDelete);
             }));
 
-            if (!$pixxioFile || !$pixxioFile[0]) {
-                // have to delete file?!
-                continue;
+            $io->writeln('Start to sync metadata: ' . join(', ', $fileIdsWithoutDeletedFiles));
+            $pixxioFiles = $this->pixxioFiles($fileIdsWithoutDeletedFiles);
+
+            foreach ($files as $file) {
+                // set meta data
+                $pixxioFile = array_values(array_filter($pixxioFiles, function ($pFile) use ($file) {
+                    return $pFile->id === $file['pixxio_file_id'];
+                }));
+
+                if (!$pixxioFile || !$pixxioFile[0]) {
+                    // have to delete file?!
+                    continue;
+                }
+
+                $pixxioFile = $pixxioFile[0];
+
+                $additionalFields = array(
+                    'title' => $pixxioFile->subject,
+                    'description' => $pixxioFile->description,
+                    'alternative' => $this->getMetadataField($pixxioFile, $this->extensionConfiguration['alt_text'] ?: 'Alt Text (Accessibility)'),
+                    'pixxio_file_id' => $pixxioFile->id,
+                    'pixxio_last_sync_stamp' => time()
+                );
+
+                if ($this->hasExt('filemetadata')) {
+                    $additionalFields = array_merge($additionalFields, $this->getMetadataWithFilemetadataExt($pixxioFile));
+                }
+
+                $additionalFields['tx_pixxioextension_licensereleases'] = $this->licensereleasesSync($pixxioFile, $file);
+
+                $io->writeln('Update metadata for ' . $pixxioFile->id);
+                $metadata->update($file['uid'], $additionalFields);
             }
-
-            $pixxioFile = $pixxioFile[0];
-
-            $additionalFields = array(
-                'title' => $pixxioFile->subject,
-                'description' => $pixxioFile->description,
-                'alternative' => $this->getMetadataField($pixxioFile, $this->extensionConfiguration['alt_text'] ?: 'Alt Text (Accessibility)'),
-                'pixxio_file_id' => $pixxioFile->id,
-                //'pixxio_mediaspace' => $pixxioFile->originalFileURL,
-                'pixxio_last_sync_stamp' => time()
-            );
-
-            if ($this->hasExt('filemetadata')) {
-                $additionalFields = array_merge($additionalFields, $this->getMetadataWithFilemetadataExt($pixxioFile));
-            }
-
-            $additionalFields['tx_pixxioextension_licensereleases'] = $this->licensereleasesSync($pixxioFile, $file);
-
-            $io->writeln('Update metadata for ' . $pixxioFile->id);
-            $metadata->update($file['uid'], $additionalFields);
         }
+
         return true;
     }
 
