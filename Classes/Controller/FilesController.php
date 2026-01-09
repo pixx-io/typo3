@@ -502,8 +502,7 @@ class FilesController extends ActionController
                     }
                     if ($newId) {
                         $pixxioFile = $this->pixxioFile($newId);
-                        $filename = $this->generateUniqueFilename($file['name'], $file);
-                        $absFileIdentifier = $this->saveFile($filename, $pixxioFile->originalFileURL);
+                        $absFileIdentifier = $this->saveFile($file['name'], $pixxioFile->originalFileURL);
                         $storage = $this->getStorage();
                         $storage->replaceFile($storage->getFileByIdentifier($file['identifier']), $absFileIdentifier);
                         $io->writeln('File updated: ' . $file['identifier']);
@@ -1045,16 +1044,23 @@ class FilesController extends ActionController
      * @param string $filename The original filename to check for uniqueness.
      * @return string The unique filename.
      */
-    protected function generateUniqueFilename($originalFilename, $file): string
+    protected function generateUniqueFilename($originalFilename): string
     {
-        $fileExtension = pathinfo($originalFilename, PATHINFO_EXTENSION);
+        $uploadPath = $this->uploadPath();
+        $counter = 1;
 
-        if (is_array($file) && !empty($file['pixxio_file_id'])) {
-            $originalFilename = $file['pixxio_file_id'] . '.' . $fileExtension;
-            return $originalFilename;
+        $candidateFilename = $originalFilename;
+
+        $pathInfo = pathinfo($originalFilename);
+        $basename = $pathInfo['filename'];
+        $extension = isset($pathInfo['extension']) ? '.' . $pathInfo['extension'] : '';
+
+        // Keep checking and incrementing until we find a unique filename
+        while (file_exists($uploadPath . $candidateFilename)) {
+            $candidateFilename = $basename . '_' . $counter . $extension;
+            $counter++;
         }
 
-        $originalFilename = $file->id . '.' . $fileExtension;
-        return $originalFilename;
+        return $candidateFilename;
     }
 }
