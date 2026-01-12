@@ -83,6 +83,27 @@ class InlineControlContainer extends \TYPO3\CMS\Backend\Form\Container\InlineCon
 
         $iframe_url = 'https://plugin.pixx.io/static/v2/' . $langCode . '/media?multiSelect=true&applicationId=' . $this->applicationId;
 
+        // Load additional metadata to be independent from the sync job
+        $metadataFields = [
+            'City',
+            'Country',
+            'Region',
+            'CopyrightNotice',
+            'Model',
+            'Source',
+            'ColorSpace',
+            'Publisher',
+            'location',
+            'createDate',
+            'modifyDate',
+            'creator',
+            'rating'
+        ];
+
+        foreach ($metadataFields as $field) {
+            $iframe_url .= '&metadata=' . urlencode($field);
+        }
+        
         if (isset($extensionConfiguration['alt_text'])) {
             $iframe_url .= '&metadata=' . urlencode($extensionConfiguration['alt_text']);
         }

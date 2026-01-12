@@ -202,7 +202,7 @@ class FilesControlContainer extends \TYPO3\CMS\Backend\Form\Container\FilesContr
                 'title' => $buttonText,
                 'style' => 'margin-left:5px;' . (!($inlineConfiguration['inline']['showCreateNewRelationButton'] ?? true) ? 'display: none;' : ''),
                 'data-dom' => htmlspecialchars($objectPrefix),
-                'data-key'=> $this->applicationId,
+                'data-key' => $this->applicationId,
                 'data-url' => $extensionConfiguration['url'],
                 'data-token' => $extensionConfiguration['token_refresh'],
                 'data-uid' => uniqid()
@@ -227,10 +227,31 @@ class FilesControlContainer extends \TYPO3\CMS\Backend\Form\Container\FilesContr
                 </button>';
 
             $iframe_lang = $languageService->getLocale();
-            $iframe_url = 'https://plugin.pixx.io/static/v2/' . $iframe_lang . '/media?multiSelect=true&applicationId='.$this->applicationId;
+            $iframe_url = 'https://plugin.pixx.io/static/v2/' . $iframe_lang . '/media?multiSelect=true&applicationId=' . $this->applicationId;
 
             if (isset($extensionConfiguration['use_cdn_links']) && $extensionConfiguration['use_cdn_links'] == true) {
                 $iframe_url .= '&useDirectLinks=true';
+            }
+
+            // Load additional metadata to be independent from the sync job
+            $metadataFields = [
+                'City',
+                'Country',
+                'Region',
+                'CopyrightNotice',
+                'Model',
+                'Source',
+                'ColorSpace',
+                'Publisher',
+                'location',
+                'createDate',
+                'modifyDate',
+                'creator',
+                'rating'
+            ];
+
+            foreach ($metadataFields as $field) {
+                $iframe_url .= '&metadata=' . urlencode($field);
             }
 
             if (isset($extensionConfiguration['alt_text'])) {
@@ -256,19 +277,19 @@ class FilesControlContainer extends \TYPO3\CMS\Backend\Form\Container\FilesContr
                 $iframe_url .= '&allowedDownloadFormats=original&allowedDownloadFormats=preview';
             }
 
-            $tldPos = strpos($extensionConfiguration['url'],'//');
+            $tldPos = strpos($extensionConfiguration['url'], '//');
             if ($tldPos > 0) {
-                $pixxioMediaspace = substr($extensionConfiguration['url'],$tldPos+2);
+                $pixxioMediaspace = substr($extensionConfiguration['url'], $tldPos + 2);
             } else {
                 $pixxioMediaspace = $extensionConfiguration['url'];
             }
             $controls[] = '
-            <div class="pixxio-lightbox"><div class="pixxio-close"></div><div class="pixxio-lightbox-inner"><iframe class="pixxio_sdk" data-src="'.$iframe_url .'" width="100%" height="100%"></iframe></div></div>
+            <div class="pixxio-lightbox"><div class="pixxio-close"></div><div class="pixxio-lightbox-inner"><iframe class="pixxio_sdk" data-src="' . $iframe_url . '" width="100%" height="100%"></iframe></div></div>
             ';
 
             $this->javaScriptModules[] = JavaScriptModuleInstruction::create('@pixxio/pixxio-extension/ScriptSDK.js');
             $assetsCollector = GeneralUtility::makeInstance(AssetCollector::class);
-            $assetsCollector->addStylesheet('pixxio_extension','EXT:pixxio_extension/Resources/Public/StyleSheet/StyleSDK.css');
+            $assetsCollector->addStylesheet('pixxio_extension', 'EXT:pixxio_extension/Resources/Public/StyleSheet/StyleSDK.css');
         }
 
         return $controls;

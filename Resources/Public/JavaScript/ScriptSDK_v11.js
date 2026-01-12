@@ -88,7 +88,21 @@ define([
     NProgress.start();
     new AjaxRequest(TYPO3.settings.ajaxUrls.pixxio_files)
       .post(
-        { files: files },
+        {
+          files: files.map((file) => {
+            const metadata = file.metadata || {};
+            return {
+              // Spread the metadata fields to the root level for easier access in PHP
+              // Map the metadata fields to an array of objects with name and value to emulate metadataFields data structure for PHP
+              ...metadata,
+              metadataFields: Object.keys(metadata).map((key) => ({
+                name: key,
+                value: metadata[key],
+              })),
+              ...file,
+            };
+          }),
+        },
         {
           headers: {
             "Content-Type": "application/json; charset=utf-8",

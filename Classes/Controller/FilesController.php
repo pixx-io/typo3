@@ -904,7 +904,6 @@ class FilesController extends ActionController
             $importedFile = $this->getStorage()->getFile($this->extensionConfiguration['subfolder'] . '/' . $filename);
 
             if ($importedFile) {
-
                 // import file to FAL
                 $importedFileUid = $importedFile->getUid();
                 $importedFiles[] = $importedFileUid;
@@ -991,6 +990,10 @@ class FilesController extends ActionController
 
                 if (isset($this->extensionConfiguration['alt_text']) && isset($file->metadata->{$this->extensionConfiguration['alt_text']})) {
                     $additionalFields['alternative'] = $file->metadata->{$this->extensionConfiguration['alt_text']};
+                }
+
+                if ($this->hasExt('filemetadata')) {
+                    $additionalFields = array_merge($additionalFields, $this->getMetadataWithFilemetadataExt($file));
                 }
 
                 $metaDataRepository = GeneralUtility::makeInstance(MetaDataRepository::class);
