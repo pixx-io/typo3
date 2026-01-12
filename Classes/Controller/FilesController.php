@@ -502,7 +502,7 @@ class FilesController extends ActionController
                     }
                     if ($newId) {
                         $pixxioFile = $this->pixxioFile($newId);
-                        $absFileIdentifier = $this->saveFile($file['name'], $pixxioFile->originalFileURL);
+                        $absFileIdentifier = $this->saveFile($file['name'], $pixxioFile->originalFileURL, (bool)$file['pixxio_is_direct_link']);
                         $storage = $this->getStorage();
                         $storage->replaceFile($storage->getFileByIdentifier($file['identifier']), $absFileIdentifier);
                         $io->writeln('File updated: ' . $file['identifier']);
