@@ -1,14 +1,14 @@
 # pixx.io Sync-Prozess
 
-Dieser Prozess synchronisiert Mediendateien zwischen pixx.io (deiner Digital Asset Management Plattform) und TYPO3 (deinem Content Management System).
+Dieser Prozess synchronisiert Mediendateien zwischen pixx.io und TYPO3.
 
 ## Voraussetzungen
 
 Bevor der Sync gestartet werden kann, muss **mindestens eine** der folgenden Einstellungen in der Extension-Konfiguration aktiviert sein:
 
-- **Update**: Erlaubt das Aktualisieren von Dateien auf neue Versionen (ersetzt die Datei durch die neue Version)
-- **Update Metadata**: Erlaubt das Aktualisieren von Metadaten (Titel, Beschreibung, Alt-Text, etc.)
-- **Delete**: Erlaubt das Löschen von Dateien, die in pixx.io nicht mehr existieren
+- **sync.update**: Erlaubt das Aktualisieren von Dateien auf neue Versionen (ersetzt die Datei durch die neue Version)
+- **sync.update_metadata**: Erlaubt das Aktualisieren von Metadaten (Titel, Beschreibung, Alt-Text, etc.)
+- **sync.delete**: Erlaubt das Löschen von Dateien, die in pixx.io nicht mehr existieren
 
 Du kannst auch mehrere Optionen gleichzeitig aktivieren. Wenn jedoch **alle drei Optionen deaktiviert** sind, wird der Sync mit einer entsprechenden Meldung abgebrochen, da keine Aktionen durchgeführt werden können.
 
@@ -22,7 +22,7 @@ Du kannst auch mehrere Optionen gleichzeitig aktivieren. Wenn jedoch **alle drei
 
 ### 1. Dateien aus der Datenbank laden
 
-Der Prozess startet damit, dass alle Dateien aus TYPO3 geladen werden, die bereits mit pixx.io verknüpft sind. Dabei werden maximal so viele Dateien pro Durchlauf verarbeitet, wie in der Extension-Konfiguration unter "limit" definiert ist (Standard: 20, Maximum: 500). Die Verarbeitung beginnt mit den ältesten synchronisierten Dateien.
+Der Prozess startet damit, dass alle Dateien aus TYPO3 geladen werden, die bereits mit pixx.io verknüpft sind. Dabei werden maximal so viele Dateien pro Durchlauf verarbeitet, wie in der Extension-Konfiguration unter "sync.limit" definiert ist (Standard: 20, Maximum: 500). Die Verarbeitung beginnt mit den ältesten synchronisierten Dateien.
 
 **Was wird geladen:**
 
@@ -289,30 +289,6 @@ Wenn während des Sync-Prozesses ein Fehler auftritt:
 - **Häufigkeit**: Täglich oder stündlich (je nach Anzahl der Dateien)
 - **Zeitpunkt**: Außerhalb der Hauptnutzungszeiten (z.B. nachts um 2 Uhr)
 - **Priorität**: Normal (nicht zeitkritisch)
-
-**Monitoring:**
-
-- Richte ein Monitoring für die Log-Dateien ein
-- Prüfe regelmäßig auf Fehler oder Warnungen
-- Überwache die Anzahl der synchronisierten Dateien
-
-### Für Test-/Entwicklungsumgebungen
-
-- **Delete**: Deaktiviert (Sicherheit beim Testen)
-- **Update**: Aktiviert (aber bewusst testen)
-- **Update Metadata**: Aktiviert (zum Testen der Metadaten-Synchronisation)
-- Führe Sync manuell aus, um Ausgaben zu sehen
-
-## Technische Details
-
-| Parameter             | Wert                  | Beschreibung                               |
-| --------------------- | --------------------- | ------------------------------------------ |
-| **Verarbeitungsrate** | 20 Dateien (Standard) | Pro Sync-Durchlauf, konfigurierbar (1-500) |
-| **Sortierung**        | Nach Sync-Zeitstempel | Älteste zuerst                             |
-| **Timeout**           | Variabel              | Abhängig von Dateigröße und Netzwerk       |
-| **API-Limits**        | Vertragabhängig       | Siehe pixx.io-Vertrag                      |
-| **Storage**           | Konfigurierbar        | Standard: Storage ID 1                     |
-| **Metadaten-Mapping** | Fest definiert        | Siehe Abschnitt 9                          |
 
 ## Metadaten-Mapping im Detail
 
