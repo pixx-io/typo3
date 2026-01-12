@@ -4,8 +4,11 @@
 
 - Feature: Add support for CDN links
 - Feature: Add sync for license releases
-- Feat: Update Plugin SDK to latest version
-- Feat: Improve logging
+- Feature: Update Plugin SDK to latest version
+- Feature: Improve logging
+- Feature: New setting to sync only metadata (`update_metadata`)
+- Feature: Modernize download handling
+- Feature: Set metadata when importing images without the need of the scheduler
 - Fix: Sync command now exits successfully when no pixx.io files in the system
 - Fix: Use configured limit for sync action
 - Fix: Missing files are deleted if activated in the settings

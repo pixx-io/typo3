@@ -369,8 +369,12 @@ class FilesController extends ActionController
     public function syncAction($io): bool
     {
         // check if extension configuration is set to update/delete media by sync command
-        if (!($this->extensionConfiguration['delete'] || $this->extensionConfiguration['update'])) {
-            $io->writeln('Please update extension configuration to enable update/deletion of media by sync command');
+        if (!(
+            $this->extensionConfiguration['delete'] ||
+            $this->extensionConfiguration['update'] ||
+            $this->extensionConfiguration['update_metadata']
+        )) {
+            $io->writeln('Please update extension configuration to enable update/update_metadata/deletion of media by sync command');
             return true;
         }
 
@@ -498,8 +502,7 @@ class FilesController extends ActionController
                     }
                     if ($newId) {
                         $pixxioFile = $this->pixxioFile($newId);
-                        $filename = $this->generateUniqueFilename($file['name'], $file);
-                        $absFileIdentifier = $this->saveFile($filename, $pixxioFile->originalFileURL);
+                        $absFileIdentifier = $this->saveFile($file['name'], $pixxioFile->originalFileURL, (bool)$file['pixxio_is_direct_link']);
                         $storage = $this->getStorage();
                         $storage->replaceFile($storage->getFileByIdentifier($file['identifier']), $absFileIdentifier);
                         $io->writeln('File updated: ' . $file['identifier']);
@@ -518,46 +521,48 @@ class FilesController extends ActionController
             }
         }
 
-        $files = array_values($files);
+        if ($this->extensionConfiguration['update_metadata']) {
+            $files = array_values($files);
 
-        $fileIdsWithoutDeletedFiles = array_values(array_filter($fileIds, function ($id) use ($pixxioIdsToDelete) {
-            return !in_array($id, $pixxioIdsToDelete);
-        }));
-
-        $io->writeln('Start to sync metadata: ' . join(', ', $fileIdsWithoutDeletedFiles));
-        $pixxioFiles = $this->pixxioFiles($fileIdsWithoutDeletedFiles);
-
-        foreach ($files as $file) {
-            // set meta data
-            $pixxioFile = array_values(array_filter($pixxioFiles, function ($pFile) use ($file) {
-                return $pFile->id === $file['pixxio_file_id'];
+            $fileIdsWithoutDeletedFiles = array_values(array_filter($fileIds, function ($id) use ($pixxioIdsToDelete) {
+                return !in_array($id, $pixxioIdsToDelete);
             }));
 
-            if (!$pixxioFile || !$pixxioFile[0]) {
-                // have to delete file?!
-                continue;
+            $io->writeln('Start to sync metadata: ' . join(', ', $fileIdsWithoutDeletedFiles));
+            $pixxioFiles = $this->pixxioFiles($fileIdsWithoutDeletedFiles);
+
+            foreach ($files as $file) {
+                // set meta data
+                $pixxioFile = array_values(array_filter($pixxioFiles, function ($pFile) use ($file) {
+                    return $pFile->id === $file['pixxio_file_id'];
+                }));
+
+                if (!$pixxioFile || !$pixxioFile[0]) {
+                    // have to delete file?!
+                    continue;
+                }
+
+                $pixxioFile = $pixxioFile[0];
+
+                $additionalFields = array(
+                    'title' => $pixxioFile->subject,
+                    'description' => $pixxioFile->description,
+                    'alternative' => $this->getMetadataField($pixxioFile, $this->extensionConfiguration['alt_text'] ?: 'Alt Text (Accessibility)'),
+                    'pixxio_file_id' => $pixxioFile->id,
+                    'pixxio_last_sync_stamp' => time()
+                );
+
+                if ($this->hasExt('filemetadata')) {
+                    $additionalFields = array_merge($additionalFields, $this->getMetadataWithFilemetadataExt($pixxioFile));
+                }
+
+                $additionalFields['tx_pixxioextension_licensereleases'] = $this->licensereleasesSync($pixxioFile, $file);
+
+                $io->writeln('Update metadata for ' . $pixxioFile->id);
+                $metadata->update($file['uid'], $additionalFields);
             }
-
-            $pixxioFile = $pixxioFile[0];
-
-            $additionalFields = array(
-                'title' => $pixxioFile->subject,
-                'description' => $pixxioFile->description,
-                'alternative' => $this->getMetadataField($pixxioFile, $this->extensionConfiguration['alt_text'] ?: 'Alt Text (Accessibility)'),
-                'pixxio_file_id' => $pixxioFile->id,
-                //'pixxio_mediaspace' => $pixxioFile->originalFileURL,
-                'pixxio_last_sync_stamp' => time()
-            );
-
-            if ($this->hasExt('filemetadata')) {
-                $additionalFields = array_merge($additionalFields, $this->getMetadataWithFilemetadataExt($pixxioFile));
-            }
-
-            $additionalFields['tx_pixxioextension_licensereleases'] = $this->licensereleasesSync($pixxioFile, $file);
-
-            $io->writeln('Update metadata for ' . $pixxioFile->id);
-            $metadata->update($file['uid'], $additionalFields);
         }
+
         return true;
     }
 
@@ -750,7 +755,6 @@ class FilesController extends ActionController
 
     private function saveFile($filename, $url, $isDirectLink = false)
     {
-        $uploaded = false;
         $absFileIdentifier = $this->uploadPath() . $filename;
 
         // Check for executable extensions before attempting to save
@@ -761,30 +765,42 @@ class FilesController extends ActionController
             );
         }
 
-        if (ini_get('allow_url_fopen')) {
-            $uploaded = file_put_contents($absFileIdentifier, file_get_contents($url));
-        } else {
-            $ch = curl_init($url);
-            $fp = fopen($absFileIdentifier, 'wb');
-            curl_setopt($ch, CURLOPT_FILE, $fp);
-            curl_setopt($ch, CURLOPT_HEADER, 0);
+        try {
+            $options = [
+                'sink' => $absFileIdentifier,
+                'timeout' => 300,
+                'allow_redirects' => true
+            ];
 
-            $uploaded = true;
-            if (! curl_exec($ch)) {
-                $this->throwError('CURL Error while transferring file.', 7);
-                $uploaded = false;
+            // Apply proxy settings from extension configuration
+            $this->getProxySettings($options);
+
+            $response = $this->requestFactory->request($url, 'GET', $options);
+
+            if ($response->getStatusCode() !== 200) {
+                $this->throwError(
+                    'Failed to download file from URL: "' . $url . '". HTTP Status: ' . $response->getStatusCode(),
+                    8
+                );
             }
 
-            curl_close($ch);
-            fclose($fp);
-        }
+            if ($isDirectLink) {
+                $this->resizeImageToMaxWidth($absFileIdentifier, 250);
+            }
 
-        if ($uploaded && $isDirectLink) {
-            // Resize to max 400px width
-            $this->resizeImageToMaxWidth($absFileIdentifier, 250);
+            return $absFileIdentifier;
+        } catch (\GuzzleHttp\Exception\RequestException $e) {
+            $statusCode = $e->hasResponse() ? $e->getResponse()->getStatusCode() : 'unknown';
+            $this->throwError(
+                'Failed to download file from "' . $url . '". HTTP Status: ' . $statusCode . '. Error: ' . $e->getMessage(),
+                7
+            );
+        } catch (\Exception $e) {
+            $this->throwError(
+                'Failed to save file "' . $filename . '". Error: ' . $e->getMessage(),
+                9
+            );
         }
-
-        return $uploaded ? $absFileIdentifier : false;
     }
 
     private function resizeImageToMaxWidth(string $filePath, int $maxWidth): void
@@ -888,7 +904,6 @@ class FilesController extends ActionController
             $importedFile = $this->getStorage()->getFile($this->extensionConfiguration['subfolder'] . '/' . $filename);
 
             if ($importedFile) {
-
                 // import file to FAL
                 $importedFileUid = $importedFile->getUid();
                 $importedFiles[] = $importedFileUid;
@@ -971,10 +986,14 @@ class FilesController extends ActionController
 
                 $hasDirectLink = isset($file->directLink) && $file->directLink != '';
                 $additionalFields['pixxio_is_direct_link'] = $hasDirectLink ? 1 : 0;
-                $additionalFields['pixxio_direct_link'] = $hasDirectLink ? $file->directLink : '0';
+                $additionalFields['pixxio_direct_link'] = $hasDirectLink ? $file->directLink : '';
 
                 if (isset($this->extensionConfiguration['alt_text']) && isset($file->metadata->{$this->extensionConfiguration['alt_text']})) {
                     $additionalFields['alternative'] = $file->metadata->{$this->extensionConfiguration['alt_text']};
+                }
+
+                if ($this->hasExt('filemetadata')) {
+                    $additionalFields = array_merge($additionalFields, $this->getMetadataWithFilemetadataExt($file));
                 }
 
                 $metaDataRepository = GeneralUtility::makeInstance(MetaDataRepository::class);
@@ -1039,16 +1058,23 @@ class FilesController extends ActionController
      * @param string $filename The original filename to check for uniqueness.
      * @return string The unique filename.
      */
-    protected function generateUniqueFilename($originalFilename, $file): string
+    protected function generateUniqueFilename($originalFilename): string
     {
-        $fileExtension = pathinfo($originalFilename, PATHINFO_EXTENSION);
+        $uploadPath = $this->uploadPath();
+        $counter = 1;
 
-        if (is_array($file) && !empty($file['pixxio_file_id'])) {
-            $originalFilename = $file['pixxio_file_id'] . '.' . $fileExtension;
-            return $originalFilename;
+        $candidateFilename = $originalFilename;
+
+        $pathInfo = pathinfo($originalFilename);
+        $basename = $pathInfo['filename'];
+        $extension = isset($pathInfo['extension']) ? '.' . $pathInfo['extension'] : '';
+
+        // Keep checking and incrementing until we find a unique filename
+        while (file_exists($uploadPath . $candidateFilename)) {
+            $candidateFilename = $basename . '_' . $counter . $extension;
+            $counter++;
         }
 
-        $originalFilename = $file->id . '.' . $fileExtension;
-        return $originalFilename;
+        return $candidateFilename;
     }
 }
