@@ -1,6 +1,6 @@
 # Changelog
 
-## NEXT
+## 2.4.0
 
 - Feature: Add support for CDN links
 - Feature: Add sync for license releases
