@@ -139,8 +139,10 @@ class FilesController
 
     private function getProxySettings(&$additionalFields)
     {
-        if ($this->extensionConfiguration['use_proxy'] && filter_var($this->extensionConfiguration['proxy_connection'],
-                FILTER_VALIDATE_URL)) {
+        if ($this->extensionConfiguration['use_proxy'] && filter_var(
+            $this->extensionConfiguration['proxy_connection'],
+            FILTER_VALIDATE_URL
+        )) {
             $proxy = [];
             $proxy[str_starts_with((string) $this->extensionConfiguration['proxy_connection'], 'https') ? 'https' : 'http'] = $this->extensionConfiguration['proxy_connection'];
             $additionalFields['proxy'] = $proxy;
@@ -396,7 +398,7 @@ class FilesController
         $io->writeln('Authenticate to pixx.io');
         $this->accessToken = $this->pixxioAuth();
         $io->writeln('Authenticated');
-        
+
         $io->writeln('Check existence and version of ' . count($fileIds) . ' files on pixx.io');
         $io->writeln('');
 
@@ -409,7 +411,7 @@ class FilesController
                 $file['identifier']
             ];
         }
-        
+
         $table = new Table($io);
         $table
             ->setHeaders(['TYPO3 UID', 'pixx.io ID', 'Identifier'])
@@ -532,7 +534,7 @@ class FilesController
                 $metadata->update($file['uid'], $additionalFields);
             }
         }
-	
+
         return true;
     }
 
@@ -662,16 +664,14 @@ class FilesController
             $originalFilename = $this->getNonUtf8Filename($file->fileName ?: '');
             $filename = $this->generateUniqueFilename($originalFilename);
 
-            // upload file
-            if (!$this->saveFile($filename, $file->downloadURL)) {
-                $this->throwError('Copying file "' . $filename . '" to path "' . '" failed.', 4);
-            } else {
-                $importedFile = $this->getStorage()->getFile($this->extensionConfiguration['subfolder'] . '/' . $filename);
-                if ($importedFile) {
+            // upload file (throws exception on failure)
+            $this->saveFile($filename, $file->downloadURL);
 
-                    // import file to FAL
-                    $importedFileUid = $importedFile->getUid();
-                    $importedFiles[] = $importedFileUid;
+            $importedFile = $this->getStorage()->getFile($this->extensionConfiguration['subfolder'] . '/' . $filename);
+            if ($importedFile) {
+                // import file to FAL
+                $importedFileUid = $importedFile->getUid();
+                $importedFiles[] = $importedFileUid;
 
                 $link = '';
                 if (isset($file->mediaspaceURL)) {
@@ -687,28 +687,27 @@ class FilesController
                         $mediaspaceUrl = $parsedUrl['scheme'] . '://' . $parsedUrl['host'];
                     }
                 }
-                    // set meta data
-                    $additionalFields = [
-                        'title' => $file->subject,
-                        'description' => $file->description,
-                        'pixxio_file_id' => $file->id,
-                        'pixxio_mediaspace' => $mediaspaceUrl,
-                        'pixxio_last_sync_stamp' => time(),
-                        'pixxio_downloadformat' => $file->downloadFormat
-                    ];
 
-                    if (isset($this->extensionConfiguration['alt_text']) && isset($file->metadata->{$this->extensionConfiguration['alt_text']})) {
-                        $additionalFields['alternative'] = $file->metadata->{$this->extensionConfiguration['alt_text']};
-                    }
+                // set meta data
+                $additionalFields = [
+                    'title' => $file->subject,
+                    'description' => $file->description,
+                    'pixxio_file_id' => $file->id,
+                    'pixxio_mediaspace' => $mediaspaceUrl,
+                    'pixxio_last_sync_stamp' => time(),
+                    'pixxio_downloadformat' => $file->downloadFormat
+                ];
 
-                    if ($this->hasExt('filemetadata')) {
-                        $additionalFields = array_merge($additionalFields, $this->getMetadataWithFilemetadataExt($file));
-                    }
-
-                    $metaDataRepository = GeneralUtility::makeInstance(MetaDataRepository::class);
-                    $metaDataRepository->update($importedFileUid, $additionalFields);
+                if (isset($this->extensionConfiguration['alt_text']) && isset($file->metadata->{$this->extensionConfiguration['alt_text']})) {
+                    $additionalFields['alternative'] = $file->metadata->{$this->extensionConfiguration['alt_text']};
                 }
 
+                if ($this->hasExt('filemetadata')) {
+                    $additionalFields = array_merge($additionalFields, $this->getMetadataWithFilemetadataExt($file));
+                }
+
+                $metaDataRepository = GeneralUtility::makeInstance(MetaDataRepository::class);
+                $metaDataRepository->update($importedFileUid, $additionalFields);
             }
         }
         return $importedFiles;
@@ -739,7 +738,8 @@ class FilesController
         $filename = str_replace(
             ['ä', 'ö', 'ü', 'ß', ' - ', ' + ', '_', ' / ', '/'],
             ['ae', 'oe', 'ue', 'ss', '-', '-', '-', '-', '-'],
-            $filename);
+            $filename
+        );
         $filename = str_replace(' ', '-', $filename);
         $filename = preg_replace('/[^a-z0-9\._-]/isU', '', $filename);
         $filename = trim((string) $filename);
