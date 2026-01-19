@@ -664,7 +664,6 @@ class FilesController
 
             // upload file
             if (!$this->saveFile($filename, $file->downloadURL)) {
-                //if (!$this->saveFile($filename, $file->url)) {
                 $this->throwError('Copying file "' . $filename . '" to path "' . '" failed.', 4);
             } else {
                 $importedFile = $this->getStorage()->getFile($this->extensionConfiguration['subfolder'] . '/' . $filename);
