@@ -59,8 +59,9 @@ window.addEventListener("message", (messageEvent) => {
   if (
     messageEvent?.origin !== "https://plugin.pixx.io" ||
     messageEvent?.data?.sender !== "pixxio-plugin-sdk"
-  )
+  ) {
     return;
+  }
 
   if (messageEvent?.data?.method === "downloadFiles") {
     downloadFiles(messageEvent?.data?.parameters[0]);
@@ -169,20 +170,23 @@ function handleSdkReady(messageEvent) {
     targetButton.getAttribute("data-auto-login") === "1"
   ) {
     const refreshToken = targetButton.getAttribute("data-refresh-token");
-    const userId = targetButton.getAttribute("data-user-id");
     const mediaspaceUrl = targetButton.getAttribute("data-mediaspace-url");
 
-    if (refreshToken && userId && mediaspaceUrl) {
+    if (refreshToken && mediaspaceUrl) {
       // Decode the base64 encoded values
       const decodedRefreshToken = atob(refreshToken);
-      const decodedUserId = atob(userId);
       const decodedMediaspaceUrl = atob(mediaspaceUrl).replace("https://", "");
 
       // Send the login success message to the iframe
       const loginMessage = {
         receiver: "pixxio-plugin-sdk",
         method: "login",
-        parameters: [decodedRefreshToken, decodedUserId, decodedMediaspaceUrl],
+        parameters: [
+          {
+            refreshToken: decodedRefreshToken,
+            mediaspaceDomain: decodedMediaspaceUrl,
+          },
+        ],
       };
 
       targetIframe.contentWindow.postMessage(

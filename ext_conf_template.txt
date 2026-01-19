@@ -13,7 +13,7 @@ alt_text = Alt Text (Accessibility)
 # cat=sync; type=string; label=pixx.io URL (domain.px.media)
 url =
 
-# cat=sync; type=string; label=pixx.io user id or email: This value is used only for automatic sync.
+# cat=sync; type=string; label=pixx.io user name or email: This value is not needed. You can use it to remember which user the refresh token belongs to.
 user_id =
 
 # cat=sync; type=string; label=pixx.io refresh token: This value is used only for automatic sync.
@@ -22,13 +22,16 @@ token_refresh =
 # cat=sync; type=boolean; label=Delete file, if the file does not exist in the mediaspace
 delete = false
 
-# cat=sync; type=boolean; label=Update file, if the file has a new version in pixx.io
+# cat=sync; type=boolean; label=Replace the file if a new version is available in pixx.io or if the file has been replaced. (Only available when CDN Links are disabled.)
 update = false
 
-# cat=sync; type=boolean; label=Enable automatic login with sync credentials in Plugin SDK iframe
+# cat=sync; type=boolean; label=Update the metadata when new metadata is available in pixx.io.
+update_metadata = false
+
+# cat=sync; type=boolean; label=Auto-login with the sync access data in the image picker.
 auto_login = false
 
-# cat=sync; type=int [1-50]; label=The amount of files that should be synchronized through a single run
+# cat=sync; type=int [1-500]; label=The amount of files that should be synchronized through a single run
 limit = 20
 
 # cat=proxy; type=boolean; label=Use proxy configuration

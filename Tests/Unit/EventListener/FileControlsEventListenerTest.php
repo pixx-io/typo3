@@ -59,7 +59,7 @@ class FileControlsEventListenerTest extends UnitTestCase
      */
     public function testIframeUrlBuildingWithAllowedDownloadFormats(): void
     {
-        $baseUrl = 'https://plugin.pixx.io/static/v1/en/media?multiSelect=true&applicationId=test';
+        $baseUrl = 'https://plugin.pixx.io/static/v2/en/media?multiSelect=true&applicationId=test';
         
         // Test with single format
         $singleFormat = 'jpg';

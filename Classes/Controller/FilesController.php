@@ -7,6 +7,7 @@ namespace Pixxio\PixxioExtension\Controller;
 use Pixxio\PixxioExtension\Utility\ConfigurationUtility;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Symfony\Component\Console\Helper\Table;
 use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\Restriction\RootLevelRestriction;
@@ -163,24 +164,42 @@ class FilesController
 
             $this->getProxySettings($additionalOptions);
 
+            $maxSyncItems = $this->getMaxSyncItems();
+
             $response = $this->requestFactory->request($this->extensionConfiguration['url'] . '/gobackend/files?' . http_build_query([
-                    'pageSize' => $this->extensionConfiguration['limit'] > 500 ? 500 : (int)$this->extensionConfiguration['limit'],
-                    'page' => 1,
-                    'responseFields' => json_encode($this->getResponseFields()),
-                    'filter' => json_encode([
-                        'filterType' => 'files',
-                        'fileIDs' => $fileIds
-                    ])
-                ]), 'GET', $additionalOptions);
+                'pageSize' => $maxSyncItems,
+                'page' => 1,
+                'responseFields' => json_encode($this->getResponseFields()),
+                'filter' => json_encode([
+                    'filterType' => 'files',
+                    'fileIDs' => $fileIds
+                ])
+            ]), 'GET', $additionalOptions);
 
             if ($response->getStatusCode() === 200) {
                 $data = json_decode($response->getBody()->getContents());
                 return $data->success ? $data->files : [];
             }
+
             return [];
         } catch (\Exception $error) {
             $this->throwError($error->getMessage(), 1);
         }
+    }
+
+    private function getMaxSyncItems()
+    {
+        $limit = isset($this->extensionConfiguration['limit'])
+            ? (int)$this->extensionConfiguration['limit']
+            : 20;
+
+        if ($limit < 1) {
+            $limit = 20;
+        } elseif ($limit > 500) {
+            $limit = 500;
+        }
+
+        return $limit;
     }
 
     private function pixxioFile($fileId)
@@ -196,8 +215,8 @@ class FilesController
         $this->getProxySettings($additionalOptions);
 
         $response = $this->requestFactory->request($this->extensionConfiguration['url'] . '/gobackend/files/' . $fileId . '?' . http_build_query([
-                'responseFields' => json_encode($this->getResponseFields())
-            ]), 'GET', $additionalOptions);
+            'responseFields' => json_encode($this->getResponseFields())
+        ]), 'GET', $additionalOptions);
 
         if ($response->getStatusCode() === 200) {
             $data = json_decode($response->getBody()->getContents());
@@ -211,9 +230,11 @@ class FilesController
     {
         if ($this->extensionConfiguration['url'] == "") {
             $this->throwError('Authentication to pixx.io failed. Please check pixx.io URL in your extension configuration', 9);
+            return false;
         }
         if ($this->extensionConfiguration['token_refresh'] == "") {
             $this->throwError('Authentication to pixx.io failed. Please check pixx.io refresh token in your extension configuration', 10);
+            return false;
         }
 
         $additionalOptions = [
@@ -227,16 +248,15 @@ class FilesController
 
         $this->getProxySettings($additionalOptions);
 
-        $response = $this->requestFactory->request($this->extensionConfiguration['url'] . '/gobackend/accessToken',
-            'POST', $additionalOptions);
+        $response = $this->requestFactory->request($this->extensionConfiguration['url'] . '/gobackend/accessToken', 'POST', $additionalOptions);
 
         if ($response->getStatusCode() === 200) {
             $data = json_decode($response->getBody()->getContents());
             return $data->success ? $data->accessToken : false;
         }
 
-        $this->throwError('Authentication to pixx.io failed. Please check your configuration and your given refresh token.',
-            2);
+        $this->throwError('Authentication to pixx.io failed. Please check your configuration and your given refresh token.', 2);
+        return false;
     }
 
     private function getMetadataField($file, $name)
@@ -265,13 +285,13 @@ class FilesController
             $this->getProxySettings($additionalOptions);
 
             $response = $this->requestFactory->request($this->extensionConfiguration['url'] . '/gobackend/files/existence?' . http_build_query([
-                    'ids' => json_encode($fileIds),
-                    'responseFields' => json_encode([
-                        'id',
-                        'isMainVersion',
-                        'mainVersion'
-                    ])
-                ]), 'GET', $additionalOptions);
+                'ids' => json_encode($fileIds),
+                'responseFields' => json_encode([
+                    'id',
+                    'isMainVersion',
+                    'mainVersion'
+                ])
+            ]), 'GET', $additionalOptions);
 
             $temp = [];
             if ($response->getStatusCode() === 200) {
@@ -294,7 +314,8 @@ class FilesController
                             ];
                             $foundIds[] = $f->id;
                         } else {
-                            // If in doubt, keep the file (don't mark for deletion)
+                            // The file was found but we cannot determine if it's the main version
+                            // We keep the file (don't mark for deletion)
                             $temp[] = [
                                 'oldId' => $f->id,
                                 'newId' => $f->id
@@ -309,7 +330,7 @@ class FilesController
                         if (!in_array($id, $foundIds, true)) {
                             $temp[] = [
                                 'oldId' => $id,
-                                'newId' => $id
+                                'newId' => null
                             ];
                         }
                     }
@@ -321,49 +342,15 @@ class FilesController
         }
     }
 
-    private function getTypo3FileByPixxioId($id)
-    {
-        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('sys_file_metadata');
-        $queryBuilder->getRestrictions()->add(GeneralUtility::makeInstance(RootLevelRestriction::class));
-        $fileMetaData = $queryBuilder
-            ->select('*')
-            ->from('sys_file_metadata')
-            ->where(
-                $queryBuilder->expr()->eq('pixxio_file_id', (int)$id),
-            )
-            ->orderBy('pixxio_last_sync_stamp')
-            ->setMaxResults(1);
-
-        $fileMetaData = $fileMetaData->executeQuery()->fetchAssociative();
-
-        if ($fileMetaData) {
-            $file = $queryBuilder
-                ->select('*')
-                ->from('sys_file')
-                ->where(
-                    $queryBuilder->expr()->eq('uid', (int)$fileMetaData['file']),
-                )
-                ->orderBy('pixxio_last_sync_stamp')
-                ->setMaxResults(1);
-
-            $file = $file->executeQuery()->fetchAssociative();
-        }
-
-        if ($fileMetaData && $file) {
-            return [
-                'file' => $file,
-                'metadata' => $fileMetaData
-            ];
-        }
-
-        return null;
-    }
-
     public function syncAction($io): bool
     {
         // check if extension configuration is set to update/delete media by sync command
-        if (!($this->extensionConfiguration['delete'] || $this->extensionConfiguration['update'])) {
-            $io->writeln('Please update extension configuration to enable update/deletion of media by sync command');
+        if (!(
+            $this->extensionConfiguration['delete'] ||
+            $this->extensionConfiguration['update'] ||
+            $this->extensionConfiguration['update_metadata']
+        )) {
+            $io->writeln('Please update extension configuration to enable update/update_metadata/deletion of media by sync command');
             return true;
         }
 
@@ -371,18 +358,24 @@ class FilesController
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('sys_file_metadata');
         $queryBuilder->getRestrictions()->add(GeneralUtility::makeInstance(RootLevelRestriction::class));
 
+        $maxSyncItems = $this->getMaxSyncItems();
+
         $files = $queryBuilder
             ->select('*')
             ->from('sys_file_metadata')
             ->where(
                 $queryBuilder->expr()->gt('pixxio_file_id', $queryBuilder->createNamedParameter(0, Connection::PARAM_INT)),
             )
-            ->orderBy('pixxio_last_sync_stamp')
-            ->setMaxResults(10)
-            ->leftJoin('sys_file_metadata', 'sys_file', 'f', $queryBuilder->expr()->eq(
-                'sys_file_metadata.file',
-                $queryBuilder->quoteIdentifier('f.uid')
-            )
+            ->orderBy('pixxio_last_sync_stamp', 'ASC')
+            ->setMaxResults($maxSyncItems)
+            ->leftJoin(
+                'sys_file_metadata',
+                'sys_file',
+                'f',
+                $queryBuilder->expr()->eq(
+                    'sys_file_metadata.file',
+                    $queryBuilder->quoteIdentifier('f.uid')
+                )
             );
 
         $files = $files->executeQuery()->fetchAllAssociative();
@@ -396,15 +389,35 @@ class FilesController
         $io->writeln('Mapped files from database to pixx.io IDs');
 
         if (empty($fileIds)) {
-            $io->writeln('no pixx.io files found');
-            return false;
+            $io->writeln('No pixx.io files found');
+            return true;
         }
 
         $io->writeln('Authenticate to pixx.io');
         $this->accessToken = $this->pixxioAuth();
         $io->writeln('Authenticated');
+        
+        $io->writeln('Check existence and version of ' . count($fileIds) . ' files on pixx.io');
+        $io->writeln('');
 
-        $io->writeln('Check Existence and Version on pixx.io');
+        // Display files as table
+        $tableRows = [];
+        foreach ($files as $file) {
+            $tableRows[] = [
+                $file['uid'],
+                $file['pixxio_file_id'],
+                $file['identifier']
+            ];
+        }
+        
+        $table = new Table($io);
+        $table
+            ->setHeaders(['TYPO3 UID', 'pixx.io ID', 'Identifier'])
+            ->setRows($tableRows);
+        $table->render();
+
+        $io->writeln('');
+
         $pixxioDiff = $this->pixxioCheckExistence($fileIds);
 
         if (!is_array($pixxioDiff)) {
@@ -423,18 +436,17 @@ class FilesController
             return $diff['newId'] !== null && $diff['newId'] !== $diff['oldId'];
         }));
 
-
         // do the sync
         //check if file exists and update their versions
         // delete files that aren't existing in pixx.io
-        $io->writeln('Files to delete:' . count($pixxioIdsToDelete));
-        $io->writeln('Files to update:' . count($pixxioIdsToUpdate));
+        $io->writeln('Files to delete: ' . count($pixxioIdsToDelete));
+        $io->writeln('Files with a new version: ' . count($pixxioIdsToUpdate));
 
         foreach ($files as $index => $file) {
             // delete files
             if (in_array($file['pixxio_file_id'], $pixxioIdsToDelete)) {
                 if ($this->extensionConfiguration['delete']) {
-                    $io->writeln('File to deleted:' . $file['identifier']);
+                    $io->writeln('File deleted: ' . $file['identifier']);
                     $storage = $this->getStorage();
                     $storage->deleteFile($storage->getFileByIdentifier($file['identifier']));
                     unset($files[$index]);
@@ -465,7 +477,7 @@ class FilesController
                         $absFileIdentifier = $this->saveFile($file['name'], $pixxioFile->originalFileURL);
                         $storage = $this->getStorage();
                         $storage->replaceFile($storage->getFileByIdentifier($file['identifier']), $absFileIdentifier);
-                        $io->writeln('File to updated:' . $file['identifier']);
+                        $io->writeln('File updated: ' . $file['identifier']);
                         foreach ($fileIds as $key => $id) {
                             if ($id === $file['pixxio_file_id']) {
                                 $fileIds[$key] = $newId;
@@ -476,50 +488,51 @@ class FilesController
                         $files[$index]['pixxio_file_id'] = $newId;
                     }
                 } else {
-                    $io->writeln('File which should be updated, but extension configuration is set to not update files: ' . $file['identifier']);
+                    $io->writeln('File which should be updated, but extension configuration is set to not update files: ' . $file['pixxio_file_id']);
                 }
             }
         }
 
-        $files = array_values($files);
+        if ($this->extensionConfiguration['update_metadata']) {
+            $files = array_values($files);
 
-        $fileIdsWithoutDeletedFiles = array_values(array_filter($fileIds, function ($id) use ($pixxioIdsToDelete) {
-            return !in_array($id, $pixxioIdsToDelete);
-        }));
-
-        $io->writeln('start to sync: ' . json_encode($fileIdsWithoutDeletedFiles));
-        $pixxioFiles = $this->pixxioFiles($fileIdsWithoutDeletedFiles);
-
-        $io->writeln('Start Syncing metadata');
-        foreach ($files as $file) {
-            // set meta data
-            $pixxioFile = array_values(array_filter($pixxioFiles, function ($pFile) use ($file) {
-                return $pFile->id === $file['pixxio_file_id'];
+            $fileIdsWithoutDeletedFiles = array_values(array_filter($fileIds, function ($id) use ($pixxioIdsToDelete) {
+                return !in_array($id, $pixxioIdsToDelete);
             }));
 
-            if (!$pixxioFile || !$pixxioFile[0]) {
-                // have to delete file?!
-                continue;
+            $io->writeln('Start to sync metadata: ' . join(', ', $fileIdsWithoutDeletedFiles));
+            $pixxioFiles = $this->pixxioFiles($fileIdsWithoutDeletedFiles);
+
+            foreach ($files as $file) {
+                // set meta data
+                $pixxioFile = array_values(array_filter($pixxioFiles, function ($pFile) use ($file) {
+                    return $pFile->id === $file['pixxio_file_id'];
+                }));
+
+                if (!$pixxioFile || !$pixxioFile[0]) {
+                    // have to delete file?!
+                    continue;
+                }
+
+                $pixxioFile = $pixxioFile[0];
+
+                $additionalFields = array(
+                    'title' => $pixxioFile->subject,
+                    'description' => $pixxioFile->description,
+                    'alternative' => $this->getMetadataField($pixxioFile, $this->extensionConfiguration['alt_text'] ?: 'Alt Text (Accessibility)'),
+                    'pixxio_file_id' => $pixxioFile->id,
+                    'pixxio_last_sync_stamp' => time()
+                );
+
+                if ($this->hasExt('filemetadata')) {
+                    $additionalFields = array_merge($additionalFields, $this->getMetadataWithFilemetadataExt($pixxioFile));
+                }
+
+                $io->writeln('Update metadata for ' . $pixxioFile->id);
+                $metadata->update($file['uid'], $additionalFields);
             }
-
-            $pixxioFile = $pixxioFile[0];
-
-            $additionalFields = [
-                'title' => $pixxioFile->subject,
-                'description' => $pixxioFile->description,
-                'alternative' => $this->getMetadataField($pixxioFile,
-                    $this->extensionConfiguration['alt_text'] ?: 'Alt Text (Accessibility)'),
-                'pixxio_file_id' => $pixxioFile->id,
-                //'pixxio_mediaspace' => $pixxioFile->originalFileURL,
-                'pixxio_last_sync_stamp' => time()
-            ];
-
-            if ($this->hasExt('filemetadata')) {
-                $additionalFields = array_merge($additionalFields, $this->getMetadataWithFilemetadataExt($pixxioFile));
-            }
-            $io->writeln('Metadata update for ' . $file['identifier']);
-            $metadata->update($file['uid'], $additionalFields);
         }
+	
         return true;
     }
 
@@ -597,34 +610,48 @@ class FilesController
 
     private function saveFile($filename, $url)
     {
-        $uploaded = false;
         $absFileIdentifier = $this->uploadPath() . $filename;
 
         // Check for executable extensions before attempting to save
         if ($this->isExecutableExtension($filename)) {
-            $this->throwError('Wrong upload file extension. Is not allowed to use php,js,js,exe,doc,xls,sh: "' . $filename,
-                5);
+            $this->throwError(
+                'Wrong upload file extension. Is not allowed to use php,js,exe,doc,xls,sh: "' . $filename,
+                5
+            );
         }
 
-        if (ini_get('allow_url_fopen')) {
-            $uploaded = file_put_contents($absFileIdentifier, file_get_contents($url));
-        } else {
-            $ch = curl_init($url);
-            $fp = fopen($absFileIdentifier, 'wb');
-            curl_setopt($ch, CURLOPT_FILE, $fp);
-            curl_setopt($ch, CURLOPT_HEADER, 0);
+        try {
+            $options = [
+                'sink' => $absFileIdentifier,
+                'timeout' => 300,
+                'allow_redirects' => true
+            ];
 
-            $uploaded = true;
-            if (!curl_exec($ch)) {
-                $this->throwError('CURL Error while transferring file.', 7);
-                $uploaded = false;
+            // Apply proxy settings from extension configuration
+            $this->getProxySettings($options);
+
+            $response = $this->requestFactory->request($url, 'GET', $options);
+
+            if ($response->getStatusCode() !== 200) {
+                $this->throwError(
+                    'Failed to download file from URL: "' . $url . '". HTTP Status: ' . $response->getStatusCode(),
+                    8
+                );
             }
 
-            curl_close($ch);
-            fclose($fp);
+            return $absFileIdentifier;
+        } catch (\GuzzleHttp\Exception\RequestException $e) {
+            $statusCode = $e->hasResponse() ? $e->getResponse()->getStatusCode() : 'unknown';
+            $this->throwError(
+                'Failed to download file from "' . $url . '". HTTP Status: ' . $statusCode . '. Error: ' . $e->getMessage(),
+                7
+            );
+        } catch (\Exception $e) {
+            $this->throwError(
+                'Failed to save file "' . $filename . '". Error: ' . $e->getMessage(),
+                9
+            );
         }
-
-        return $uploaded ? $absFileIdentifier : false;
     }
 
     private function pullFiles($files)
@@ -647,12 +674,26 @@ class FilesController
                     $importedFileUid = $importedFile->getUid();
                     $importedFiles[] = $importedFileUid;
 
+                $link = '';
+                if (isset($file->mediaspaceURL)) {
+                    $link = $file->mediaspaceURL;
+                } else if (isset($file->downloadURL)) {
+                    $link = $file->downloadURL;
+                }
+
+                $mediaspaceUrl = '';
+                if (isset($link) && $link != '') {
+                    $parsedUrl = parse_url($link);
+                    if (is_array($parsedUrl) && isset($parsedUrl['scheme'], $parsedUrl['host'])) {
+                        $mediaspaceUrl = $parsedUrl['scheme'] . '://' . $parsedUrl['host'];
+                    }
+                }
                     // set meta data
                     $additionalFields = [
                         'title' => $file->subject,
                         'description' => $file->description,
                         'pixxio_file_id' => $file->id,
-                        'pixxio_mediaspace' => $file->downloadURL,
+                        'pixxio_mediaspace' => $mediaspaceUrl,
                         'pixxio_last_sync_stamp' => time(),
                         'pixxio_downloadformat' => $file->downloadFormat
                     ];

@@ -16,7 +16,7 @@ class SyncCommand extends Command
    */
   protected function configure()
   {
-    $this->setHelp('Prints a list of recent sys_log entries.' . PHP_EOL . 'If you want to get more detailed information, use the --verbose option.');
+    $this->setHelp('Synchronizes files from Pixxio.' . "\n" . 'Use this command to sync media assets from your pixx.io mediaspace.');
   }
 
   protected function execute(InputInterface $input, OutputInterface $output): int
@@ -36,7 +36,6 @@ class SyncCommand extends Command
           $io->error('💥 synchronization failed');
           return Command::FAILURE;
       } catch (\RuntimeException $error) {
-          var_dump($error->getMessage());
           $io->error('😱 got a runtime exception: ' . $error->getMessage());
           return Command::FAILURE;
       }
