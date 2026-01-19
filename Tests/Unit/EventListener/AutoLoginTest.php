@@ -26,20 +26,17 @@ class AutoLoginTest extends UnitTestCase
         $expectedAttributes = [
             'data-auto-login' => '1',
             'data-refresh-token' => base64_encode('test_token'),
-            'data-user-id' => base64_encode('test_user'),
             'data-mediaspace-url' => base64_encode('https://example.pixx.io')
         ];
         
         // Verify base64 encoding works correctly
         $this->assertEquals(base64_encode('test_token'), $expectedAttributes['data-refresh-token']);
-        $this->assertEquals(base64_encode('test_user'), $expectedAttributes['data-user-id']);
         $this->assertEquals(base64_encode('https://example.pixx.io'), $expectedAttributes['data-mediaspace-url']);
         
         // Test configuration with auto_login disabled
         $disabledConfiguration = [
             'auto_login' => false,
             'token_refresh' => 'test_token',
-            'user_id' => 'test_user',
             'url' => 'https://example.pixx.io'
         ];
         
