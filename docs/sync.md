@@ -314,9 +314,7 @@ Die folgende Tabelle zeigt, welche pixx.io-Felder auf welche TYPO3-Felder gemapp
 | modifyDate      | content_modification_date | Unix-Timestamp        |
 | subject         | title, download_name      | Text                  |
 | description     | description, caption      | Text                  |
-e:**
-- Die erweiterten Metadaten werden nur synchronisiert, wenn die TYPO3-Extension "filemetadata" installiert ist.
-- Custom-Metadaten werden als JSON im Feld `pixxio_custom_metadata` gespeichert und sind unabhängig von der "filemetadata"-Extension verfügbar
+
 **Hinweis:** Die erweiterten Metadaten werden nur synchronisiert, wenn die TYPO3-Extension "filemetadata" installiert ist.
 
 ## Support und Troubleshooting
