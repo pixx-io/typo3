@@ -1,5 +1,17 @@
 # Changelog
 
+## 3.4.0
+
+- Feature: Update Plugin SDK to latest version
+- Feature: Improve logging
+- Feature: New setting to sync only metadata (`update_metadata`)
+- Feature: Modernize download handling
+- Fix: Sync command now exits successfully when no pixx.io files in the system
+- Fix: Use configured limit for sync action
+- Fix: Missing files are deleted if activated in the settings
+- Docs: Add documentation for sync command
+
+
 ## 3.3.0
 
 - [v13.4] Add setting to configure the `allowed_download_formats` in the media selection

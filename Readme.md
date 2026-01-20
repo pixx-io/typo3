@@ -15,7 +15,7 @@ This extension has several main versions, which are intended for different TYPO3
 
 | Extension version | Compatible with TYPO3 | Branch                                                   | Changelog                                                                  |
 | ----------------- | --------------------- | -------------------------------------------------------- | -------------------------------------------------------------------------- |
-| 3.x               | TYPO3 v13             | [`main`](https://github.com/pixx-io/typo3)               | [Changelog 3.x](./CHANGELOG.md)                                            |
+| 3.x               | TYPO3 v13             | [`main`](https://github.com/pixx-io/typo3)               | [Changelog 3.x](https://github.com/pixx-io/typo3/blob/main/CHANGELOG.md)   |
 | 2.x               | TYPO3 v11 - v12.      | [`master`](https://github.com/pixx-io/typo3/tree/master) | [Changelog 2.x](https://github.com/pixx-io/typo3/blob/master/CHANGELOG.md) |
 
 Please use the appropriate version depending on your TYPO3 installation.
@@ -48,16 +48,21 @@ It's possible to sync the alt text. Therefore you have to define the name of the
 
 ### Sync
 
-In Sync you can define behaviors that should be done during a running sync.
+See [docs/sync.md](./docs/sync.md) for detailed information about the sync process.
+
+In Sync you can define behaviors that should be done during a running sync. **Note:** At least one of the following options must be enabled for the sync to run.
 
 **Delete:**
-If a file is deleted in pixx.io, it will be deleted in TYPO3 as well if the flag is set. If not it will decouple the file from pixx.io.
+If a file is deleted in pixx.io, it will also be deleted in TYPO3 when this flag is set. If this flag is disabled, files that no longer exist in pixx.io will be kept in TYPO3 (a warning will be logged).
 
 **Update:**
-If you use the version feature of pixx.io you be able to update the main version of a file. If the flag ist set the sync will replace files that aren't the main version to their new main version.
+If you use the version feature of pixx.io, you can automatically update files to their new main version. When this flag is set, the sync will replace files that aren't the main version with their new main version.
+
+**Update Metadata:**
+When this flag is set, the sync will update metadata (title, description, alt text, keywords, etc.) from pixx.io to TYPO3 for all synchronized files. This allows you to keep metadata in sync without updating file versions.
 
 **Limit:**
-You can define a limit from 1 to 50. This limit defines the amount of files that should be checked through a single sync run.
+You can define a limit from 1 to 500. This limit defines the amount of files that should be checked through a single sync run.
 
 ### Proxy Settings:
 
