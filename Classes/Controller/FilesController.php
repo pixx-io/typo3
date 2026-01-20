@@ -230,13 +230,11 @@ class FilesController
 
     private function pixxioAuth()
     {
-        if ($this->extensionConfiguration['url'] == "") {
+        if ($this->extensionConfiguration['url'] === "") {
             $this->throwError('Authentication to pixx.io failed. Please check pixx.io URL in your extension configuration', 9);
-            return false;
         }
-        if ($this->extensionConfiguration['token_refresh'] == "") {
+        if ($this->extensionConfiguration['token_refresh'] === "") {
             $this->throwError('Authentication to pixx.io failed. Please check pixx.io refresh token in your extension configuration', 10);
-            return false;
         }
 
         $additionalOptions = [
@@ -258,7 +256,6 @@ class FilesController
         }
 
         $this->throwError('Authentication to pixx.io failed. Please check your configuration and your given refresh token.', 2);
-        return false;
     }
 
     private function getMetadataField($file, $name)
@@ -617,7 +614,7 @@ class FilesController
         // Check for executable extensions before attempting to save
         if ($this->isExecutableExtension($filename)) {
             $this->throwError(
-                'Wrong upload file extension. Is not allowed to use php,js,exe,doc,xls,sh: "' . $filename,
+                'Wrong upload file extension. It is not allowed to use php,js,exe,doc,xls,sh: "' . $filename,
                 5
             );
         }
@@ -651,7 +648,7 @@ class FilesController
         } catch (\Exception $e) {
             $this->throwError(
                 'Failed to save file "' . $filename . '". Error: ' . $e->getMessage(),
-                9
+                11
             );
         }
     }
@@ -676,12 +673,12 @@ class FilesController
                 $link = '';
                 if (isset($file->mediaspaceURL)) {
                     $link = $file->mediaspaceURL;
-                } else if (isset($file->downloadURL)) {
+                } elseif (isset($file->downloadURL)) {
                     $link = $file->downloadURL;
                 }
 
                 $mediaspaceUrl = '';
-                if (isset($link) && $link != '') {
+                if (isset($link) && $link !== '') {
                     $parsedUrl = parse_url($link);
                     if (is_array($parsedUrl) && isset($parsedUrl['scheme'], $parsedUrl['host'])) {
                         $mediaspaceUrl = $parsedUrl['scheme'] . '://' . $parsedUrl['host'];
