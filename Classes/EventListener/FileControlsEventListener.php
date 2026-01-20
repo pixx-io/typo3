@@ -121,6 +121,16 @@ final class FileControlsEventListener
             $iframeUrl .= '&metadata=' . urlencode($extensionConfiguration['alt_text']);
         }
 
+        // Add additional custom metadata fields from configuration
+        if (isset($extensionConfiguration['additional_metadata_fields']) && !empty($extensionConfiguration['additional_metadata_fields'])) {
+            $additionalFields = array_map('trim', explode(',', $extensionConfiguration['additional_metadata_fields']));
+            foreach ($additionalFields as $fieldName) {
+                if (!empty($fieldName)) {
+                    $iframeUrl .= '&metadata=' . urlencode($fieldName);
+                }
+            }
+        }
+
         // Add allowedDownloadFormats parameter if configured
         if (isset($extensionConfiguration['allowed_download_formats']) && !empty($extensionConfiguration['allowed_download_formats'])) {
             $allowedFormats = $extensionConfiguration['allowed_download_formats'];

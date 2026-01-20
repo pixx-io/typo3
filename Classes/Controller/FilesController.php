@@ -270,6 +270,46 @@ class FilesController
         return $value;
     }
 
+    /**
+     * Extract additional custom metadata fields from pixx.io file based on extension configuration
+     * 
+     * @param object $pixxioFile The pixx.io file object
+     * @return array Associative array of custom metadata fields
+     */
+    private function getAdditionalCustomMetadata($pixxioFile): array
+    {
+        $customMetadata = [];
+
+        // Check if additional metadata fields are configured
+        if (empty($this->extensionConfiguration['additional_metadata_fields'])) {
+            return $customMetadata;
+        }
+
+        // Parse comma-separated field names
+        $fieldNames = array_map('trim', explode(',', $this->extensionConfiguration['additional_metadata_fields']));
+
+        // Extract each configured field from pixx.io metadata
+        foreach ($fieldNames as $fieldName) {
+            if (empty($fieldName)) {
+                continue;
+            }
+
+            $value = $this->getMetadataField($pixxioFile, $fieldName);
+
+            // Only add if value exists
+            if ($value !== '' && $value !== null) {
+                // Handle arrays by converting to comma-separated string
+                if (is_array($value)) {
+                    $customMetadata[$fieldName] = $value;
+                } else {
+                    $customMetadata[$fieldName] = $value;
+                }
+            }
+        }
+
+        return $customMetadata;
+    }
+
     private function pixxioCheckExistence($fileIds)
     {
         try {
@@ -527,6 +567,13 @@ class FilesController
                     $additionalFields = array_merge($additionalFields, $this->getMetadataWithFilemetadataExt($pixxioFile));
                 }
 
+                // Add custom metadata fields as JSON
+                $customMetadata = $this->getAdditionalCustomMetadata($pixxioFile);
+                if (!empty($customMetadata)) {
+                    $additionalFields['pixxio_custom_metadata'] = json_encode($customMetadata, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+                    $io->writeln('  - Added ' . count($customMetadata) . ' custom metadata fields: ' . implode(', ', array_keys($customMetadata)));
+                }
+
                 $io->writeln('Update metadata for ' . $pixxioFile->id);
                 $metadata->update($file['uid'], $additionalFields);
             }
@@ -701,6 +748,12 @@ class FilesController
 
                 if ($this->hasExt('filemetadata')) {
                     $additionalFields = array_merge($additionalFields, $this->getMetadataWithFilemetadataExt($file));
+                }
+
+                // Add custom metadata fields as JSON
+                $customMetadata = $this->getAdditionalCustomMetadata($file);
+                if (!empty($customMetadata)) {
+                    $additionalFields['pixxio_custom_metadata'] = json_encode($customMetadata, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
                 }
 
                 $metaDataRepository = GeneralUtility::makeInstance(MetaDataRepository::class);
