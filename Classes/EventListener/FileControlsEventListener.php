@@ -79,9 +79,6 @@ final class FileControlsEventListener
             if (isset($extensionConfiguration['token_refresh'])) {
                 $attributes['data-refresh-token'] = base64_encode($extensionConfiguration['token_refresh']);
             }
-            if (isset($extensionConfiguration['user_id'])) {
-                $attributes['data-user-id'] = base64_encode($extensionConfiguration['user_id']);
-            }
             if (isset($extensionConfiguration['url'])) {
                 $attributes['data-mediaspace-url'] = base64_encode($extensionConfiguration['url']);
             }
