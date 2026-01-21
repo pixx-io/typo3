@@ -690,7 +690,20 @@ class FilesController extends ActionController
 
                 if ($metadataField->name === $this->metadataMapping[$key]) {
                     if (is_array($metadataField->value)) {
-                        $temp[$key] = join(',', $metadataField->value) ?: '';
+                        // Check if array contains stdClass objects
+                        if (!empty($metadataField->value) && is_object($metadataField->value[0]) && $metadataField->value[0] instanceof \stdClass) {
+                            // Extract names from array of stdClass objects
+                            $names = array_map(function($item) {
+                                return $item->name ?? '';
+                            }, $metadataField->value);
+                            $temp[$key] = join(',', $names) ?: '';
+                        } else {
+                            // Simple array of scalar values
+                            $temp[$key] = join(',', $metadataField->value) ?: '';
+                        }
+                    } elseif (is_object($metadataField->value) && $metadataField->value instanceof \stdClass) {
+                        // Handle single stdClass object (e.g., dropdown values with id and name)
+                        $temp[$key] = $metadataField->value->name ?? '';
                     } else {
                         $temp[$key] = $metadataField->value ?: '';
                     }
