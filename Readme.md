@@ -16,7 +16,7 @@ This extension has several main versions, which are intended for different TYPO3
 | Extension version | Compatible with TYPO3 | Branch                                                   | Changelog                                                                  |
 | ----------------- | --------------------- | -------------------------------------------------------- | -------------------------------------------------------------------------- |
 | 3.x               | TYPO3 v13             | [`main`](https://github.com/pixx-io/typo3)               | [Changelog 3.x](https://github.com/pixx-io/typo3/blob/main/CHANGELOG.md)   |
-| 2.x               | TYPO3 v11 - v12.      | [`master`](https://github.com/pixx-io/typo3/tree/master) | [Changelog 2.x](https://github.com/pixx-io/typo3/blob/master/CHANGELOG.md) |
+| 2.x               | TYPO3 v11 - v12       | [`master`](https://github.com/pixx-io/typo3/tree/master) | [Changelog 2.x](https://github.com/pixx-io/typo3/blob/master/CHANGELOG.md) |
 
 Please use the appropriate version depending on your TYPO3 installation.
 
@@ -61,7 +61,7 @@ If you use the version feature of pixx.io, you can automatically update files to
 **Update Metadata:**
 When this flag is set, the sync will update metadata (title, description, alt text, keywords, etc.) from pixx.io to TYPO3 for all synchronized files. This allows you to keep metadata in sync without updating file versions.
 
-**Limit:**
+Limit:
 You can define a limit from 1 to 500. This limit defines the amount of files that should be checked through a single sync run.
 
 ### Proxy Settings:
