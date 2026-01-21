@@ -9,6 +9,16 @@ The pixx.io Typo3 Extension allows pixx.io users to select the assets directly f
 - Includes Proxy support
 - Works with the popular core extension: typo3/filemetadata
 
+## ⚠️ Note on versions
+
+This extension has several main versions, which are intended for different TYPO3 versions:
+
+| Extension version | Compatible with TYPO3 | Branch                                                   | Changelog                                                                  |
+| ----------------- | --------------------- | -------------------------------------------------------- | -------------------------------------------------------------------------- |
+| 3.x               | TYPO3 v13             | [`main`](https://github.com/pixx-io/typo3)               | [Changelog 3.x](https://github.com/pixx-io/typo3/blob/main/CHANGELOG.md)   |
+| 2.x               | TYPO3 v11 - v12       | [`master`](https://github.com/pixx-io/typo3/tree/master) | [Changelog 2.x](https://github.com/pixx-io/typo3/blob/master/CHANGELOG.md) |
+
+Please use the appropriate version depending on your TYPO3 installation.
 
 ## Installation:
 
@@ -48,8 +58,11 @@ If a file is deleted in pixx.io, it will also be deleted in TYPO3 when this flag
 **Update:**
 If you use the version feature of pixx.io, you can automatically update files to their new main version. When this flag is set, the sync will replace files that aren't the main version with their new main version.
 
-**Note:** The sync processes up to 10 files per run, prioritizing files that haven't been synchronized recently. Metadata is always synchronized for all files, regardless of whether the file version has changed.
+**Update Metadata:**
+When this flag is set, the sync will update metadata (title, description, alt text, keywords, etc.) from pixx.io to TYPO3 for all synchronized files. This allows you to keep metadata in sync without updating file versions.
 
+Limit:
+You can define a limit from 1 to 500. This limit defines the amount of files that should be checked through a single sync run.
 
 ### Proxy Settings:
 
@@ -66,7 +79,7 @@ You can hide the "Select from pixx.io" button for backend users and backend user
 
 ### filemetadata
 
-If you are using the core extension filemetadata it will sync more metadata to typo3 from pixx.io. The mapping of the metadata is defined like this:
+If you are using the core extension `filemetadata` we will sync more metadata from pixx.io to TYPO3. The mapping of the metadata is defined like this:
 
 #### Mapping from pixx.io to TYPO3
 
@@ -86,7 +99,3 @@ If you are using the core extension filemetadata it will sync more metadata to t
 - `Date created` / `Erstellungsdatum` (Type: Internal) => `Content Creation Date`
 - `Zuletzt bearbeitet` (Type: Internal) => `Content Modification Date`
 - `ModifyDate` / `Farbraum` (Type: Internal) => `Color Space`
-
-### 2.0.3
-
-- Fix bugs to support multiple image fields
