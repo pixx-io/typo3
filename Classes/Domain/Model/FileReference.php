@@ -72,9 +72,9 @@ class FileReference extends \TYPO3\CMS\Core\Resource\FileReference {
   }
 
   /**
-   * Sets the pixxioFileId
+   * Sets the pixxioDownloadformat
    *
-   * @param integer $pixxioFileId
+   * @param string $pixxioDownloadformat
    * @return void
    */
   public function setPixxioDownloadformat($pixxioDownloadformat) {

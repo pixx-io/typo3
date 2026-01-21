@@ -69,5 +69,5 @@ After the installation, there is a database error visible. To fix it, run:
 - Checkout master
 - Create and push a new tag: `git tag 2.4.0 && git push --tags`
 - Login to https://packagist.org/ and click the "Update" button at https://packagist.org/packages/pixxio/pixxio-extension
-- Create a zip `zip -r ../pixxio_extension_2.3.0.zip *`
+- Create a zip `zip -r ../pixxio_extension_2.4.0.zip *`
 - Upload the extension to https://extensions.typo3.org/my-extensions
