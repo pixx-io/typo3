@@ -4,6 +4,7 @@ namespace Pixxio\PixxioExtension\Backend;
 
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Page\AssetCollector;
+use TYPO3\CMS\Core\Page\JavaScriptModuleInstruction;
 
 /**
  * Class InlineControlContainer
@@ -133,7 +134,7 @@ class InlineControlContainer extends \TYPO3\CMS\Backend\Form\Container\InlineCon
         <div class="pixxio-lightbox" style="display:none"><div class="pixxio-close"></div><div class="pixxio-lightbox-inner"><iframe class="pixxio_sdk" data-src="' . $iframe_url . '" width="100%" height="100%"></iframe></div></div>
         ';
 
-        $this->requireJsModules[] = 'TYPO3/CMS/PixxioExtension/ScriptSDK_v11';
+        $this->javaScriptModules[] = JavaScriptModuleInstruction::create('@pixxio/pixxio-extension/ScriptSDK.js');
 
         $assetsCollector = GeneralUtility::makeInstance(AssetCollector::class);
         $assetsCollector->addStylesheet('pixxio_extension', 'EXT:pixxio_extension/Resources/Public/StyleSheet/StyleSDK.css');
