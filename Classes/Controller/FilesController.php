@@ -414,7 +414,7 @@ class FilesController extends ActionController
             return $file['pixxio_file_id'];
         }, $files);
 
-        $io->writeln('Mapped files from database to pixx.io IDs');
+        $io->writeln('Mapped files from database to pixx.io IDs: ' . join(', ', $fileIds));
 
         if (empty($fileIds)) {
             $io->writeln('No pixx.io files found');
