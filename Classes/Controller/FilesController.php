@@ -414,7 +414,7 @@ class FilesController extends ActionController
             return $file['pixxio_file_id'];
         }, $files);
 
-        $io->writeln('Mapped files from database to pixx.io IDs');
+        $io->writeln('Mapped files from database to pixx.io IDs: ' . join(', ', $fileIds));
 
         if (empty($fileIds)) {
             $io->writeln('No pixx.io files found');
@@ -424,7 +424,7 @@ class FilesController extends ActionController
         $io->writeln('Authenticate to pixx.io');
         $this->accessToken = $this->pixxioAuth();
         $io->writeln('Authenticated');
-        
+
         $io->writeln('Check existence and version of ' . count($fileIds) . ' files on pixx.io');
         $io->writeln('');
 
@@ -437,7 +437,7 @@ class FilesController extends ActionController
                 $file['identifier']
             ];
         }
-        
+
         $table = new Table($io);
         $table
             ->setHeaders(['TYPO3 UID', 'pixx.io ID', 'Identifier'])
@@ -690,7 +690,24 @@ class FilesController extends ActionController
 
                 if ($metadataField->name === $this->metadataMapping[$key]) {
                     if (is_array($metadataField->value)) {
-                        $temp[$key] = join(',', $metadataField->value) ?: '';
+                        // Check if array contains stdClass objects
+                        if (!empty($metadataField->value) && isset($metadataField->value[0]) && is_object($metadataField->value[0]) && $metadataField->value[0] instanceof \stdClass) {
+                            // Extract names from array of stdClass objects
+                            $names = array_map(function ($item) {
+                                if (is_object($item) && $item instanceof \stdClass && isset($item->name)) {
+                                    return $item->name;
+                                }
+                                // Fallback: return the item itself if it's already a scalar value
+                                return is_scalar($item) ? (string)$item : '';
+                            }, $metadataField->value);
+                            $temp[$key] = join(', ', $names) ?: '';
+                        } else {
+                            // Simple array of scalar values
+                            $temp[$key] = join(', ', $metadataField->value) ?: '';
+                        }
+                    } elseif (is_object($metadataField->value) && $metadataField->value instanceof \stdClass) {
+                        // Handle single stdClass object (e.g., dropdown values with id and name)
+                        $temp[$key] = $metadataField->value->name ?? '';
                     } else {
                         $temp[$key] = $metadataField->value ?: '';
                     }
