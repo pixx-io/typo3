@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.4.1
+
+- Fix: Metadate import when metadata value is not a string
+
 ## 2.4.0
 
 - Feature: Add support for CDN links
