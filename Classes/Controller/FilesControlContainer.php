@@ -27,7 +27,6 @@ use TYPO3\CMS\Core\Resource\Folder;
 use TYPO3\CMS\Core\Resource\OnlineMedia\Helpers\OnlineMediaHelperRegistry;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\StringUtility;
-use TYPO3\CMS\Core\Page\AssetCollector;
 /**
  * Files entry container.
  *
@@ -49,11 +48,6 @@ class FilesControlContainer extends \TYPO3\CMS\Backend\Form\Container\FilesContr
      * Inline data array used in JS, returned as JSON object to frontend
      */
     protected array $fileReferenceData = [];
-
-    /**
-     * @var array<int,JavaScriptModuleInstruction|string|array<string,string>>
-     */
-    protected array $javaScriptModules = [];
 
     protected IconFactory $iconFactory;
     protected InlineStackProcessor $inlineStackProcessor;
@@ -286,10 +280,6 @@ class FilesControlContainer extends \TYPO3\CMS\Backend\Form\Container\FilesContr
             $controls[] = '
             <div class="pixxio-lightbox"><div class="pixxio-close"></div><div class="pixxio-lightbox-inner"><iframe class="pixxio_sdk" data-src="' . $iframe_url . '" width="100%" height="100%"></iframe></div></div>
             ';
-
-            $this->javaScriptModules[] = JavaScriptModuleInstruction::create('@pixxio/pixxio-extension/ScriptSDK.js');
-            $assetsCollector = GeneralUtility::makeInstance(AssetCollector::class);
-            $assetsCollector->addStylesheet('pixxio_extension', 'EXT:pixxio_extension/Resources/Public/StyleSheet/StyleSDK.css');
         }
 
         return $controls;
