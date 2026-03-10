@@ -271,12 +271,6 @@ class FilesControlContainer extends \TYPO3\CMS\Backend\Form\Container\FilesContr
                 $iframe_url .= '&allowedDownloadFormats=original&allowedDownloadFormats=preview';
             }
 
-            $tldPos = strpos($extensionConfiguration['url'], '//');
-            if ($tldPos > 0) {
-                $pixxioMediaspace = substr($extensionConfiguration['url'], $tldPos + 2);
-            } else {
-                $pixxioMediaspace = $extensionConfiguration['url'];
-            }
             $controls[] = '
             <div class="pixxio-lightbox"><div class="pixxio-close"></div><div class="pixxio-lightbox-inner"><iframe class="pixxio_sdk" data-src="' . $iframe_url . '" width="100%" height="100%"></iframe></div></div>
             ';
