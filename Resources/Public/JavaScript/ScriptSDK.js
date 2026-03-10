@@ -6,43 +6,61 @@ import AjaxRequest from "@typo3/core/ajax/ajax-request.js";
 import Modal from "@typo3/backend/modal.js";
 import { MessageUtility } from "@typo3/backend/utility/message-utility.js";
 
-function init() {
-  document.addEventListener("click", function (event) {
-    var buttonElement = null;
+// Guard to ensure init is only called once
+let isInitialized = false;
 
-    if (event.target.classList.contains("pixxio-sdk-btn")) {
-      buttonElement = event.target;
-    } else if (event.target.closest(".pixxio-sdk-btn")) {
-      buttonElement = event.target.closest(".pixxio-sdk-btn");
-    }
+function handleClick(event) {
+  var buttonElement = null;
 
-    if (buttonElement) {
+  // Only proceed if the click target is related to pixx.io
+  if (event.target.classList.contains("pixxio-sdk-btn")) {
+    buttonElement = event.target;
+  } else if (event.target.closest(".pixxio-sdk-btn")) {
+    buttonElement = event.target.closest(".pixxio-sdk-btn");
+  }
+
+  // Early return if not a pixx.io button - no impact on other elements
+  if (!buttonElement) {
+    return;
+  }
+
+  event.preventDefault();
+  var pixxioIframe =
+    buttonElement.parentElement.querySelector("iframe.pixxio_sdk");
+  var pixxioIframeSrc = pixxioIframe.dataset.src;
+  if (pixxioIframeSrc != "") {
+    pixxioIframe.src = pixxioIframeSrc;
+  }
+  var pixxioLightbox =
+    buttonElement.parentElement.querySelector(".pixxio-lightbox");
+  pixxioLightbox.style.display = "block";
+
+  var closeButton = buttonElement.parentElement.querySelector(".pixxio-close");
+
+  if (closeButton) {
+    closeButton.addEventListener("click", (event) => {
       event.preventDefault();
-      var pixxioIframe =
-        buttonElement.parentElement.querySelector("iframe.pixxio_sdk");
-      var pixxioIframeSrc = pixxioIframe.dataset.src;
-      if (pixxioIframeSrc != "") {
-        pixxioIframe.src = pixxioIframeSrc;
-      }
-      var pixxioLightbox =
-        buttonElement.parentElement.querySelector(".pixxio-lightbox");
-      pixxioLightbox.style.display = "block";
 
-      var closeButton =
-        buttonElement.parentElement.querySelector(".pixxio-close");
+      pixxioLightbox.style.display = "none";
+      pixxioIframe.src = "";
+    });
+  }
 
-      if (closeButton) {
-        closeButton.addEventListener("click", (event) => {
-          event.preventDefault();
+  // Store in namespaced global variable to avoid conflicts
+  if (!window.pixxio) {
+    window.pixxio = {};
+  }
+  window.pixxio.lastLightboxOpenerButton = buttonElement;
+}
 
-          pixxioLightbox.style.display = "none";
-          pixxioIframe.src = "";
-        });
-      }
+function init() {
+  // Prevent multiple initializations
+  if (isInitialized) {
+    return;
+  }
+  isInitialized = true;
 
-      window.pixxioLastLightboxOpenerButton = buttonElement;
-    }
-  });
+  document.addEventListener("click", handleClick);
 }
 
 if (document.readyState === "complete") {
@@ -55,7 +73,8 @@ if (document.readyState === "complete") {
   });
 }
 
-window.addEventListener("message", (messageEvent) => {
+function handlePostMessage(messageEvent) {
+  // Early return for non-pixx.io messages - no impact on other functionality
   if (
     messageEvent?.origin !== "https://plugin.pixx.io" ||
     messageEvent?.data?.sender !== "pixxio-plugin-sdk"
@@ -70,19 +89,30 @@ window.addEventListener("message", (messageEvent) => {
   } else if (messageEvent?.data?.method === "onSdkReady") {
     handleSdkReady(messageEvent);
   }
-});
+}
+
+// Register global message listener (with strict origin and sender checks)
+window.addEventListener("message", handlePostMessage);
 
 function downloadFiles(files) {
   if (!files || !files.length) {
-    console.warn("No files to download"); // eslint-disable-line no-console
+    console.warn("[pixx.io] No files to download"); // eslint-disable-line no-console
+    return;
   }
 
+  // Only access pixx.io-specific elements
   let container = null;
-  if (window.pixxioLastLightboxOpenerButton) {
-    container = window.pixxioLastLightboxOpenerButton;
+  if (window.pixxio?.lastLightboxOpenerButton) {
+    container = window.pixxio.lastLightboxOpenerButton;
   } else {
-    // Select the first button
+    // Select the first pixx.io button
     container = document.querySelector(".pixxio-sdk-btn");
+  }
+
+  // Safety check: abort if no pixx.io container found
+  if (!container) {
+    console.warn("[pixx.io] No pixx.io button container found"); // eslint-disable-line no-console
+    return;
   }
 
   new AjaxRequest(TYPO3.settings.ajaxUrls.pixxio_files)
@@ -106,7 +136,7 @@ function downloadFiles(files) {
         headers: {
           "Content-Type": "application/json; charset=utf-8",
         },
-      }
+      },
     )
     .then(async function (response) {
       const data = await response.resolve();
@@ -119,15 +149,16 @@ function downloadFiles(files) {
             uid: uid,
           };
           MessageUtility.send(message);
-
-          const lightboxes = document.querySelectorAll(".pixxio-lightbox");
-
-          if (lightboxes && lightboxes.length) {
-            lightboxes.forEach((lightbox) => {
-              lightbox.style.display = "none";
-            });
-          }
         });
+
+        // Only close pixx.io lightboxes (identified by specific class)
+        const lightboxes = document.querySelectorAll(".pixxio-lightbox");
+
+        if (lightboxes && lightboxes.length) {
+          lightboxes.forEach((lightbox) => {
+            lightbox.style.display = "none";
+          });
+        }
       } else {
         var $confirm = Modal.confirm("ERROR", data.error, Severity.error, [
           {
@@ -149,14 +180,14 @@ function handleSdkReady(messageEvent) {
   let targetIframe = null;
 
   // If we have a last opened button, use that
-  if (window.pixxioLastLightboxOpenerButton) {
-    targetButton = window.pixxioLastLightboxOpenerButton;
+  if (window.pixxio?.lastLightboxOpenerButton) {
+    targetButton = window.pixxio.lastLightboxOpenerButton;
     targetIframe =
       targetButton.parentElement.querySelector("iframe.pixxio_sdk");
   } else {
     // Otherwise find the first visible iframe
     const visibleLightboxes = document.querySelectorAll(
-      '.pixxio-lightbox[style*="block"]'
+      '.pixxio-lightbox[style*="block"]',
     );
     if (visibleLightboxes.length > 0) {
       targetIframe = visibleLightboxes[0].querySelector("iframe.pixxio_sdk");
@@ -193,7 +224,7 @@ function handleSdkReady(messageEvent) {
 
       targetIframe.contentWindow.postMessage(
         loginMessage,
-        "https://plugin.pixx.io"
+        "https://plugin.pixx.io",
       );
     }
   }
