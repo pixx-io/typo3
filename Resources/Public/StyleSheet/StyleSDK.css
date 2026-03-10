@@ -1,5 +1,5 @@
 .pixxio-lightbox {
-  position: absolute;
+  position: fixed;
   display: none;
   left: 0;
   top: 0px;
