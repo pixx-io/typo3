@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.4.1
+
+- Fix: Metadata import when metadata value is not a string
+
 ## 3.4.0
 
 - Feature: Update Plugin SDK to latest version

@@ -385,7 +385,7 @@ class FilesController
             return $file['pixxio_file_id'];
         }, $files);
 
-        $io->writeln('Mapped files from database to pixx.io IDs');
+        $io->writeln('Mapped files from database to pixx.io IDs: ' . join(', ', $fileIds));
 
         if (empty($fileIds)) {
             $io->writeln('No pixx.io files found');
@@ -544,7 +544,18 @@ class FilesController
 
                 if ($metadataField->name === $this->metadataMapping[$key]) {
                     if (is_array($metadataField->value)) {
-                        $temp[$key] = join(',', $metadataField->value) ?: '';
+                        // Normalize array values (objects/scalars) before joining
+                        $normalizedValues = array_map(function ($item) {
+                            if (is_object($item) && $item instanceof \stdClass && isset($item->name)) {
+                                return $item->name;
+                            }
+                            // Fallback: return the item itself if it's already a scalar value
+                            return is_scalar($item) ? (string)$item : '';
+                        }, $metadataField->value);
+                        $temp[$key] = join(', ', $normalizedValues);
+                    } elseif (is_object($metadataField->value) && $metadataField->value instanceof \stdClass) {
+                        // Handle single stdClass object (e.g., dropdown values with id and name)
+                        $temp[$key] = $metadataField->value->name ?? '';
                     } else {
                         $temp[$key] = $metadataField->value ?: '';
                     }
