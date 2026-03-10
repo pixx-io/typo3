@@ -552,7 +552,7 @@ class FilesController
                             // Fallback: return the item itself if it's already a scalar value
                             return is_scalar($item) ? (string)$item : '';
                         }, $metadataField->value);
-                        $temp[$key] = join(', ', $normalizedValues) ?: '';
+                        $temp[$key] = join(', ', $normalizedValues);
                     } elseif (is_object($metadataField->value) && $metadataField->value instanceof \stdClass) {
                         // Handle single stdClass object (e.g., dropdown values with id and name)
                         $temp[$key] = $metadataField->value->name ?? '';
