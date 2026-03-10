@@ -1,8 +1,8 @@
 # Changelog
 
-## NEXT
+## 3.4.1
 
-- Fix: Metadate import when metadata value is not a string
+- Fix: Metadata import when metadata value is not a string
 
 ## 3.4.0
 
