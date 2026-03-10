@@ -1,5 +1,9 @@
 # Changelog
 
+## NEXT
+
+- Fix: Fix "Select from pixx.io" button for dynamically loaded IRRE elements
+
 ## 2.4.1
 
 - Fix: Metadate import when metadata value is not a string
