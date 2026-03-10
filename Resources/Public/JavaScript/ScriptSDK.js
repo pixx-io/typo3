@@ -37,7 +37,8 @@ function handleClick(event) {
 
   var closeButton = buttonElement.parentElement.querySelector(".pixxio-close");
 
-  if (closeButton) {
+  if (closeButton && !closeButton.dataset.pixxioListenerAttached) {
+    closeButton.dataset.pixxioListenerAttached = "true";
     closeButton.addEventListener("click", (event) => {
       event.preventDefault();
 
