@@ -89,13 +89,13 @@ class FilesController
             $storage = $this->getStorage();
 
             if ($this->extensionConfiguration['subfolder']) {
-              try {
-                $folder = $storage->getFolder($this->extensionConfiguration['subfolder']);
-              }catch (\Exception $e) {
-                $folder = $storage->createFolder($this->extensionConfiguration['subfolder']);
-              }
-            }else{
-              $folder = $storage->getRootLevelFolder();
+                if ($storage->hasFolder($this->extensionConfiguration['subfolder'])) {
+                    $folder = $storage->getFolder($this->extensionConfiguration['subfolder']);
+                } else {
+                    $folder = $storage->createFolder($this->extensionConfiguration['subfolder']);
+                }
+            } else {
+                $folder = $storage->getRootLevelFolder();
             }
 
             return $folder;
@@ -602,7 +602,9 @@ class FilesController
 
     private function saveFile($filename, $url)
     {
-      $absTmpFileIdentifier = sys_get_temp_dir() . DIRECTORY_SEPARATOR . $filename;
+        // Use unique temp file to avoid collision with concurrent requests
+        $extension = pathinfo($filename, PATHINFO_EXTENSION);
+        $absTmpFileIdentifier = tempnam(sys_get_temp_dir(), 'pixxio_') . ($extension ? '.' . $extension : '');
 
         // Check for executable extensions before attempting to save
         if ($this->isExecutableExtension($filename)) {
@@ -658,10 +660,10 @@ class FilesController
             $absTmpFileIdentifier = $this->saveFile($filename, $file->downloadURL);
             $importedFile = $this->getStorage()->addFile(
                 $absTmpFileIdentifier,
-                  $this->uploadFolder(),
-                  $filename,
-                  'replace'
-              );
+                $this->uploadFolder(),
+                $filename,
+                'replace'
+            );
 
             if ($importedFile) {
                 // import file to FAL
