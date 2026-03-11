@@ -25,6 +25,7 @@ final class FileControlsEventListener
     #[AsEventListener]
     public function __invoke(CustomFileControlsEvent $event)
     {
+        $this->addAssets($event);
         if ($this->shouldAddButton($event)) {
             $this->addButton($event);
         }
@@ -143,7 +144,13 @@ final class FileControlsEventListener
             '<div class="pixxio-lightbox"><div class="pixxio-close"></div><div class="pixxio-lightbox-inner"><iframe class="pixxio_sdk" data-src="' . $iframeUrl . '" width="100%" height="100%"></iframe></div></div>'
         );
 
-        $resultArray['javaScriptModules'][] = JavaScriptModuleInstruction::create('@pixxio/pixxio-extension/ScriptSDK.js');
+        $event->setResultArray($resultArray);
+    }
+
+    protected function addAssets(CustomFileControlsEvent $event): void
+    {
+        $resultArray = $event->getResultArray();
+        $resultArray['javaScriptModules']['pixxio_extension'] = JavaScriptModuleInstruction::create('@pixxio/pixxio-extension/ScriptSDK.js');
         $resultArray['stylesheetFiles']['pixxio_extension'] = 'EXT:pixxio_extension/Resources/Public/StyleSheet/StyleSDK.css';
         $event->setResultArray($resultArray);
     }
