@@ -1,7 +1,12 @@
 # Changelog
 
 ## Unreleased
+
 - Fix: Use the FAL API to handle file uploads, which allows to use different FAL Adapters.
+
+## 3.4.1
+
+- Fix: Metadata import when metadata value is not a string
 
 ## 3.4.0
 
