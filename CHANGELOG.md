@@ -1,8 +1,8 @@
 # Changelog
 
-## NEXT
+## 2.4.2
 
-- Fix: Fix "Select from pixx.io" button for dynamically loaded IRRE elements
+- Fix: "Select from pixx.io" button for dynamically loaded IRRE elements
 
 ## 2.4.1
 
