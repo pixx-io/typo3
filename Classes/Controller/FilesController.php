@@ -13,6 +13,7 @@ use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\Restriction\RootLevelRestriction;
 use TYPO3\CMS\Core\Http\JsonResponse;
 use TYPO3\CMS\Core\Http\RequestFactory;
+use TYPO3\CMS\Core\Resource\Folder;
 use TYPO3\CMS\Core\Resource\Index\MetaDataRepository;
 use TYPO3\CMS\Core\Resource\ResourceFactory;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
@@ -82,30 +83,22 @@ class FilesController
         );
     }
 
-    private function uploadPath()
+    private function uploadFolder() : Folder
     {
         try {
             $storage = $this->getStorage();
 
-            $storageBasePath = $storage->getConfiguration()['basePath'];
-
-            // correct beginning and trailing slashes
-            if (!str_ends_with((string) $storageBasePath, '/')) {
-                $storageBasePath = $storageBasePath . '/';
-            }
-            if (str_starts_with((string) $storageBasePath, '/')) {
-                $storageBasePath = substr((string) $storageBasePath, 1);
-            }
-
             if ($this->extensionConfiguration['subfolder']) {
-                $storageBasePath .= $this->extensionConfiguration['subfolder'];
+                if ($storage->hasFolder($this->extensionConfiguration['subfolder'])) {
+                    $folder = $storage->getFolder($this->extensionConfiguration['subfolder']);
+                } else {
+                    $folder = $storage->createFolder($this->extensionConfiguration['subfolder']);
+                }
+            } else {
+                $folder = $storage->getRootLevelFolder();
             }
 
-            if (!str_ends_with((string) $storageBasePath, '/')) {
-                $storageBasePath = $storageBasePath . '/';
-            }
-
-            return GeneralUtility::getFileAbsFileName($storageBasePath);
+            return $folder;
         } catch (\Exception $error) {
             $this->throwError($error->getMessage(), $error->getCode());
         }
@@ -620,7 +613,9 @@ class FilesController
 
     private function saveFile($filename, $url)
     {
-        $absFileIdentifier = $this->uploadPath() . $filename;
+        // Use unique temp file to avoid collision with concurrent requests
+        $extension = pathinfo($filename, PATHINFO_EXTENSION);
+        $absTmpFileIdentifier = tempnam(sys_get_temp_dir(), 'pixxio_') . ($extension ? '.' . $extension : '');
 
         // Check for executable extensions before attempting to save
         if ($this->isExecutableExtension($filename)) {
@@ -632,7 +627,7 @@ class FilesController
 
         try {
             $options = [
-                'sink' => $absFileIdentifier,
+                'sink' => $absTmpFileIdentifier,
                 'timeout' => 300,
                 'allow_redirects' => true
             ];
@@ -649,7 +644,7 @@ class FilesController
                 );
             }
 
-            return $absFileIdentifier;
+            return $absTmpFileIdentifier;
         } catch (\GuzzleHttp\Exception\RequestException $e) {
             $statusCode = $e->hasResponse() ? $e->getResponse()->getStatusCode() : 'unknown';
             $this->throwError(
@@ -673,9 +668,14 @@ class FilesController
             $filename = $this->generateUniqueFilename($originalFilename);
 
             // upload file (throws exception on failure)
-            $this->saveFile($filename, $file->downloadURL);
+            $absTmpFileIdentifier = $this->saveFile($filename, $file->downloadURL);
+            $importedFile = $this->getStorage()->addFile(
+                $absTmpFileIdentifier,
+                $this->uploadFolder(),
+                $filename,
+                'replace'
+            );
 
-            $importedFile = $this->getStorage()->getFile($this->extensionConfiguration['subfolder'] . '/' . $filename);
             if ($importedFile) {
                 // import file to FAL
                 $importedFileUid = $importedFile->getUid();
@@ -759,12 +759,12 @@ class FilesController
      */
     protected function generateUniqueFilename($filename): string
     {
-        $uploadPath = $this->uploadPath();
+        $uploadFolder = $this->uploadFolder();
         $originalFilename = $filename;
         $counter = 1;
 
         // Keep checking and incrementing until we find a unique filename
-        while (file_exists($uploadPath . $filename)) {
+        while($uploadFolder->hasFile($filename)) {
             $pathInfo = pathinfo($originalFilename);
             $basename = $pathInfo['filename'];
             $extension = isset($pathInfo['extension']) ? '.' . $pathInfo['extension'] : '';
