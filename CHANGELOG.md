@@ -2,7 +2,7 @@
 
 ## NEXT
 
-- Fix: Fix "Select from pixx.io" button for dynamically loaded IRRE elements
+- Fix: "Select from pixx.io" button for dynamically loaded IRRE elements
 
 
 ## 3.4.1
