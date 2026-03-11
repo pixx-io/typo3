@@ -25,9 +25,9 @@ final class FileControlsEventListener
     #[AsEventListener]
     public function __invoke(CustomFileControlsEvent $event)
     {
-        $this->addAssets($event);
         if ($this->shouldAddButton($event)) {
             $this->addButton($event);
+            $this->addAssets($event);
         }
     }
 
@@ -55,8 +55,6 @@ final class FileControlsEventListener
 
     protected function addButton(CustomFileControlsEvent $event)
     {
-        $resultArray = $event->getResultArray();
-
         $extensionConfiguration = ConfigurationUtility::getExtensionConfiguration();
         $languageService = $this->getLanguageService();
         $buttonText = htmlspecialchars($languageService->sL('LLL:EXT:pixxio_extension/Resources/Private/Language/locallang_be.xlf:modal_view.button'));
@@ -125,7 +123,7 @@ final class FileControlsEventListener
         // Add allowedDownloadFormats parameter if configured
         if (isset($extensionConfiguration['allowed_download_formats']) && !empty($extensionConfiguration['allowed_download_formats'])) {
             $allowedFormats = $extensionConfiguration['allowed_download_formats'];
-            
+
             // Handle comma-separated values
             if (strpos($allowedFormats, ',') !== false) {
                 $formats = array_map('trim', explode(',', $allowedFormats));
@@ -143,8 +141,6 @@ final class FileControlsEventListener
         $event->addControl(
             '<div class="pixxio-lightbox"><div class="pixxio-close"></div><div class="pixxio-lightbox-inner"><iframe class="pixxio_sdk" data-src="' . $iframeUrl . '" width="100%" height="100%"></iframe></div></div>'
         );
-
-        $event->setResultArray($resultArray);
     }
 
     protected function addAssets(CustomFileControlsEvent $event): void
