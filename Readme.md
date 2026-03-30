@@ -38,9 +38,44 @@ You have four configuration categories Basic, Metadata, Sync and Proxy:
 
 For Sync Actions it is necessary to set the URL of your mediaspace and refresh token (The refresh token is accessible in pixx.io under the Settings -> User -> Edit a User and go to App Connections).
 
+You can configure these values globally in extension settings or site-specific in TYPO3 Site Settings (recommended for multi-portal setups).
+
 The File Storage ID is an optional setting. You can choose a Storage ID, where you would like to upload and store the pixx.io assets. You can also define a subfolder if you wish.
 
 In the `allowed_download_formats` setting you can configure in which format the images are allowed to be imported. With the `original` format, the original file will be imported without conversion. With the `preview` format, images are downscaled to Full HD size and imported as JPEG or PNG. With the formats `jpg`, `png`, `pdf` and `tiff`, images are converted to the respective format if possible.
+
+
+### Per-Portal / Site-specific Login (TYPO3 v13)
+
+If you operate multiple portals (sites) in a single TYPO3 instance, you can configure pixx.io credentials per site.
+
+The extension uses TYPO3 Site Settings for this. If no site-specific value is set, the global extension configuration is used as a fallback.
+
+All keys from the global extension configuration can be overridden per site by setting them as `pixxio.<key>` in the site settings (e.g. `pixxio.token_refresh`).
+
+Typical keys are: `url`, `token_refresh`, `user_id`, `auto_login`, `delete`, `update`, `update_metadata`, `limit`, `filestorage_id`, `subfolder`, `alt_text`, `allowed_download_formats`, `use_proxy`, `proxy_connection`.
+
+The sync process also uses this mapping: assets are grouped by `pixxio_mediaspace` and synchronized with the matching site configuration.
+
+**Example site configuration (config/sites/<siteIdentifier>/config.yaml):**
+
+```yaml
+dependencies:
+  - pixxio/pixxio-extension
+
+settings:
+  pixxio:
+    url: portal-a.px.media
+    token_refresh: <refresh-token-for-this-portal>
+    user_id: portal-a-service-user
+    auto_login: true
+    delete: true
+    update_metadata: true
+```
+
+**Security note:** If you configure sensitive values like refresh tokens in files, make sure your deployment is secured (e.g. do not store secrets in public repositories).
+
+**Legacy data note:** If older records do not have a `pixxio_mediaspace` set, the sync will continue to use the global fallback configuration.
 
 ### Metadata
 

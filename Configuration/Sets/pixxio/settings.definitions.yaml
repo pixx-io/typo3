@@ -1,0 +1,20 @@
+categories:
+  pixxio: ~
+
+settings:
+  pixxio.url:
+    default: ''
+    type: string
+    category: pixxio
+  pixxio.token_refresh:
+    default: ''
+    type: string
+    category: pixxio
+  pixxio.user_id:
+    default: ''
+    type: string
+    category: pixxio
+  pixxio.auto_login:
+    default: false
+    type: bool
+    category: pixxio

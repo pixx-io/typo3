@@ -55,7 +55,7 @@ final class FileControlsEventListener
 
     protected function addButton(CustomFileControlsEvent $event)
     {
-        $extensionConfiguration = ConfigurationUtility::getExtensionConfiguration();
+        $extensionConfiguration = ConfigurationUtility::getConfigurationForDatabaseRow($event->getDatabaseRow());
         $languageService = $this->getLanguageService();
         $buttonText = htmlspecialchars($languageService->sL('LLL:EXT:pixxio_extension/Resources/Private/Language/locallang_be.xlf:modal_view.button'));
         $foreignTable = $event->getFieldConfig()['foreign_table'];
@@ -66,6 +66,7 @@ final class FileControlsEventListener
             'title' => $buttonText,
             'style' => 'margin-left:5px',
             'data-dom' => htmlspecialchars($objectPrefix),
+            'data-pid' => (string)($event->getDatabaseRow()['pid'] ?? 0),
             'data-key' => $this->applicationId,
             'data-url' => $extensionConfiguration['url'],
             'data-token' => $extensionConfiguration['token_refresh'],

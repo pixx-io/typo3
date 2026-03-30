@@ -63,8 +63,16 @@ class FilesController
         ServerRequestInterface $request,
         ?ResponseInterface $response = null
     ): ResponseInterface {
+        $parsedBody = $this->getJSONRequest($request)->getParsedBody();
+
+        if (is_object($parsedBody) && isset($parsedBody->pid)) {
+            $this->extensionConfiguration = ConfigurationUtility::getConfigurationForDatabaseRow([
+                'pid' => (int)$parsedBody->pid,
+            ]);
+        }
+
         // get files
-        $files = $this->getJSONRequest($request)->getParsedBody()->files;
+        $files = (is_object($parsedBody) && isset($parsedBody->files)) ? $parsedBody->files : [];
 
         // pull files from pixx.io
         if ($files) {
@@ -353,7 +361,6 @@ class FilesController
             return true;
         }
 
-        $metadata = GeneralUtility::makeInstance(MetaDataRepository::class);
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('sys_file_metadata');
         $queryBuilder->getRestrictions()->add(GeneralUtility::makeInstance(RootLevelRestriction::class));
 
@@ -390,6 +397,55 @@ class FilesController
         if (empty($fileIds)) {
             $io->writeln('No pixx.io files found');
             return true;
+        }
+
+        $configurationGroups = $this->groupFilesBySyncConfiguration($files);
+        $io->writeln('Sync groups by mediaspace/configuration: ' . count($configurationGroups));
+
+        foreach ($configurationGroups as $group) {
+            $this->syncGroup($group['files'], $group['configuration'], $group['label'], $io);
+        }
+
+        return true;
+    }
+
+    private function groupFilesBySyncConfiguration(array $files): array
+    {
+        $groups = [];
+        foreach ($files as $file) {
+            $mediaspace = (string)($file['pixxio_mediaspace'] ?? '');
+            $configuration = ConfigurationUtility::getConfigurationForMediaspace($mediaspace);
+            $groupKey = sha1((string)($configuration['url'] ?? '') . '|' . (string)($configuration['token_refresh'] ?? ''));
+
+            if (!isset($groups[$groupKey])) {
+                $groups[$groupKey] = [
+                    'configuration' => $configuration,
+                    'files' => [],
+                    'label' => (string)($configuration['url'] ?? 'global'),
+                ];
+            }
+
+            $groups[$groupKey]['files'][] = $file;
+        }
+
+        return array_values($groups);
+    }
+
+    private function syncGroup(array $files, array $configuration, string $groupLabel, $io): void
+    {
+        $this->extensionConfiguration = $configuration;
+        $metadata = GeneralUtility::makeInstance(MetaDataRepository::class);
+
+        $io->writeln('');
+        $io->writeln('Sync group: ' . $groupLabel . ' (' . count($files) . ' files)');
+
+        $fileIds = array_map(function ($file) {
+            return $file['pixxio_file_id'];
+        }, $files);
+
+        if (empty($fileIds)) {
+            $io->writeln('No pixx.io files found in group');
+            return;
         }
 
         $io->writeln('Authenticate to pixx.io');
@@ -443,7 +499,7 @@ class FilesController
 
         foreach ($files as $index => $file) {
             // delete files
-            if (in_array($file['pixxio_file_id'], $pixxioIdsToDelete)) {
+            if (in_array($file['pixxio_file_id'], $pixxioIdsToDelete, true)) {
                 if ($this->extensionConfiguration['delete']) {
                     $io->writeln('File deleted: ' . $file['identifier']);
                     $storage = $this->getStorage();
@@ -462,7 +518,7 @@ class FilesController
             }
 
             // update to new version
-            if (in_array($file['pixxio_file_id'], $pixxioIdsToUpdate)) {
+            if (in_array($file['pixxio_file_id'], $pixxioIdsToUpdate, true)) {
                 if ($this->extensionConfiguration['update']) {
                     $newId = 0;
                     foreach ($pixxioDiff as $diff) {
@@ -496,7 +552,7 @@ class FilesController
             $files = array_values($files);
 
             $fileIdsWithoutDeletedFiles = array_values(array_filter($fileIds, function ($id) use ($pixxioIdsToDelete) {
-                return !in_array($id, $pixxioIdsToDelete);
+                return !in_array($id, $pixxioIdsToDelete, true);
             }));
 
             $io->writeln('Start to sync metadata: ' . join(', ', $fileIdsWithoutDeletedFiles));
@@ -531,8 +587,6 @@ class FilesController
                 $metadata->update($file['uid'], $additionalFields);
             }
         }
-
-        return true;
     }
 
     private function getMetadataWithFilemetadataExt($pixxioFile)
