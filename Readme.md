@@ -55,6 +55,18 @@ The extension currently ships the following site-level settings: `pixxio.url`, `
 
 The override logic in PHP is implemented generically. This means additional extension configuration keys can also be overridden per site if corresponding entries are added to the site set definition.
 
+**Best practice for TYPO3 setups:**
+
+- Keep **portal identity and access** site-specific (`url`, `token_refresh`, optionally `auto_login`).
+- Keep **technical/infrastructure defaults** global in extension configuration (for example proxy and sync policy).
+- Add additional site-level keys only when they must really differ per site.
+
+In this extension that means:
+
+- Use site settings for per-portal login data.
+- Use extension configuration as global fallback and for operational defaults.
+- If you need more per-site overrides, extend `Configuration/Sets/Pixxio/settings.definitions.yaml` with additional `pixxio.<key>` definitions.
+
 The sync process also uses this mapping: assets are grouped by `pixxio_mediaspace` and synchronized with the matching site configuration.
 
 **Example site configuration (config/sites/<siteIdentifier>/config.yaml):**
