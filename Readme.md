@@ -51,9 +51,9 @@ If you operate multiple portals (sites) in a single TYPO3 instance, you can conf
 
 The extension uses TYPO3 Site Settings for this. If no site-specific value is set, the global extension configuration is used as a fallback.
 
-All keys from the global extension configuration can be overridden per site by setting them as `pixxio.<key>` in the site settings (e.g. `pixxio.token_refresh`).
+The extension currently ships the following site-level settings: `pixxio.url`, `pixxio.token_refresh` and `pixxio.auto_login`.
 
-Typical keys are: `url`, `token_refresh`, `user_id`, `auto_login`, `delete`, `update`, `update_metadata`, `limit`, `filestorage_id`, `subfolder`, `alt_text`, `allowed_download_formats`, `use_proxy`, `proxy_connection`.
+The override logic in PHP is implemented generically. This means additional extension configuration keys can also be overridden per site if corresponding entries are added to the site set definition.
 
 The sync process also uses this mapping: assets are grouped by `pixxio_mediaspace` and synchronized with the matching site configuration.
 
@@ -67,10 +67,7 @@ settings:
   pixxio:
     url: portal-a.px.media
     token_refresh: <refresh-token-for-this-portal>
-    user_id: portal-a-service-user
     auto_login: true
-    delete: true
-    update_metadata: true
 ```
 
 **Security note:** If you configure sensitive values like refresh tokens in files, make sure your deployment is secured (e.g. do not store secrets in public repositories).
