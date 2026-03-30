@@ -1,20 +1,25 @@
 categories:
-  pixxio: ~
+  pixxio:
+    label: 'pixx.io'
 
 settings:
   pixxio.url:
     default: ''
     type: string
     category: pixxio
+    label: 'Mediaspace URL'
   pixxio.token_refresh:
     default: ''
     type: string
     category: pixxio
+    label: 'Refresh token'
   pixxio.user_id:
     default: ''
     type: string
     category: pixxio
+    label: 'User ID'
   pixxio.auto_login:
     default: false
     type: bool
     category: pixxio
+    label: 'Enable auto login'
