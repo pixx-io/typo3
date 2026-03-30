@@ -13,11 +13,6 @@ settings:
     type: string
     category: pixxio
     label: 'Refresh token'
-  pixxio.user_id:
-    default: ''
-    type: string
-    category: pixxio
-    label: 'User ID'
   pixxio.auto_login:
     default: false
     type: bool
