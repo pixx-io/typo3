@@ -34,6 +34,9 @@ auto_login = false
 # cat=sync; type=int [1-500]; label=The amount of files that should be synchronized through a single run
 limit = 20
 
+# cat=sync; type=string; label=Additional metadata fields: Comma-separated list of pixx.io metadata field names to sync as JSON (e.g. "ProjectName,CampaignID,UsageRights"). These fields will be stored in pixxio_custom_metadata as JSON and can be used in Fluid templates.
+additional_metadata_fields =
+
 # cat=proxy; type=boolean; label=Use proxy configuration
 use_proxy = false
 
