@@ -59,8 +59,6 @@ class InlineControlContainer extends \TYPO3\CMS\Backend\Form\Container\InlineCon
             'style' => 'margin-left:5px',
             'data-dom' => htmlspecialchars($objectPrefix),
             'data-key' => $this->applicationId,
-            'data-url' => $extensionConfiguration['url'],
-            'data-token' => $extensionConfiguration['token_refresh'],
             'data-uid' => uniqid()
         ];
 
