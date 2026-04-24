@@ -3,6 +3,7 @@
 ## NEXT
 
 - Fix: Normalize auto_login config to boolean to fix login problems
+- Fix: Sync v11 JavaScript ImagePicker logic with v12 logic
 - Chore: Remove unused data-attributes from import button
  
 ## 2.4.2
