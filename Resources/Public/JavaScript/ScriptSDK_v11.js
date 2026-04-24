@@ -176,8 +176,10 @@ define([
             $confirm.modal("hide");
           });
         }
+      })
+      .finally(function () {
+        NProgress.done();
       });
-    NProgress.done();
   }
 
   function handleSdkReady(messageEvent) {
