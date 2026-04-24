@@ -1,5 +1,9 @@
 # Changelog
 
+## NEXT
+
+- Fix: Sync v11 JavaScript ImagePicker logic with v12 logic
+
 ## 2.4.2
 
 - Fix: "Select from pixx.io" button for dynamically loaded IRRE elements

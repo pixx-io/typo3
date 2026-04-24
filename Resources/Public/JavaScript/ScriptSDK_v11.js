@@ -9,43 +9,62 @@ define([
   "TYPO3/CMS/Backend/Severity",
   "TYPO3/CMS/Backend/Utility/MessageUtility",
 ], function (NProgress, AjaxRequest, Modal, Severity, MessageUtility) {
-  function init() {
-    document.addEventListener("click", function (event) {
-      var buttonElement = null;
+  var isInitialized = false;
 
-      if (event.target.classList.contains("pixxio-sdk-btn")) {
-        buttonElement = event.target;
-      } else if (event.target.closest(".pixxio-sdk-btn")) {
-        buttonElement = event.target.closest(".pixxio-sdk-btn");
-      }
+  function handleClick(event) {
+    var buttonElement = null;
 
-      if (buttonElement) {
+    // Only proceed if the click target is related to pixx.io
+    if (event.target.classList.contains("pixxio-sdk-btn")) {
+      buttonElement = event.target;
+    } else if (event.target.closest(".pixxio-sdk-btn")) {
+      buttonElement = event.target.closest(".pixxio-sdk-btn");
+    }
+
+    // Early return if not a pixx.io button - no impact on other elements
+    if (!buttonElement) {
+      return;
+    }
+
+    event.preventDefault();
+    var pixxioIframe =
+      buttonElement.parentElement.querySelector("iframe.pixxio_sdk");
+    var pixxioIframeSrc = pixxioIframe.dataset.src;
+    if (pixxioIframeSrc != "") {
+      pixxioIframe.src = pixxioIframeSrc;
+    }
+    var pixxioLightbox =
+      buttonElement.parentElement.querySelector(".pixxio-lightbox");
+    pixxioLightbox.style.display = "block";
+
+    var closeButton =
+      buttonElement.parentElement.querySelector(".pixxio-close");
+
+    if (closeButton && !closeButton.dataset.pixxioListenerAttached) {
+      closeButton.dataset.pixxioListenerAttached = "true";
+      closeButton.addEventListener("click", (event) => {
         event.preventDefault();
-        var pixxioIframe =
-          buttonElement.parentElement.querySelector("iframe.pixxio_sdk");
-        var pixxioIframeSrc = pixxioIframe.dataset.src;
-        if (pixxioIframeSrc != "") {
-          pixxioIframe.src = pixxioIframeSrc;
-        }
-        var pixxioLightbox =
-          buttonElement.parentElement.querySelector(".pixxio-lightbox");
-        pixxioLightbox.style.display = "block";
 
-        var closeButton =
-          buttonElement.parentElement.querySelector(".pixxio-close");
+        pixxioLightbox.style.display = "none";
+        pixxioIframe.src = "";
+      });
+    }
 
-        if (closeButton) {
-          closeButton.addEventListener("click", (event) => {
-            event.preventDefault();
+    // Store in namespaced global variable to avoid conflicts
+    if (!window.pixxio) {
+      window.pixxio = {};
+    }
+    window.pixxio.lastLightboxOpenerButton = buttonElement;
+  }
 
-            pixxioLightbox.style.display = "none";
-            pixxioIframe.src = "";
-          });
-        }
+  function init() {
+    // Prevent multiple initializations
+    if (isInitialized) {
+      return;
+    }
+    isInitialized = true;
 
-        window.pixxioLastLightboxOpenerButton = buttonElement;
-      }
-    });
+    document.addEventListener("click", handleClick);
   }
 
   if (document.readyState === "complete") {
@@ -58,31 +77,46 @@ define([
     });
   }
 
-  window.addEventListener("message", (messageEvent) => {
+  function handlePostMessage(messageEvent) {
+    // Early return for non-pixx.io messages - no impact on other functionality
     if (
       messageEvent?.origin !== "https://plugin.pixx.io" ||
       messageEvent?.data?.sender !== "pixxio-plugin-sdk"
-    )
+    ) {
       return;
+    }
 
     if (messageEvent?.data?.method === "downloadFiles") {
+      downloadFiles(messageEvent?.data?.parameters[0]);
+    } else if (messageEvent?.data?.method === "directLinksCreated") {
       downloadFiles(messageEvent?.data?.parameters[0]);
     } else if (messageEvent?.data?.method === "onSdkReady") {
       handleSdkReady(messageEvent);
     }
-  });
+  }
+
+  // Register global message listener (with strict origin and sender checks)
+  window.addEventListener("message", handlePostMessage);
 
   function downloadFiles(files) {
     if (!files || !files.length) {
-      console.warn("No files to download"); // eslint-disable-line no-console
+      console.warn("[pixx.io] No files to download"); // eslint-disable-line no-console
+      return;
     }
 
+    // Only access pixx.io-specific elements
     let container = null;
-    if (window.pixxioLastLightboxOpenerButton) {
-      container = window.pixxioLastLightboxOpenerButton;
+    if (window.pixxio?.lastLightboxOpenerButton) {
+      container = window.pixxio.lastLightboxOpenerButton;
     } else {
-      // Select the first button
+      // Select the first pixx.io button
       container = document.querySelector(".pixxio-sdk-btn");
+    }
+
+    // Safety check: abort if no pixx.io container found
+    if (!container) {
+      console.warn("[pixx.io] No pixx.io button container found"); // eslint-disable-line no-console
+      return;
     }
 
     NProgress.start();
@@ -107,7 +141,7 @@ define([
           headers: {
             "Content-Type": "application/json; charset=utf-8",
           },
-        }
+        },
       )
       .then(async function (response) {
         const data = await response.resolve();
@@ -120,15 +154,16 @@ define([
               uid: uid,
             };
             MessageUtility.MessageUtility.send(message);
-
-            const lightboxes = document.querySelectorAll(".pixxio-lightbox");
-
-            if (lightboxes && lightboxes.length) {
-              lightboxes.forEach((lightbox) => {
-                lightbox.style.display = "none";
-              });
-            }
           });
+
+          // Only close pixx.io lightboxes (identified by specific class)
+          const lightboxes = document.querySelectorAll(".pixxio-lightbox");
+
+          if (lightboxes && lightboxes.length) {
+            lightboxes.forEach((lightbox) => {
+              lightbox.style.display = "none";
+            });
+          }
         } else {
           var $confirm = Modal.confirm("ERROR", data.error, Severity.error, [
             {
@@ -151,14 +186,14 @@ define([
     let targetIframe = null;
 
     // If we have a last opened button, use that
-    if (window.pixxioLastLightboxOpenerButton) {
-      targetButton = window.pixxioLastLightboxOpenerButton;
+    if (window.pixxio?.lastLightboxOpenerButton) {
+      targetButton = window.pixxio.lastLightboxOpenerButton;
       targetIframe =
         targetButton.parentElement.querySelector("iframe.pixxio_sdk");
     } else {
       // Otherwise find the first visible iframe
       const visibleLightboxes = document.querySelectorAll(
-        '.pixxio-lightbox[style*="block"]'
+        '.pixxio-lightbox[style*="block"]',
       );
       if (visibleLightboxes.length > 0) {
         targetIframe = visibleLightboxes[0].querySelector("iframe.pixxio_sdk");
@@ -179,9 +214,9 @@ define([
       if (refreshToken && mediaspaceUrl) {
         // Decode the base64 encoded values
         const decodedRefreshToken = atob(refreshToken);
-        const decodedMediaspaceDomain = atob(mediaspaceUrl).replace(
+        const decodedMediaspaceUrl = atob(mediaspaceUrl).replace(
           "https://",
-          ""
+          "",
         );
 
         // Send the login success message to the iframe
@@ -191,14 +226,14 @@ define([
           parameters: [
             {
               refreshToken: decodedRefreshToken,
-              mediaspaceDomain: decodedMediaspaceDomain,
+              mediaspaceDomain: decodedMediaspaceUrl,
             },
           ],
         };
 
         targetIframe.contentWindow.postMessage(
           loginMessage,
-          "https://plugin.pixx.io"
+          "https://plugin.pixx.io",
         );
       }
     }
