@@ -67,8 +67,6 @@ final class FileControlsEventListener
             'style' => 'margin-left:5px',
             'data-dom' => htmlspecialchars($objectPrefix),
             'data-key' => $this->applicationId,
-            'data-url' => $extensionConfiguration['url'],
-            'data-token' => $extensionConfiguration['token_refresh'],
             'data-uid' => uniqid(),
         ];
 
