@@ -1,6 +1,6 @@
 # Changelog
 
-## NEXT
+## 3.4.3
 
 - Fix: Normalize auto_login config to boolean to fix login problems
 - Chore: Remove unused data-attributes from import button
