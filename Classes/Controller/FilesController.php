@@ -918,18 +918,26 @@ class FilesController extends ActionController
         foreach ($files as $key => $file) {
             // set upload filename and upload folder
             $originalFilename = $this->getNonUtf8Filename($file->fileName ?: '');
-            $filename = $this->generateUniqueFilename($originalFilename, $file);
+            $filename = $this->generateUniqueFilename($originalFilename);
             $targetIdentifier = rtrim((string)($this->extensionConfiguration['subfolder'] ?? ''), '/') . '/' . $filename;
             $targetPath = $this->uploadPath() . $filename;
 
             // upload file
             $hasUsableDirectLink = $useDirectLinks && isset($file->directLink) && $file->directLink !== '';
 
-            if ($hasUsableDirectLink && !$this->saveFile($filename, $file->directLink, true)) {
-                $this->throwError('Copying file "' . $filename . '" failed. Target identifier: "' . $targetIdentifier . '", target path: "' . $targetPath . '".', 4);
-            } else if (!$hasUsableDirectLink && isset($file->downloadURL) && !$this->saveFile($filename, $file->downloadURL)) {
-                $this->throwError('Copying file "' . $filename . '" failed. Target identifier: "' . $targetIdentifier . '", target path: "' . $targetPath . '".', 4);
-            } else if (!$hasUsableDirectLink && !isset($file->downloadURL)) {
+            if ($hasUsableDirectLink) {
+                try {
+                    $this->saveFile($filename, $file->directLink, true);
+                } catch (\RuntimeException $e) {
+                    $this->throwError('Copying file "' . $filename . '" failed. Target identifier: "' . $targetIdentifier . '", target path: "' . $targetPath . '". Original error: ' . $e->getMessage(), 4);
+                }
+            } else if (isset($file->downloadURL)) {
+                try {
+                    $this->saveFile($filename, $file->downloadURL);
+                } catch (\RuntimeException $e) {
+                    $this->throwError('Copying file "' . $filename . '" failed. Target identifier: "' . $targetIdentifier . '", target path: "' . $targetPath . '". Original error: ' . $e->getMessage(), 4);
+                }
+            } else {
                 $this->throwError('No usable download URL for file "' . $filename . '". Target identifier: "' . $targetIdentifier . '", target path: "' . $targetPath . '".', 11);
             }
 
