@@ -915,7 +915,11 @@ class FilesController extends ActionController
             $filename = $this->generateUniqueFilename($originalFilename, $file);
 
             // upload file
-            $useDirectLinks = !empty($this->extensionConfiguration['use_cdn_links']);
+            $useDirectLinks = filter_var(
+                $this->extensionConfiguration['use_cdn_links'] ?? false,
+                FILTER_VALIDATE_BOOLEAN,
+                FILTER_NULL_ON_FAILURE
+            ) === true;
             $hasUsableDirectLink = $useDirectLinks && isset($file->directLink) && $file->directLink !== '';
 
             if ($hasUsableDirectLink && !$this->saveFile($filename, $file->directLink, true)) {
