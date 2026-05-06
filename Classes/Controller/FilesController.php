@@ -929,13 +929,21 @@ class FilesController extends ActionController
                 try {
                     $this->saveFile($filename, $file->directLink, true);
                 } catch (\RuntimeException $e) {
-                    $this->throwError('Copying file "' . $filename . '" failed. Target identifier: "' . $targetIdentifier . '", target path: "' . $targetPath . '". Original error: ' . $e->getMessage(), 4);
+                    throw new \RuntimeException(
+                        'Copying file "' . $filename . '" failed. Target identifier: "' . $targetIdentifier . '", target path: "' . $targetPath . '". Original error: ' . $e->getMessage(),
+                        (int)$e->getCode(),
+                        $e
+                    );
                 }
             } else if (isset($file->downloadURL)) {
                 try {
                     $this->saveFile($filename, $file->downloadURL);
                 } catch (\RuntimeException $e) {
-                    $this->throwError('Copying file "' . $filename . '" failed. Target identifier: "' . $targetIdentifier . '", target path: "' . $targetPath . '". Original error: ' . $e->getMessage(), 4);
+                    throw new \RuntimeException(
+                        'Copying file "' . $filename . '" failed. Target identifier: "' . $targetIdentifier . '", target path: "' . $targetPath . '". Original error: ' . $e->getMessage(),
+                        (int)$e->getCode(),
+                        $e
+                    );
                 }
             } else {
                 $this->throwError('No usable download URL for file "' . $filename . '". Target identifier: "' . $targetIdentifier . '", target path: "' . $targetPath . '".', 11);
