@@ -919,16 +919,18 @@ class FilesController extends ActionController
             // set upload filename and upload folder
             $originalFilename = $this->getNonUtf8Filename($file->fileName ?: '');
             $filename = $this->generateUniqueFilename($originalFilename, $file);
+            $targetIdentifier = rtrim((string)($this->extensionConfiguration['subfolder'] ?? ''), '/') . '/' . $filename;
+            $targetPath = $this->uploadPath() . $filename;
 
             // upload file
             $hasUsableDirectLink = $useDirectLinks && isset($file->directLink) && $file->directLink !== '';
 
             if ($hasUsableDirectLink && !$this->saveFile($filename, $file->directLink, true)) {
-                $this->throwError('Copying file "' . $filename . '" to path "' . '" failed.', 4);
+                $this->throwError('Copying file "' . $filename . '" failed. Target identifier: "' . $targetIdentifier . '", target path: "' . $targetPath . '".', 4);
             } else if (!$hasUsableDirectLink && isset($file->downloadURL) && !$this->saveFile($filename, $file->downloadURL)) {
-                $this->throwError('Copying file "' . $filename . '" to path "' . '" failed.', 4);
+                $this->throwError('Copying file "' . $filename . '" failed. Target identifier: "' . $targetIdentifier . '", target path: "' . $targetPath . '".', 4);
             } else if (!$hasUsableDirectLink && !isset($file->downloadURL)) {
-                $this->throwError('No usable download URL for file "' . $filename . '".', 11);
+                $this->throwError('No usable download URL for file "' . $filename . '". Target identifier: "' . $targetIdentifier . '", target path: "' . $targetPath . '".', 11);
             }
 
             $importedFile = $this->getStorage()->getFile($this->extensionConfiguration['subfolder'] . '/' . $filename);
