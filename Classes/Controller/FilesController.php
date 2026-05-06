@@ -927,7 +927,7 @@ class FilesController extends ActionController
             } else if (!$hasUsableDirectLink && isset($file->downloadURL) && !$this->saveFile($filename, $file->downloadURL)) {
                 $this->throwError('Copying file "' . $filename . '" to path "' . '" failed.', 4);
             } else if (!$hasUsableDirectLink && !isset($file->downloadURL)) {
-                $this->throwError('No usable download URL for file "' . $filename . '".', 10);
+                $this->throwError('No usable download URL for file "' . $filename . '".', 11);
             }
 
             $importedFile = $this->getStorage()->getFile($this->extensionConfiguration['subfolder'] . '/' . $filename);
