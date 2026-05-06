@@ -909,17 +909,18 @@ class FilesController extends ActionController
     private function pullFiles($files)
     {
         $importedFiles = [];
+        $useDirectLinks = filter_var(
+            $this->extensionConfiguration['use_cdn_links'] ?? false,
+            FILTER_VALIDATE_BOOLEAN,
+            FILTER_NULL_ON_FAILURE
+        ) === true;
+
         foreach ($files as $key => $file) {
             // set upload filename and upload folder
             $originalFilename = $this->getNonUtf8Filename($file->fileName ?: '');
             $filename = $this->generateUniqueFilename($originalFilename, $file);
 
             // upload file
-            $useDirectLinks = filter_var(
-                $this->extensionConfiguration['use_cdn_links'] ?? false,
-                FILTER_VALIDATE_BOOLEAN,
-                FILTER_NULL_ON_FAILURE
-            ) === true;
             $hasUsableDirectLink = $useDirectLinks && isset($file->directLink) && $file->directLink !== '';
 
             if ($hasUsableDirectLink && !$this->saveFile($filename, $file->directLink, true)) {
