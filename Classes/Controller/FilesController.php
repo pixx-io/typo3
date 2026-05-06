@@ -502,7 +502,8 @@ class FilesController extends ActionController
                     }
                     if ($newId) {
                         $pixxioFile = $this->pixxioFile($newId);
-                        $absFileIdentifier = $this->saveFile($file['name'], $pixxioFile->originalFileURL, (bool)$file['pixxio_is_direct_link']);
+                        $isDirectLinkSyncFile = !empty($this->extensionConfiguration['use_cdn_links']) && (bool)$file['pixxio_is_direct_link'];
+                        $absFileIdentifier = $this->saveFile($file['name'], $pixxioFile->originalFileURL, $isDirectLinkSyncFile);
                         $storage = $this->getStorage();
                         $storage->replaceFile($storage->getFileByIdentifier($file['identifier']), $absFileIdentifier);
                         $io->writeln('File updated: ' . $file['identifier']);
@@ -801,6 +802,7 @@ class FilesController extends ActionController
                 );
             }
 
+            // Direct link imports are backend preview assets and should stay lightweight.
             if ($isDirectLink) {
                 $this->resizeImageToMaxWidth($absFileIdentifier, 250);
             }
@@ -912,10 +914,15 @@ class FilesController extends ActionController
             $filename = $this->generateUniqueFilename($originalFilename, $file);
 
             // upload file
-            if (isset($file->directLink) && $file->directLink != '' && !$this->saveFile($filename, $file->directLink, true)) {
+            $useDirectLinks = !empty($this->extensionConfiguration['use_cdn_links']);
+            $hasUsableDirectLink = $useDirectLinks && isset($file->directLink) && $file->directLink !== '';
+
+            if ($hasUsableDirectLink && !$this->saveFile($filename, $file->directLink, true)) {
                 $this->throwError('Copying file "' . $filename . '" to path "' . '" failed.', 4);
-            } else if (!isset($file->directLink) && !$this->saveFile($filename, $file->downloadURL)) {
+            } else if (!$hasUsableDirectLink && isset($file->downloadURL) && !$this->saveFile($filename, $file->downloadURL)) {
                 $this->throwError('Copying file "' . $filename . '" to path "' . '" failed.', 4);
+            } else if (!$hasUsableDirectLink && !isset($file->downloadURL)) {
+                $this->throwError('No usable download URL for file "' . $filename . '".', 10);
             }
 
             $importedFile = $this->getStorage()->getFile($this->extensionConfiguration['subfolder'] . '/' . $filename);
@@ -930,7 +937,7 @@ class FilesController extends ActionController
                     $link = $file->mediaspaceURL;
                 } else if (isset($file->downloadURL)) {
                     $link = $file->downloadURL;
-                } else if (isset($file->directLink)) {
+                } else if ($hasUsableDirectLink) {
                     // I can not use the direct link URL as Mediaspace URL because its the URL of the CDN
                 }
 
@@ -945,7 +952,7 @@ class FilesController extends ActionController
                 $downloadFormat = '';
                 if (isset($file->downloadFormat)) {
                     $downloadFormat = $file->downloadFormat;
-                } else if (isset($file->directLinkFormat)) {
+                } else if ($hasUsableDirectLink && isset($file->directLinkFormat)) {
                     $downloadFormat = $file->directLinkFormat;
                 }
 
@@ -1001,7 +1008,7 @@ class FilesController extends ActionController
 
                 $additionalFields['tx_pixxioextension_licensereleases'] = implode(',', $licenseReleaseUids);
 
-                $hasDirectLink = isset($file->directLink) && $file->directLink != '';
+                $hasDirectLink = $hasUsableDirectLink;
                 $additionalFields['pixxio_is_direct_link'] = $hasDirectLink ? 1 : 0;
                 $additionalFields['pixxio_direct_link'] = $hasDirectLink ? $file->directLink : '';
 

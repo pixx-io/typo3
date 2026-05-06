@@ -1,11 +1,17 @@
 # Changelog
 
+## NEXT
+
+- Fix: Use `directLink` only when `use_cdn_links` is enabled.
+- Fix: Keep 250px preview downsizing only for direct links.
+- Fix: Use `downloadURL` import path when CDN direct links are disabled.
+
 ## 2.4.3
 
 - Fix: Normalize auto_login config to boolean to fix login problems
 - Fix: Sync v11 JavaScript ImagePicker logic with v12 logic
 - Chore: Remove unused data-attributes from import button
- 
+
 ## 2.4.2
 
 - Fix: "Select from pixx.io" button for dynamically loaded IRRE elements
