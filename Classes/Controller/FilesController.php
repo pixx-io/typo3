@@ -502,7 +502,8 @@ class FilesController extends ActionController
                     }
                     if ($newId) {
                         $pixxioFile = $this->pixxioFile($newId);
-                        $isDirectLinkSyncFile = !empty($this->extensionConfiguration['use_cdn_links']) && (bool)$file['pixxio_is_direct_link'];
+                        $isDirectLinkSyncFile = filter_var(($this->extensionConfiguration['use_cdn_links'] ?? false), FILTER_VALIDATE_BOOLEAN)
+                            && (bool)$file['pixxio_is_direct_link'];
                         $absFileIdentifier = $this->saveFile($file['name'], $pixxioFile->originalFileURL, $isDirectLinkSyncFile);
                         $storage = $this->getStorage();
                         $storage->replaceFile($storage->getFileByIdentifier($file['identifier']), $absFileIdentifier);
