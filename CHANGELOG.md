@@ -1,6 +1,6 @@
 # Changelog
 
-## NEXT
+## 2.4.4
 
 - Fix: Use `directLink` only when `use_cdn_links` is enabled.
 - Fix: Keep 250px preview downsizing only for direct links.
