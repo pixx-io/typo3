@@ -93,6 +93,10 @@ final class FileControlsEventListener
         $iframeLanguage = $languageService->getLocale();
         $iframeUrl = 'https://plugin.pixx.io/static/v2/' . $iframeLanguage . '/media?multiSelect=true&applicationId=' . $this->applicationId;
 
+        if (isset($extensionConfiguration['use_cdn_links']) && filter_var($extensionConfiguration['use_cdn_links'], FILTER_VALIDATE_BOOLEAN)) {
+            $iframeUrl .= '&useDirectLinks=true';
+        }
+
         // Load additional metadata to be independent from the sync job
         $metadataFields = [
             'City',

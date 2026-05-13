@@ -1,5 +1,9 @@
 # Changelog
 
+## NEXT
+
+- Feat: Add CDN Link support
+
 ## 3.4.3
 
 - Fix: Normalize auto_login config to boolean to fix login problems

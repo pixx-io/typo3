@@ -28,7 +28,7 @@ function handleClick(event) {
   var pixxioIframe =
     buttonElement.parentElement.querySelector("iframe.pixxio_sdk");
   var pixxioIframeSrc = pixxioIframe.dataset.src;
-  if (pixxioIframeSrc !== "") {
+  if (pixxioIframeSrc) {
     pixxioIframe.src = pixxioIframeSrc;
   }
   var pixxioLightbox =
@@ -84,6 +84,8 @@ function handlePostMessage(messageEvent) {
   }
 
   if (messageEvent?.data?.method === "downloadFiles") {
+    downloadFiles(messageEvent?.data?.parameters[0]);
+  } else if (messageEvent?.data?.method === "directLinksCreated") {
     downloadFiles(messageEvent?.data?.parameters[0]);
   } else if (messageEvent?.data?.method === "onSdkReady") {
     handleSdkReady(messageEvent);
