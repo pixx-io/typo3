@@ -699,7 +699,12 @@ class FilesController
             return;
         }
 
-        [$width, $height, $type] = @getimagesize($filePath);
+        $imageSize = @getimagesize($filePath);
+        if (!is_array($imageSize)) {
+            return;
+        }
+
+        [$width, $height, $type] = $imageSize;
         if (!$width || !$height) {
             return;
         }
