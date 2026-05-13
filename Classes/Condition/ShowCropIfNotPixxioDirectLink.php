@@ -12,7 +12,11 @@ class ShowCropIfNotPixxioDirectLink
 {
     public function evaluate(array $record): bool
     {
-        $fileUid = (int)($record['record']['uid_local'][0]['uid'] ?? 0);
+        $uidLocal = $record['record']['uid_local'] ?? $record['uid_local'] ?? 0;
+        if (is_array($uidLocal)) {
+            $uidLocal = $uidLocal[0]['uid'] ?? $uidLocal[0] ?? 0;
+        }
+        $fileUid = (int)$uidLocal;
 
         if ($fileUid === 0) {
             return true;
