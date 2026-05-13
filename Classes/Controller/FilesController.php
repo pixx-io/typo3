@@ -695,7 +695,7 @@ class FilesController
 
     private function resizeImageToMaxWidth(string $filePath, int $maxWidth): void
     {
-        if (!file_exists($filePath)) {
+        if (!extension_loaded('gd') || !file_exists($filePath)) {
             return;
         }
 
@@ -705,17 +705,11 @@ class FilesController
         }
 
         [$width, $height, $type] = $imageSize;
-        if (!$width || !$height) {
+        if (!$width || !$height || $width <= $maxWidth) {
             return;
         }
 
-        if ($width <= $maxWidth) {
-            return;
-        }
-
-        $ratio     = $height / $width;
-        $newWidth  = $maxWidth;
-        $newHeight = (int)round($maxWidth * $ratio);
+        $newHeight = (int)round($maxWidth * ($height / $width));
 
         $src = match ($type) {
             IMAGETYPE_JPEG => imagecreatefromjpeg($filePath),
@@ -728,7 +722,7 @@ class FilesController
             return;
         }
 
-        $dst = imagecreatetruecolor($newWidth, $newHeight);
+        $dst = imagecreatetruecolor($maxWidth, $newHeight);
 
         if ($type === IMAGETYPE_PNG || $type === IMAGETYPE_GIF) {
             imagecolortransparent($dst, imagecolorallocatealpha($dst, 0, 0, 0, 127));
@@ -736,7 +730,7 @@ class FilesController
             imagesavealpha($dst, true);
         }
 
-        imagecopyresampled($dst, $src, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+        imagecopyresampled($dst, $src, 0, 0, 0, 0, $maxWidth, $newHeight, $width, $height);
 
         match ($type) {
             IMAGETYPE_JPEG => imagejpeg($dst, $filePath, 85),
@@ -744,9 +738,6 @@ class FilesController
             IMAGETYPE_GIF  => imagegif($dst, $filePath),
             default        => null,
         };
-
-        imagedestroy($src);
-        imagedestroy($dst);
     }
 
     private function pullFiles($files)
