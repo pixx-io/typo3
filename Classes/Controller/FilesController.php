@@ -732,6 +732,10 @@ class FilesController
 
         $dst = imagecreatetruecolor($maxWidth, $newHeight);
 
+        if ($dst === false) {
+            return;
+        }
+
         if ($type === IMAGETYPE_PNG || $type === IMAGETYPE_GIF) {
             imagecolortransparent($dst, imagecolorallocatealpha($dst, 0, 0, 0, 127));
             imagealphablending($dst, false);
