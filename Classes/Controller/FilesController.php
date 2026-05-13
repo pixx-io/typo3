@@ -120,6 +120,7 @@ class FilesController
             'description',
             'originalFileURL',
             'previewFileURL',
+            'licenseReleases',
         ];
 
         if ($this->hasExt('filemetadata')) {
@@ -172,6 +173,7 @@ class FilesController
             'pageSize' => $maxSyncItems,
             'page' => 1,
             'responseFields' => json_encode($this->getResponseFields()),
+            'licenseReleasesResponseFields' => json_encode(['id', 'name', 'license', 'showWarningMessage']),
             'filter' => json_encode([
                 'filterType' => 'files',
                 'fileIDs' => $fileIds
@@ -559,12 +561,109 @@ class FilesController
                     $additionalFields = array_merge($additionalFields, $this->getMetadataWithFilemetadataExt($pixxioFile));
                 }
 
+                $additionalFields['tx_pixxioextension_licensereleases'] = $this->licensereleasesSync($pixxioFile, $file);
+
                 $io->writeln('Update metadata for ' . $pixxioFile->id);
                 $metadata->update($file['uid'], $additionalFields);
             }
         }
 
         return true;
+    }
+
+    protected function licensereleasesSync($pixxioFile, array $file): string
+    {
+        $licenseReleaseUids = [];
+
+        $connectionPool = GeneralUtility::makeInstance(ConnectionPool::class);
+        $connection = $connectionPool->getConnectionForTable('tx_pixxioextension_domain_model_licenserelease');
+
+        if (!empty($pixxioFile->licenseReleases)) {
+            $existingLicenseReleaseUids = [];
+            if (!empty($file['tx_pixxioextension_licensereleases'])) {
+                $existingLicenseReleaseUids = GeneralUtility::intExplode(
+                    ',',
+                    (string)$file['tx_pixxioextension_licensereleases'],
+                    true
+                );
+            }
+
+            $index = 0;
+            foreach ($pixxioFile->licenseReleases as $licenseRelease) {
+                $insertData = [];
+
+                if (isset($licenseRelease->licenseRelease)) {
+                    if (isset($licenseRelease->licenseRelease->license->provider)) {
+                        $insertData['license_provider'] = $licenseRelease->licenseRelease->license->provider;
+                    }
+                    if (isset($licenseRelease->licenseRelease->name)) {
+                        $insertData['name'] = $licenseRelease->licenseRelease->name;
+                    }
+                    if (isset($licenseRelease->licenseRelease->showWarningMessage)) {
+                        $insertData['show_warning_message'] = (bool)$licenseRelease->licenseRelease->showWarningMessage;
+                    }
+                    if (isset($licenseRelease->licenseRelease->warningMessage)) {
+                        $insertData['warning_message'] = $licenseRelease->licenseRelease->warningMessage;
+                    }
+                }
+
+                if (isset($licenseRelease->expires)) {
+                    $insertData['expires'] = $licenseRelease->expires;
+                }
+
+                if (!empty($existingLicenseReleaseUids[$index])) {
+                    $uid = (int)$existingLicenseReleaseUids[$index];
+                    $connection->update('tx_pixxioextension_domain_model_licenserelease', $insertData, ['uid' => $uid]);
+                } else {
+                    $connection->insert('tx_pixxioextension_domain_model_licenserelease', $insertData);
+                    $uid = (int)$connection->lastInsertId('tx_pixxioextension_domain_model_licenserelease');
+                }
+
+                $licenseReleaseUids[] = $uid;
+                $index++;
+            }
+
+            if (!empty($existingLicenseReleaseUids) && count($existingLicenseReleaseUids) > count($licenseReleaseUids)) {
+                $uidsToDelete = array_slice($existingLicenseReleaseUids, count($licenseReleaseUids));
+                if (!empty($uidsToDelete)) {
+                    $queryBuilder = $connectionPool->getQueryBuilderForTable('tx_pixxioextension_domain_model_licenserelease');
+                    $queryBuilder
+                        ->delete('tx_pixxioextension_domain_model_licenserelease')
+                        ->where(
+                            $queryBuilder->expr()->in(
+                                'uid',
+                                $queryBuilder->createNamedParameter($uidsToDelete, Connection::PARAM_INT_ARRAY)
+                            )
+                        )
+                        ->executeStatement();
+                }
+            }
+
+            return implode(',', $licenseReleaseUids);
+        }
+
+        if (!empty($file['tx_pixxioextension_licensereleases'])) {
+            $existingLicenseReleaseUids = GeneralUtility::intExplode(
+                ',',
+                (string)$file['tx_pixxioextension_licensereleases'],
+                true
+            );
+
+            if (!empty($existingLicenseReleaseUids)) {
+                $queryBuilder = $connectionPool->getQueryBuilderForTable('tx_pixxioextension_domain_model_licenserelease');
+                $queryBuilder
+                    ->delete('tx_pixxioextension_domain_model_licenserelease')
+                    ->where(
+                        $queryBuilder->expr()->in(
+                            'uid',
+                            $queryBuilder->createNamedParameter($existingLicenseReleaseUids, Connection::PARAM_INT_ARRAY)
+                        )
+                    )
+                    ->executeStatement();
+            }
+        }
+
+        return '';
     }
 
     private function getMetadataWithFilemetadataExt($pixxioFile)
@@ -823,6 +922,38 @@ class FilesController
                     $downloadFormat = $file->directLinkFormat;
                 }
 
+                $licenseReleaseUids = [];
+                if (isset($file->licenseReleases)) {
+                    $connectionPool = GeneralUtility::makeInstance(ConnectionPool::class);
+                    $connection = $connectionPool->getConnectionForTable('tx_pixxioextension_domain_model_licenserelease');
+
+                    foreach ($file->licenseReleases as $licenseRelease) {
+                        $insertData = [];
+
+                        if (isset($licenseRelease->licenseRelease)) {
+                            if (isset($licenseRelease->licenseRelease->license->provider)) {
+                                $insertData['license_provider'] = $licenseRelease->licenseRelease->license->provider;
+                            }
+                            if (isset($licenseRelease->licenseRelease->name)) {
+                                $insertData['name'] = $licenseRelease->licenseRelease->name;
+                            }
+                            if (isset($licenseRelease->licenseRelease->showWarningMessage)) {
+                                $insertData['show_warning_message'] = (bool)$licenseRelease->licenseRelease->showWarningMessage;
+                            }
+                            if (isset($licenseRelease->licenseRelease->warningMessage)) {
+                                $insertData['warning_message'] = $licenseRelease->licenseRelease->warningMessage;
+                            }
+                        }
+
+                        if (isset($licenseRelease->expires)) {
+                            $insertData['expires'] = $licenseRelease->expires;
+                        }
+
+                        $connection->insert('tx_pixxioextension_domain_model_licenserelease', $insertData);
+                        $licenseReleaseUids[] = $connection->lastInsertId('tx_pixxioextension_domain_model_licenserelease');
+                    }
+                }
+
                 // set meta data
                 $additionalFields = [
                     'title' => $file->subject,
@@ -833,6 +964,7 @@ class FilesController
                     'pixxio_downloadformat' => $downloadFormat,
                     'pixxio_is_direct_link' => $hasUsableDirectLink ? 1 : 0,
                     'pixxio_direct_link' => $hasUsableDirectLink ? $file->directLink : '',
+                    'tx_pixxioextension_licensereleases' => implode(',', $licenseReleaseUids),
                 ];
 
                 if (isset($this->extensionConfiguration['alt_text']) && isset($file->metadata->{$this->extensionConfiguration['alt_text']})) {
