@@ -178,7 +178,11 @@ class FilesController
             ])
         ]);
 
-        $response = $this->requestFactory->request($requestUrl, 'GET', $additionalOptions);
+        try {
+            $response = $this->requestFactory->request($requestUrl, 'GET', $additionalOptions);
+        } catch (\Exception $e) {
+            $this->throwError('pixxio API request failed for files: ' . $e->getMessage() . "\nRequest URL: " . $requestUrl, 1);
+        }
 
         if ($response->getStatusCode() === 200) {
             $data = json_decode($response->getBody()->getContents());
@@ -225,7 +229,11 @@ class FilesController
             'responseFields' => json_encode($this->getResponseFields())
         ]);
 
-        $response = $this->requestFactory->request($requestUrl, 'GET', $additionalOptions);
+        try {
+            $response = $this->requestFactory->request($requestUrl, 'GET', $additionalOptions);
+        } catch (\Exception $e) {
+            $this->throwError('pixxio API request failed for file ' . $fileId . ': ' . $e->getMessage() . "\nRequest URL: " . $requestUrl, 4);
+        }
 
         if ($response->getStatusCode() === 200) {
             $data = json_decode($response->getBody()->getContents());
