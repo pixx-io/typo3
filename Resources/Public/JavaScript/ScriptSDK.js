@@ -28,7 +28,7 @@ function handleClick(event) {
   var pixxioIframe =
     buttonElement.parentElement.querySelector("iframe.pixxio_sdk");
   var pixxioIframeSrc = pixxioIframe.dataset.src;
-  if (pixxioIframeSrc != "") {
+  if (pixxioIframeSrc) {
     pixxioIframe.src = pixxioIframeSrc;
   }
   var pixxioLightbox =
