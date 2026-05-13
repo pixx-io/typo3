@@ -7,7 +7,7 @@ subfolder =
 # cat=basic; type=string; label=Allowed download formats: Control which download formats are available in the plugin SDK iframe. Use comma-separated values for multiple formats (e.g. "jpg,png,pdf"). Valid formats: original, preview, jpg, png, pdf, tiff. Leave empty for all formats.
 allowed_download_formats =
 
-# cat=basic; type=boolean; label=Use CDN Links: The system won't create local copy of the file, but will use always up-to-date file from pixx.io. A plan with CDN Links is required for that.
+# cat=basic; type=boolean; label=Use CDN Links: For direct-link imports, the system stores a lightweight local preview, while the pixx.io/CDN URL is stored and will always be used for delivery. A plan with CDN Links is required for this.
 use_cdn_links = false
 
 # cat=metadata; type=string; label=Metadata for alternative Text (default = Alt Text (Accessibility))
