@@ -16,7 +16,7 @@ CREATE TABLE tx_pixxioextension_domain_model_licenserelease (
     deleted tinyint(1) unsigned DEFAULT '0' NOT NULL,
     hidden tinyint(1) unsigned DEFAULT '0' NOT NULL,
     license_provider varchar(255) DEFAULT '' NOT NULL COMMENT 'License Provider',
-    name varchar(255) DEFAULT '' NOT NULL COMMENT 'Licence Name',
+    name varchar(255) DEFAULT '' NOT NULL COMMENT 'License Name',
     show_warning_message tinyint(1) DEFAULT '0' NOT NULL COMMENT 'Show Warning Message',
     warning_message text COMMENT 'Warning Message',
     expires varchar(255) DEFAULT '' NOT NULL COMMENT 'Expires',
