@@ -119,6 +119,7 @@ function downloadFiles(files) {
   new AjaxRequest(TYPO3.settings.ajaxUrls.pixxio_files)
     .post(
       {
+        pid: Number(container.getAttribute("data-pid") || 0),
         files: files.map((file) => {
           const metadata = file.metadata || {};
           return {
