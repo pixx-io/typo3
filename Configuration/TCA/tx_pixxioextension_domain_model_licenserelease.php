@@ -74,6 +74,11 @@ return [
                 'readOnly' => true,
             ],
         ],
+        'pixxio_id' => [
+            'config' => [
+                'type' => 'passthrough',
+            ],
+        ],
     ],
     'types' => [
         '1' => [

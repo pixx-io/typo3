@@ -17,6 +17,8 @@ CREATE TABLE tx_pixxioextension_domain_model_licenserelease (
     show_warning_message tinyint(1) DEFAULT '0' NOT NULL COMMENT 'Show Warning Message',
     warning_message text COMMENT 'Warning Message',
     expires varchar(255) DEFAULT '' NOT NULL COMMENT 'Expires',
+    pixxio_id varchar(255) DEFAULT '' NOT NULL COMMENT 'Pixxio License Release ID',
     PRIMARY KEY (uid),
-    KEY parent (pid)
+    KEY parent (pid),
+    KEY pixxio_id (pixxio_id)
 );

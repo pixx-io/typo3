@@ -576,6 +576,9 @@ class FilesController
         $data = [];
 
         if (isset($licenseRelease->licenseRelease)) {
+            if (isset($licenseRelease->licenseRelease->id)) {
+                $data['pixxio_id'] = (string)$licenseRelease->licenseRelease->id;
+            }
             if (isset($licenseRelease->licenseRelease->license->provider)) {
                 $data['license_provider'] = $licenseRelease->licenseRelease->license->provider;
             }
@@ -599,78 +602,67 @@ class FilesController
 
     protected function licensereleasesSync($pixxioFile, array $file): string
     {
-        $licenseReleaseUids = [];
-
         $connectionPool = GeneralUtility::makeInstance(ConnectionPool::class);
-        $connection = $connectionPool->getConnectionForTable('tx_pixxioextension_domain_model_licenserelease');
 
-        if (!empty($pixxioFile->licenseReleases)) {
-            $existingLicenseReleaseUids = [];
-            if (!empty($file['tx_pixxioextension_licensereleases'])) {
-                $existingLicenseReleaseUids = GeneralUtility::intExplode(
-                    ',',
-                    (string)$file['tx_pixxioextension_licensereleases'],
-                    true
-                );
-            }
-
-            $index = 0;
-            foreach ($pixxioFile->licenseReleases as $licenseRelease) {
-                $insertData = $this->buildLicenseReleaseData($licenseRelease);
-
-                if (!empty($existingLicenseReleaseUids[$index])) {
-                    $uid = (int)$existingLicenseReleaseUids[$index];
-                    $connection->update('tx_pixxioextension_domain_model_licenserelease', $insertData, ['uid' => $uid]);
-                } else {
-                    $connection->insert('tx_pixxioextension_domain_model_licenserelease', $insertData);
-                    $uid = (int)$connection->lastInsertId('tx_pixxioextension_domain_model_licenserelease');
-                }
-
-                $licenseReleaseUids[] = $uid;
-                $index++;
-            }
-
-            if (!empty($existingLicenseReleaseUids) && count($existingLicenseReleaseUids) > count($licenseReleaseUids)) {
-                $uidsToDelete = array_slice($existingLicenseReleaseUids, count($licenseReleaseUids));
-                if (!empty($uidsToDelete)) {
-                    $queryBuilder = $connectionPool->getQueryBuilderForTable('tx_pixxioextension_domain_model_licenserelease');
-                    $queryBuilder
-                        ->delete('tx_pixxioextension_domain_model_licenserelease')
-                        ->where(
-                            $queryBuilder->expr()->in(
-                                'uid',
-                                $queryBuilder->createNamedParameter($uidsToDelete, Connection::PARAM_INT_ARRAY)
-                            )
-                        )
-                        ->executeStatement();
+        $allExistingUids = [];
+        $existingByPixxioId = [];
+        if (!empty($file['tx_pixxioextension_licensereleases'])) {
+            $allExistingUids = GeneralUtility::intExplode(',', (string)$file['tx_pixxioextension_licensereleases'], true);
+            if (!empty($allExistingUids)) {
+                $queryBuilder = $connectionPool->getQueryBuilderForTable('tx_pixxioextension_domain_model_licenserelease');
+                $rows = $queryBuilder
+                    ->select('uid', 'pixxio_id')
+                    ->from('tx_pixxioextension_domain_model_licenserelease')
+                    ->where($queryBuilder->expr()->in('uid', $queryBuilder->createNamedParameter($allExistingUids, Connection::PARAM_INT_ARRAY)))
+                    ->executeQuery()
+                    ->fetchAllAssociative();
+                foreach ($rows as $row) {
+                    if ($row['pixxio_id'] !== '') {
+                        $existingByPixxioId[$row['pixxio_id']] = (int)$row['uid'];
+                    }
                 }
             }
-
-            return implode(',', $licenseReleaseUids);
         }
 
-        if (!empty($file['tx_pixxioextension_licensereleases'])) {
-            $existingLicenseReleaseUids = GeneralUtility::intExplode(
-                ',',
-                (string)$file['tx_pixxioextension_licensereleases'],
-                true
-            );
-
-            if (!empty($existingLicenseReleaseUids)) {
+        if (empty($pixxioFile->licenseReleases)) {
+            if (!empty($allExistingUids)) {
                 $queryBuilder = $connectionPool->getQueryBuilderForTable('tx_pixxioextension_domain_model_licenserelease');
                 $queryBuilder
                     ->delete('tx_pixxioextension_domain_model_licenserelease')
-                    ->where(
-                        $queryBuilder->expr()->in(
-                            'uid',
-                            $queryBuilder->createNamedParameter($existingLicenseReleaseUids, Connection::PARAM_INT_ARRAY)
-                        )
-                    )
+                    ->where($queryBuilder->expr()->in('uid', $queryBuilder->createNamedParameter($allExistingUids, Connection::PARAM_INT_ARRAY)))
                     ->executeStatement();
             }
+            return '';
         }
 
-        return '';
+        $connection = $connectionPool->getConnectionForTable('tx_pixxioextension_domain_model_licenserelease');
+        $licenseReleaseUids = [];
+
+        foreach ($pixxioFile->licenseReleases as $licenseRelease) {
+            $insertData = $this->buildLicenseReleaseData($licenseRelease);
+            $pixxioId = $insertData['pixxio_id'] ?? '';
+
+            if ($pixxioId !== '' && isset($existingByPixxioId[$pixxioId])) {
+                $uid = $existingByPixxioId[$pixxioId];
+                $connection->update('tx_pixxioextension_domain_model_licenserelease', $insertData, ['uid' => $uid]);
+            } else {
+                $connection->insert('tx_pixxioextension_domain_model_licenserelease', $insertData);
+                $uid = (int)$connection->lastInsertId();
+            }
+
+            $licenseReleaseUids[] = $uid;
+        }
+
+        $uidsToDelete = array_values(array_diff($allExistingUids, $licenseReleaseUids));
+        if (!empty($uidsToDelete)) {
+            $queryBuilder = $connectionPool->getQueryBuilderForTable('tx_pixxioextension_domain_model_licenserelease');
+            $queryBuilder
+                ->delete('tx_pixxioextension_domain_model_licenserelease')
+                ->where($queryBuilder->expr()->in('uid', $queryBuilder->createNamedParameter($uidsToDelete, Connection::PARAM_INT_ARRAY)))
+                ->executeStatement();
+        }
+
+        return implode(',', $licenseReleaseUids);
     }
 
     private function getMetadataWithFilemetadataExt($pixxioFile)
@@ -938,7 +930,7 @@ class FilesController
                         $insertData = $this->buildLicenseReleaseData($licenseRelease);
 
                         $connection->insert('tx_pixxioextension_domain_model_licenserelease', $insertData);
-                        $licenseReleaseUids[] = $connection->lastInsertId('tx_pixxioextension_domain_model_licenserelease');
+                        $licenseReleaseUids[] = (int)$connection->lastInsertId();
                     }
                 }
 
