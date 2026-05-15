@@ -561,7 +561,7 @@ class FilesController
                     $additionalFields = array_merge($additionalFields, $this->getMetadataWithFilemetadataExt($pixxioFile));
                 }
 
-                $additionalFields['tx_pixxioextension_licensereleases'] = $this->licensereleasesSync($pixxioFile, $file);
+                $additionalFields['tx_pixxioextension_licensereleases'] = $this->licenseReleasesSync($pixxioFile, $file);
 
                 $io->writeln('Update metadata for ' . $pixxioFile->id);
                 $metadata->update($file['uid'], $additionalFields);
@@ -600,7 +600,7 @@ class FilesController
         return $data;
     }
 
-    protected function licensereleasesSync($pixxioFile, array $file): string
+    protected function licenseReleasesSync($pixxioFile, array $file): string
     {
         $connectionPool = GeneralUtility::makeInstance(ConnectionPool::class);
 
