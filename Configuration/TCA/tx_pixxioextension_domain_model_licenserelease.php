@@ -1,0 +1,98 @@
+<?php
+
+defined('TYPO3') || die();
+
+return [
+    'ctrl' => [
+        'label' => 'name',
+        'tstamp' => 'tstamp',
+        'sortby' => 'sorting',
+        'default_sortby' => 'ORDER BY name',
+        'delete' => 'deleted',
+        'enablecolumns' => [
+            'disabled' => 'hidden',
+        ],
+        'rootLevel' => 1,
+        'hideTable' => true,
+        'iconfile' => 'EXT:pixxio_extension/Resources/Public/Icons/tx_pixxioextension_domain_model_pixxiofiles.gif'
+    ],
+    'columns' => [
+        'hidden' => [
+            'exclude' => true,
+            'label' => 'Hidden',
+            'config' => [
+                'type' => 'check',
+                'items' => [
+                    ['label' => 'LLL:EXT:core/Resources/Private/Language/locallang_general.xlf:LGL.hidden'],
+                ],
+            ],
+        ],
+        'license_provider' => [
+            'exclude' => true,
+            'label' => 'License Provider',
+            'config' => [
+                'type' => 'input',
+                'size' => 25,
+                'max' => 255,
+                'eval' => 'trim',
+                'readOnly' => true,
+            ],
+        ],
+        'name' => [
+            'exclude' => true,
+            'label' => 'Name',
+            'config' => [
+                'type' => 'input',
+                'size' => 25,
+                'max' => 255,
+                'eval' => 'trim',
+                'readOnly' => true,
+            ],
+        ],
+        'show_warning_message' => [
+            'exclude' => true,
+            'label' => 'Show Warning Message',
+            'config' => [
+                'type' => 'check',
+                'readOnly' => true,
+            ],
+        ],
+        'warning_message' => [
+            'exclude' => true,
+            'label' => 'Warning Message',
+            'config' => [
+                'type' => 'text',
+                'cols' => 40,
+                'rows' => 15,
+                'readOnly' => true,
+            ],
+        ],
+        'expires' => [
+            'exclude' => true,
+            'label' => 'Expires',
+            'config' => [
+                'type' => 'input',
+                'size' => 25,
+                'max' => 255,
+                'eval' => 'trim',
+                'readOnly' => true,
+            ],
+        ],
+        'pixxio_id' => [
+            'config' => [
+                'type' => 'passthrough',
+            ],
+        ],
+    ],
+    'types' => [
+        '1' => [
+            'showitem' => implode(',', [
+                'license_provider',
+                'name',
+                'show_warning_message',
+                'warning_message',
+                'expires',
+            ]),
+        ],
+    ],
+];

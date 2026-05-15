@@ -28,7 +28,23 @@ $temporaryPixxioFields = [
         'readOnly' => true,
         'type' => 'input',
       ]
-    ]
+    ],
+    'pixxio_is_direct_link' => [
+      'exclude' => 0,
+      'label' => 'pixx.io Is a CDN link',
+      'config' => [
+        'readOnly' => true,
+        'type' => 'check',
+      ]
+    ],
+    'pixxio_direct_link' => [
+      'exclude' => 0,
+      'label' => 'pixx.io CDN link',
+      'config' => [
+        'readOnly' => true,
+        'type' => 'input',
+      ]
+    ],
 ];
  
 // add field to tca
@@ -52,6 +68,18 @@ $temporaryPixxioFields = [
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addToAllTCAtypes(
   'sys_file_metadata',
   'pixxio_downloadformat',
+  '',
+  'after:title'
+);
+\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addToAllTCAtypes(
+  'sys_file_metadata',
+  'pixxio_is_direct_link',
+  '',
+  'after:title'
+);
+\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addToAllTCAtypes(
+  'sys_file_metadata',
+  'pixxio_direct_link',
   '',
   'after:title'
 );

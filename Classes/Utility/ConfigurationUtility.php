@@ -18,6 +18,14 @@ class ConfigurationUtility
             ExtensionConfiguration::class
         )->get('pixxio_extension');
 
+        if (array_key_exists('auto_login', $extensionConfiguration)) {
+            $extensionConfiguration['auto_login'] = filter_var(
+                $extensionConfiguration['auto_login'],
+                FILTER_VALIDATE_BOOLEAN,
+                FILTER_NULL_ON_FAILURE
+            ) ?? false;
+        }
+
         if (isset($extensionConfiguration['url'])) {
             $extensionConfiguration['url'] = static::getCompleteUrl($extensionConfiguration['url']);
         }
