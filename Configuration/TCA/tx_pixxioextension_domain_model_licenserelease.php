@@ -19,7 +19,7 @@ return [
             'config' => [
                 'type' => 'check',
                 'items' => [
-                    ['label' => 'LLL:EXT:core/Resources/Private/Language/locallang_general.xlf:LGL.enabled'],
+                    ['label' => 'LLL:EXT:core/Resources/Private/Language/locallang_general.xlf:LGL.hidden'],
                 ],
             ],
         ],
