@@ -173,7 +173,7 @@ class FilesController
             'pageSize' => $maxSyncItems,
             'page' => 1,
             'responseFields' => json_encode($this->getResponseFields()),
-            'licenseReleasesResponseFields' => json_encode(['id', 'name', 'license', 'showWarningMessage']),
+            'licenseReleasesResponseFields' => json_encode(['id', 'name', 'license', 'showWarningMessage', 'warningMessage']),
             'filter' => json_encode([
                 'filterType' => 'files',
                 'fileIDs' => $fileIds
@@ -573,7 +573,7 @@ class FilesController
 
     private function buildLicenseReleaseData(object $licenseRelease): array
     {
-        $data = [];
+        $data = ['tstamp' => time()];
 
         if (isset($licenseRelease->licenseRelease)) {
             if (isset($licenseRelease->licenseRelease->id)) {
