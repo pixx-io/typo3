@@ -6,6 +6,9 @@ services:
   Pixxio\PixxioExtension\:
     resource: '../Classes/*'
 
+  Pixxio\PixxioExtension\Controller\FilesController:
+    public: true
+
   Pixxio\PixxioExtension\Command\SyncCommand:
     tags:
       - name: 'console.command'

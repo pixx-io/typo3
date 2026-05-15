@@ -4,5 +4,24 @@ CREATE TABLE sys_file_metadata (
     pixxio_downloadformat varchar(255) NOT NULL DEFAULT '',
     pixxio_last_sync_stamp int(11) NOT NULL DEFAULT '0',
     pixxio_is_direct_link int(1) NOT NULL DEFAULT '0',
-    pixxio_direct_link varchar(2048) NOT NULL DEFAULT ''
+    pixxio_direct_link varchar(2048) NOT NULL DEFAULT '',
+    tx_pixxioextension_licensereleases text
+);
+
+CREATE TABLE tx_pixxioextension_domain_model_licenserelease (
+    uid int(11) NOT NULL auto_increment,
+    pid int(11) DEFAULT '0' NOT NULL,
+    tstamp int(11) unsigned DEFAULT '0' NOT NULL,
+    sorting int(11) DEFAULT '0' NOT NULL,
+    deleted tinyint(1) unsigned DEFAULT '0' NOT NULL,
+    hidden tinyint(1) unsigned DEFAULT '0' NOT NULL,
+    license_provider varchar(255) DEFAULT '' NOT NULL COMMENT 'License Provider',
+    name varchar(255) DEFAULT '' NOT NULL COMMENT 'License Name',
+    show_warning_message tinyint(1) DEFAULT '0' NOT NULL COMMENT 'Show Warning Message',
+    warning_message text COMMENT 'Warning Message',
+    expires varchar(255) DEFAULT '' NOT NULL COMMENT 'Expires',
+    pixxio_id varchar(255) DEFAULT '' NOT NULL COMMENT 'Pixxio License Release ID',
+    PRIMARY KEY (uid),
+    KEY parent (pid),
+    KEY pixxio_id (pixxio_id)
 );
