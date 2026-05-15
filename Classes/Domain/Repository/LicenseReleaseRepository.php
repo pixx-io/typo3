@@ -17,8 +17,12 @@ class LicenseReleaseRepository extends Repository
     /**
      * @return array<string, LicenseRelease>
      */
-    public function findByUids(array $uids): array
+    public function findByUidsIndexedByPixxioId(array $uids): array
     {
+        if ($uids === []) {
+            return [];
+        }
+
         $query = $this->createQuery();
         $query->getQuerySettings()->setRespectStoragePage(false);
         $query->matching($query->in('uid', $uids));
@@ -34,6 +38,10 @@ class LicenseReleaseRepository extends Repository
 
     public function deleteByUids(array $uids): void
     {
+        if ($uids === []) {
+            return;
+        }
+
         $qb = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable(self::TABLE);
         $qb->delete(self::TABLE)
             ->where($qb->expr()->in('uid', $qb->createNamedParameter($uids, Connection::PARAM_INT_ARRAY)))

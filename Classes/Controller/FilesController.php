@@ -230,7 +230,8 @@ class FilesController
         $this->getProxySettings($additionalOptions);
 
         $requestUrl = $this->extensionConfiguration['url'] . '/gobackend/files/' . $fileId . '?' . http_build_query([
-            'responseFields' => json_encode($this->getResponseFields())
+            'responseFields' => json_encode($this->getResponseFields()),
+            'licenseReleasesResponseFields' => json_encode(['id', 'name', 'license', 'showWarningMessage', 'warningMessage']),
         ]);
 
         try {
@@ -480,6 +481,10 @@ class FilesController
             if (in_array($file['pixxio_file_id'], $pixxioIdsToDelete)) {
                 if ($this->extensionConfiguration['delete']) {
                     $io->writeln('File deleted: ' . $file['identifier']);
+                    if (!empty($file['tx_pixxioextension_licensereleases'])) {
+                        $licenseUids = GeneralUtility::intExplode(',', (string)$file['tx_pixxioextension_licensereleases'], true);
+                        $this->licenseReleaseRepository->deleteByUids($licenseUids);
+                    }
                     $storage = $this->getStorage();
                     $storage->deleteFile($storage->getFileByIdentifier($file['identifier']));
                     unset($files[$index]);
@@ -580,7 +585,7 @@ class FilesController
         if (!empty($file['tx_pixxioextension_licensereleases'])) {
             $allExistingUids = GeneralUtility::intExplode(',', (string)$file['tx_pixxioextension_licensereleases'], true);
             if (!empty($allExistingUids)) {
-                $existingByPixxioId = $this->licenseReleaseRepository->findByUids($allExistingUids);
+                $existingByPixxioId = $this->licenseReleaseRepository->findByUidsIndexedByPixxioId($allExistingUids);
             }
         }
 
