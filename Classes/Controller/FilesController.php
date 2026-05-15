@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Pixxio\PixxioExtension\Controller;
 
+use Pixxio\PixxioExtension\Domain\Model\LicenseRelease;
+use Pixxio\PixxioExtension\Domain\Repository\LicenseReleaseRepository;
 use Pixxio\PixxioExtension\Utility\ConfigurationUtility;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -17,6 +19,7 @@ use TYPO3\CMS\Core\Resource\Index\MetaDataRepository;
 use TYPO3\CMS\Core\Resource\ResourceFactory;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Extbase\Persistence\PersistenceManagerInterface;
 
 class FilesController
 {
@@ -36,13 +39,12 @@ class FilesController
     private $applikationKey = 'ghx8F66X3ix4AJ0VmS0DE8sx7';
     private $accessToken = '';
 
-    /** @var RequestFactory */
-    private $requestFactory;
-
-    public function __construct()
-    {
+    public function __construct(
+        private readonly LicenseReleaseRepository $licenseReleaseRepository,
+        private readonly PersistenceManagerInterface $persistenceManager,
+        private readonly RequestFactory $requestFactory,
+    ) {
         $this->extensionConfiguration = ConfigurationUtility::getExtensionConfiguration();
-        $this->requestFactory = GeneralUtility::makeInstance(RequestFactory::class);
     }
 
     public function hasExt($key)
@@ -571,98 +573,77 @@ class FilesController
         return true;
     }
 
-    private function buildLicenseReleaseData(object $licenseRelease): array
-    {
-        $data = ['tstamp' => time()];
-
-        if (isset($licenseRelease->licenseRelease)) {
-            if (isset($licenseRelease->licenseRelease->id)) {
-                $data['pixxio_id'] = (string)$licenseRelease->licenseRelease->id;
-            }
-            if (isset($licenseRelease->licenseRelease->license->provider)) {
-                $data['license_provider'] = $licenseRelease->licenseRelease->license->provider;
-            }
-            if (isset($licenseRelease->licenseRelease->name)) {
-                $data['name'] = $licenseRelease->licenseRelease->name;
-            }
-            if (isset($licenseRelease->licenseRelease->showWarningMessage)) {
-                $data['show_warning_message'] = (bool)$licenseRelease->licenseRelease->showWarningMessage;
-            }
-            if (isset($licenseRelease->licenseRelease->warningMessage)) {
-                $data['warning_message'] = $licenseRelease->licenseRelease->warningMessage;
-            }
-        }
-
-        if (isset($licenseRelease->expires)) {
-            $data['expires'] = $licenseRelease->expires;
-        }
-
-        return $data;
-    }
-
     protected function licenseReleasesSync($pixxioFile, array $file): string
     {
-        $connectionPool = GeneralUtility::makeInstance(ConnectionPool::class);
-
         $allExistingUids = [];
         $existingByPixxioId = [];
         if (!empty($file['tx_pixxioextension_licensereleases'])) {
             $allExistingUids = GeneralUtility::intExplode(',', (string)$file['tx_pixxioextension_licensereleases'], true);
             if (!empty($allExistingUids)) {
-                $queryBuilder = $connectionPool->getQueryBuilderForTable('tx_pixxioextension_domain_model_licenserelease');
-                $rows = $queryBuilder
-                    ->select('uid', 'pixxio_id')
-                    ->from('tx_pixxioextension_domain_model_licenserelease')
-                    ->where($queryBuilder->expr()->in('uid', $queryBuilder->createNamedParameter($allExistingUids, Connection::PARAM_INT_ARRAY)))
-                    ->executeQuery()
-                    ->fetchAllAssociative();
-                foreach ($rows as $row) {
-                    if ($row['pixxio_id'] !== '') {
-                        $existingByPixxioId[$row['pixxio_id']] = (int)$row['uid'];
-                    }
-                }
+                $existingByPixxioId = $this->licenseReleaseRepository->findByUids($allExistingUids);
             }
         }
 
         if (empty($pixxioFile->licenseReleases)) {
             if (!empty($allExistingUids)) {
-                $queryBuilder = $connectionPool->getQueryBuilderForTable('tx_pixxioextension_domain_model_licenserelease');
-                $queryBuilder
-                    ->delete('tx_pixxioextension_domain_model_licenserelease')
-                    ->where($queryBuilder->expr()->in('uid', $queryBuilder->createNamedParameter($allExistingUids, Connection::PARAM_INT_ARRAY)))
-                    ->executeStatement();
+                $this->licenseReleaseRepository->deleteByUids($allExistingUids);
             }
             return '';
         }
 
-        $connection = $connectionPool->getConnectionForTable('tx_pixxioextension_domain_model_licenserelease');
-        $licenseReleaseUids = [];
-
-        foreach ($pixxioFile->licenseReleases as $licenseRelease) {
-            $insertData = $this->buildLicenseReleaseData($licenseRelease);
-            $pixxioId = $insertData['pixxio_id'] ?? '';
+        $syncedObjects = [];
+        foreach ($pixxioFile->licenseReleases as $pixxioRelease) {
+            $pixxioId = isset($pixxioRelease->licenseRelease->id) ? (string)$pixxioRelease->licenseRelease->id : '';
 
             if ($pixxioId !== '' && isset($existingByPixxioId[$pixxioId])) {
-                $uid = $existingByPixxioId[$pixxioId];
-                $connection->update('tx_pixxioextension_domain_model_licenserelease', $insertData, ['uid' => $uid]);
+                $obj = $this->hydrateFromPixxio($pixxioRelease, $existingByPixxioId[$pixxioId]);
+                $this->licenseReleaseRepository->update($obj);
             } else {
-                $connection->insert('tx_pixxioextension_domain_model_licenserelease', $insertData);
-                $uid = (int)$connection->lastInsertId();
+                $obj = $this->hydrateFromPixxio($pixxioRelease);
+                $this->licenseReleaseRepository->add($obj);
             }
-
-            $licenseReleaseUids[] = $uid;
+            $syncedObjects[] = $obj;
         }
+
+        $this->persistenceManager->persistAll();
+
+        $licenseReleaseUids = array_map(fn(LicenseRelease $obj) => $obj->getUid(), $syncedObjects);
 
         $uidsToDelete = array_values(array_diff($allExistingUids, $licenseReleaseUids));
         if (!empty($uidsToDelete)) {
-            $queryBuilder = $connectionPool->getQueryBuilderForTable('tx_pixxioextension_domain_model_licenserelease');
-            $queryBuilder
-                ->delete('tx_pixxioextension_domain_model_licenserelease')
-                ->where($queryBuilder->expr()->in('uid', $queryBuilder->createNamedParameter($uidsToDelete, Connection::PARAM_INT_ARRAY)))
-                ->executeStatement();
+            $this->licenseReleaseRepository->deleteByUids($uidsToDelete);
         }
 
         return implode(',', $licenseReleaseUids);
+    }
+
+    private function hydrateFromPixxio(object $pixxioRelease, ?LicenseRelease $obj = null): LicenseRelease
+    {
+        $obj ??= new LicenseRelease();
+
+        if (isset($pixxioRelease->licenseRelease)) {
+            if (isset($pixxioRelease->licenseRelease->id)) {
+                $obj->setPixxioId((string)$pixxioRelease->licenseRelease->id);
+            }
+            if (isset($pixxioRelease->licenseRelease->license->provider)) {
+                $obj->setLicenseProvider($pixxioRelease->licenseRelease->license->provider);
+            }
+            if (isset($pixxioRelease->licenseRelease->name)) {
+                $obj->setName($pixxioRelease->licenseRelease->name);
+            }
+            if (isset($pixxioRelease->licenseRelease->showWarningMessage)) {
+                $obj->setShowWarningMessage((bool)$pixxioRelease->licenseRelease->showWarningMessage);
+            }
+            if (isset($pixxioRelease->licenseRelease->warningMessage)) {
+                $obj->setWarningMessage($pixxioRelease->licenseRelease->warningMessage);
+            }
+        }
+
+        if (isset($pixxioRelease->expires)) {
+            $obj->setExpires($pixxioRelease->expires);
+        }
+
+        return $obj;
     }
 
     private function getMetadataWithFilemetadataExt($pixxioFile)
@@ -923,14 +904,15 @@ class FilesController
 
                 $licenseReleaseUids = [];
                 if (isset($file->licenseReleases)) {
-                    $connectionPool = GeneralUtility::makeInstance(ConnectionPool::class);
-                    $connection = $connectionPool->getConnectionForTable('tx_pixxioextension_domain_model_licenserelease');
-
-                    foreach ($file->licenseReleases as $licenseRelease) {
-                        $insertData = $this->buildLicenseReleaseData($licenseRelease);
-
-                        $connection->insert('tx_pixxioextension_domain_model_licenserelease', $insertData);
-                        $licenseReleaseUids[] = (int)$connection->lastInsertId();
+                    $newObjects = [];
+                    foreach ($file->licenseReleases as $pixxioRelease) {
+                        $obj = $this->hydrateFromPixxio($pixxioRelease);
+                        $this->licenseReleaseRepository->add($obj);
+                        $newObjects[] = $obj;
+                    }
+                    if (!empty($newObjects)) {
+                        $this->persistenceManager->persistAll();
+                        $licenseReleaseUids = array_map(fn(LicenseRelease $obj) => $obj->getUid(), $newObjects);
                     }
                 }
 

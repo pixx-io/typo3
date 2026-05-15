@@ -8,11 +8,22 @@ use TYPO3\CMS\Extbase\DomainObject\AbstractEntity;
 
 class LicenseRelease extends AbstractEntity
 {
+    protected string $pixxioId = '';
     protected string $licenseProvider = '';
     protected string $name = '';
     protected bool $showWarningMessage = false;
     protected string $warningMessage = '';
     protected string $expires = '';
+
+    public function getPixxioId(): string
+    {
+        return $this->pixxioId;
+    }
+
+    public function setPixxioId(string $pixxioId): void
+    {
+        $this->pixxioId = $pixxioId;
+    }
 
     public function getLicenseProvider(): string
     {
