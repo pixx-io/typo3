@@ -571,6 +571,32 @@ class FilesController
         return true;
     }
 
+    private function buildLicenseReleaseData(object $licenseRelease): array
+    {
+        $data = [];
+
+        if (isset($licenseRelease->licenseRelease)) {
+            if (isset($licenseRelease->licenseRelease->license->provider)) {
+                $data['license_provider'] = $licenseRelease->licenseRelease->license->provider;
+            }
+            if (isset($licenseRelease->licenseRelease->name)) {
+                $data['name'] = $licenseRelease->licenseRelease->name;
+            }
+            if (isset($licenseRelease->licenseRelease->showWarningMessage)) {
+                $data['show_warning_message'] = (bool)$licenseRelease->licenseRelease->showWarningMessage;
+            }
+            if (isset($licenseRelease->licenseRelease->warningMessage)) {
+                $data['warning_message'] = $licenseRelease->licenseRelease->warningMessage;
+            }
+        }
+
+        if (isset($licenseRelease->expires)) {
+            $data['expires'] = $licenseRelease->expires;
+        }
+
+        return $data;
+    }
+
     protected function licensereleasesSync($pixxioFile, array $file): string
     {
         $licenseReleaseUids = [];
@@ -590,26 +616,7 @@ class FilesController
 
             $index = 0;
             foreach ($pixxioFile->licenseReleases as $licenseRelease) {
-                $insertData = [];
-
-                if (isset($licenseRelease->licenseRelease)) {
-                    if (isset($licenseRelease->licenseRelease->license->provider)) {
-                        $insertData['license_provider'] = $licenseRelease->licenseRelease->license->provider;
-                    }
-                    if (isset($licenseRelease->licenseRelease->name)) {
-                        $insertData['name'] = $licenseRelease->licenseRelease->name;
-                    }
-                    if (isset($licenseRelease->licenseRelease->showWarningMessage)) {
-                        $insertData['show_warning_message'] = (bool)$licenseRelease->licenseRelease->showWarningMessage;
-                    }
-                    if (isset($licenseRelease->licenseRelease->warningMessage)) {
-                        $insertData['warning_message'] = $licenseRelease->licenseRelease->warningMessage;
-                    }
-                }
-
-                if (isset($licenseRelease->expires)) {
-                    $insertData['expires'] = $licenseRelease->expires;
-                }
+                $insertData = $this->buildLicenseReleaseData($licenseRelease);
 
                 if (!empty($existingLicenseReleaseUids[$index])) {
                     $uid = (int)$existingLicenseReleaseUids[$index];
@@ -928,26 +935,7 @@ class FilesController
                     $connection = $connectionPool->getConnectionForTable('tx_pixxioextension_domain_model_licenserelease');
 
                     foreach ($file->licenseReleases as $licenseRelease) {
-                        $insertData = [];
-
-                        if (isset($licenseRelease->licenseRelease)) {
-                            if (isset($licenseRelease->licenseRelease->license->provider)) {
-                                $insertData['license_provider'] = $licenseRelease->licenseRelease->license->provider;
-                            }
-                            if (isset($licenseRelease->licenseRelease->name)) {
-                                $insertData['name'] = $licenseRelease->licenseRelease->name;
-                            }
-                            if (isset($licenseRelease->licenseRelease->showWarningMessage)) {
-                                $insertData['show_warning_message'] = (bool)$licenseRelease->licenseRelease->showWarningMessage;
-                            }
-                            if (isset($licenseRelease->licenseRelease->warningMessage)) {
-                                $insertData['warning_message'] = $licenseRelease->licenseRelease->warningMessage;
-                            }
-                        }
-
-                        if (isset($licenseRelease->expires)) {
-                            $insertData['expires'] = $licenseRelease->expires;
-                        }
+                        $insertData = $this->buildLicenseReleaseData($licenseRelease);
 
                         $connection->insert('tx_pixxioextension_domain_model_licenserelease', $insertData);
                         $licenseReleaseUids[] = $connection->lastInsertId('tx_pixxioextension_domain_model_licenserelease');
