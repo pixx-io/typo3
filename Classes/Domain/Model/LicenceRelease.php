@@ -6,7 +6,7 @@ namespace Pixxio\PixxioExtension\Domain\Model;
 
 use TYPO3\CMS\Extbase\DomainObject\AbstractEntity;
 
-class LicenceRelease extends AbstractEntity
+class LicenseRelease extends AbstractEntity
 {
     protected string $licenseProvider = '';
     protected string $name = '';
