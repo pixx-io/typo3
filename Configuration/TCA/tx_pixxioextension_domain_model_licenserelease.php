@@ -10,6 +10,8 @@ return [
         'enablecolumns' => [
             'disabled' => 'hidden',
         ],
+        'rootLevel' => 1,
+        'hideTable' => true,
         'iconfile' => 'EXT:pixxio_extension/Resources/Public/Icons/tx_pixxioextension_domain_model_pixxiofiles.gif'
     ],
     'columns' => [
