@@ -1,5 +1,7 @@
 <?php
 
+defined('TYPO3') || die();
+
 return [
     'ctrl' => [
         'label' => 'name',
