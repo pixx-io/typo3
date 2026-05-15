@@ -2,7 +2,8 @@
 
 ## NEXT
 
-- Feat: Add CDN Link support
+- Feature: Add CDN Link support
+- Feature: Add sync for license releases
 
 ## 3.4.3
 
