@@ -85,6 +85,8 @@ return [
             'showitem' => implode(',', [
                 'license_provider',
                 'name',
+                'show_warning_message',
+                'warning_message',
                 'expires',
             ]),
         ],
