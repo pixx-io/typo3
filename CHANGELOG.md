@@ -1,6 +1,6 @@
 # Changelog
 
-## NEXT
+## 3.5.0
 
 - Feature: Add CDN Link support
 - Feature: Add sync for license releases

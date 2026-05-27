@@ -63,9 +63,8 @@ After the installation, there is a database error visible. To fix it, run:
 ## Publish new release
 
 - Create a new branch
-- Update the version in `ext_emconf.php` and `composer.json`
+- Update the version in `ext_emconf.php`
 - Update the version in `CHANGELOG.md`
-- Run `composer install`
 - Push the branch and merge it into the main
 - Checkout main
 - Create and push a new tag: `git tag 3.4.3 && git push --tags`
