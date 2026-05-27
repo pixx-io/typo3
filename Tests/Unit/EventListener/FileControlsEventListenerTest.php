@@ -26,7 +26,7 @@ class FileControlsEventListenerTest extends UnitTestCase
         ];
         
         $expectedSingleParam = '&allowedDownloadFormats=' . urlencode('jpg');
-        $this->assertStringContains('allowedDownloadFormats=jpg', $expectedSingleParam);
+        $this->assertStringContainsString('allowedDownloadFormats=jpg', $expectedSingleParam);
         
         // Test multiple formats (comma-separated)
         $multipleFormatsConfig = [
@@ -64,7 +64,7 @@ class FileControlsEventListenerTest extends UnitTestCase
         // Test with single format
         $singleFormat = 'jpg';
         $expectedSingleUrl = $baseUrl . '&allowedDownloadFormats=' . urlencode($singleFormat);
-        $this->assertStringContains('allowedDownloadFormats=jpg', $expectedSingleUrl);
+        $this->assertStringContainsString('allowedDownloadFormats=jpg', $expectedSingleUrl);
         
         // Test with multiple formats
         $formats = ['jpg', 'png', 'pdf'];
@@ -73,9 +73,9 @@ class FileControlsEventListenerTest extends UnitTestCase
             $multipleFormatsUrl .= '&allowedDownloadFormats=' . urlencode($format);
         }
         
-        $this->assertStringContains('allowedDownloadFormats=jpg', $multipleFormatsUrl);
-        $this->assertStringContains('allowedDownloadFormats=png', $multipleFormatsUrl);
-        $this->assertStringContains('allowedDownloadFormats=pdf', $multipleFormatsUrl);
+        $this->assertStringContainsString('allowedDownloadFormats=jpg', $multipleFormatsUrl);
+        $this->assertStringContainsString('allowedDownloadFormats=png', $multipleFormatsUrl);
+        $this->assertStringContainsString('allowedDownloadFormats=pdf', $multipleFormatsUrl);
     }
     
     /**
