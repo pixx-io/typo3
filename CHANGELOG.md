@@ -2,8 +2,8 @@
 
 ## NEXT
 
-- Feat: Use the FAL API to handle file uploads, which allows to use different FAL Adapters.
-
+ - Feat: Use the FAL API to handle file uploads, allowing the use of different FAL adapters.
+ 
 ## 3.5.0
 
 - Feature: Add CDN Link support
