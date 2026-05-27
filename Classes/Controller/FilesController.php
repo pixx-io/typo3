@@ -13,10 +13,12 @@ use Symfony\Component\Console\Helper\Table;
 use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\Restriction\RootLevelRestriction;
+use TYPO3\CMS\Core\Exception\SiteNotFoundException;
 use TYPO3\CMS\Core\Http\JsonResponse;
 use TYPO3\CMS\Core\Http\RequestFactory;
 use TYPO3\CMS\Core\Resource\Index\MetaDataRepository;
 use TYPO3\CMS\Core\Resource\ResourceFactory;
+use TYPO3\CMS\Core\Site\SiteFinder;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Persistence\PersistenceManagerInterface;
@@ -38,6 +40,7 @@ class FilesController
     protected $extensionConfiguration;
     private $applikationKey = 'ghx8F66X3ix4AJ0VmS0DE8sx7';
     private $accessToken = '';
+    private $siteIdentifier = '';
 
     public function __construct(
         private readonly LicenseReleaseRepository $licenseReleaseRepository,
@@ -65,8 +68,27 @@ class FilesController
         ServerRequestInterface $request,
         ?ResponseInterface $response = null
     ): ResponseInterface {
+        $parsedBody = $this->getJSONRequest($request)->getParsedBody();
+
+        if (is_object($parsedBody) && isset($parsedBody->pid)) {
+            $pageId = (int)$parsedBody->pid;
+            $this->extensionConfiguration = ConfigurationUtility::getConfigurationForDatabaseRow([
+                'pid' => $pageId,
+            ]);
+
+            // Determine site identifier from page ID
+            if ($pageId > 0) {
+                try {
+                    $site = GeneralUtility::makeInstance(SiteFinder::class)->getSiteByPageId($pageId);
+                    $this->siteIdentifier = $site->getIdentifier();
+                } catch (SiteNotFoundException) {
+                    $this->siteIdentifier = '';
+                }
+            }
+        }
+
         // get files
-        $files = $this->getJSONRequest($request)->getParsedBody()->files;
+        $files = (is_object($parsedBody) && isset($parsedBody->files)) ? $parsedBody->files : [];
 
         // pull files from pixx.io
         if ($files) {
@@ -388,7 +410,6 @@ class FilesController
             return true;
         }
 
-        $metadata = GeneralUtility::makeInstance(MetaDataRepository::class);
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('sys_file_metadata');
         $queryBuilder->getRestrictions()->add(GeneralUtility::makeInstance(RootLevelRestriction::class));
 
@@ -425,6 +446,70 @@ class FilesController
         if (empty($fileIds)) {
             $io->writeln('No pixx.io files found');
             return true;
+        }
+
+        $configurationGroups = $this->groupFilesBySyncConfiguration($files);
+        $io->writeln('Sync groups by site/configuration: ' . count($configurationGroups));
+
+        foreach ($configurationGroups as $group) {
+            $this->syncGroup($group['files'], $group['configuration'], $group['label'], $group['site_identifier'], $io);
+        }
+
+        return true;
+    }
+
+    private function groupFilesBySyncConfiguration(array $files): array
+    {
+        $groups = [];
+        foreach ($files as $file) {
+            $siteIdentifier = (string)($file['pixxio_site_identifier'] ?? '');
+            
+            // Fallback for old files without site_identifier: always use global configuration
+            // This ensures backward compatibility - old files imported before the site_identifier
+            // feature was added will continue to use the global extension config.
+            if ($siteIdentifier === '') {
+                $configuration = ConfigurationUtility::getExtensionConfiguration();
+                $groupKey = 'legacy_global';
+                $label = 'global (legacy files)';
+                $actualSiteIdentifier = '';
+            } else {
+                $configuration = ConfigurationUtility::getConfigurationForSiteIdentifier($siteIdentifier);
+                $groupKey = 'site_' . $siteIdentifier;
+                $label = $siteIdentifier;
+                $actualSiteIdentifier = $siteIdentifier;
+            }
+
+            if (!isset($groups[$groupKey])) {
+                $groups[$groupKey] = [
+                    'configuration' => $configuration,
+                    'files' => [],
+                    'label' => $label,
+                    'site_identifier' => $actualSiteIdentifier,
+                ];
+            }
+
+            $groups[$groupKey]['files'][] = $file;
+        }
+
+        return array_values($groups);
+    }
+
+    private function syncGroup(array $files, array $configuration, string $groupLabel, string $siteIdentifier, $io): void
+    {
+        $this->extensionConfiguration = $configuration;
+        $this->siteIdentifier = $siteIdentifier;
+        $metadata = GeneralUtility::makeInstance(MetaDataRepository::class);
+
+        $io->writeln('');
+        $io->writeln('Sync group: ' . $groupLabel . ' (' . count($files) . ' files)');
+
+        $fileIds = array_map(function ($file) {
+            return $file['pixxio_file_id'];
+        }, $files);
+
+        if (empty($fileIds)) {
+            $io->writeln('No pixx.io files found in group');
+            return;
         }
 
         $io->writeln('Authenticate to pixx.io');
@@ -478,7 +563,7 @@ class FilesController
 
         foreach ($files as $index => $file) {
             // delete files
-            if (in_array($file['pixxio_file_id'], $pixxioIdsToDelete)) {
+            if (in_array($file['pixxio_file_id'], $pixxioIdsToDelete, true)) {
                 if ($this->extensionConfiguration['delete']) {
                     $io->writeln('File deleted: ' . $file['identifier']);
                     if (!empty($file['tx_pixxioextension_licensereleases'])) {
@@ -501,7 +586,7 @@ class FilesController
             }
 
             // update to new version
-            if (in_array($file['pixxio_file_id'], $pixxioIdsToUpdate)) {
+            if (in_array($file['pixxio_file_id'], $pixxioIdsToUpdate, true)) {
                 if ($this->extensionConfiguration['update']) {
                     $newId = 0;
                     foreach ($pixxioDiff as $diff) {
@@ -537,7 +622,7 @@ class FilesController
             $files = array_values($files);
 
             $fileIdsWithoutDeletedFiles = array_values(array_filter($fileIds, function ($id) use ($pixxioIdsToDelete) {
-                return !in_array($id, $pixxioIdsToDelete);
+                return !in_array($id, $pixxioIdsToDelete, true);
             }));
 
             $io->writeln('Start to sync metadata: ' . join(', ', $fileIdsWithoutDeletedFiles));
@@ -561,6 +646,7 @@ class FilesController
                     'description' => $pixxioFile->description,
                     'alternative' => $this->getMetadataField($pixxioFile, $this->extensionConfiguration['alt_text'] ?: 'Alt Text (Accessibility)'),
                     'pixxio_file_id' => $pixxioFile->id,
+                    'pixxio_site_identifier' => $this->siteIdentifier,
                     'pixxio_last_sync_stamp' => time()
                 );
 
@@ -574,8 +660,6 @@ class FilesController
                 $metadata->update($file['uid'], $additionalFields);
             }
         }
-
-        return true;
     }
 
     protected function licenseReleasesSync($pixxioFile, array $file): string
@@ -927,6 +1011,7 @@ class FilesController
                     'description' => $file->description,
                     'pixxio_file_id' => $file->id,
                     'pixxio_mediaspace' => $mediaspaceUrl,
+                    'pixxio_site_identifier' => $this->siteIdentifier,
                     'pixxio_last_sync_stamp' => time(),
                     'pixxio_downloadformat' => $downloadFormat,
                     'pixxio_is_direct_link' => $hasUsableDirectLink ? 1 : 0,

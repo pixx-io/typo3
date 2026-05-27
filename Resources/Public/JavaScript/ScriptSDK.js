@@ -119,6 +119,7 @@ function downloadFiles(files) {
   new AjaxRequest(TYPO3.settings.ajaxUrls.pixxio_files)
     .post(
       {
+        pid: Number(container.dataset.pid || 0),
         files: files.map((file) => {
           const metadata = file.metadata || {};
           return {
@@ -145,7 +146,7 @@ function downloadFiles(files) {
         data.files.forEach(function (uid) {
           const message = {
             actionName: "typo3:foreignRelation:insert",
-            objectGroup: container.getAttribute("data-dom"),
+            objectGroup: container.dataset.dom,
             table: "sys_file",
             uid: uid,
           };
@@ -201,10 +202,10 @@ function handleSdkReady(messageEvent) {
   if (
     targetButton &&
     targetIframe &&
-    targetButton.getAttribute("data-auto-login") === "1"
+    targetButton.dataset.autoLogin === "1"
   ) {
-    const refreshToken = targetButton.getAttribute("data-refresh-token");
-    const mediaspaceUrl = targetButton.getAttribute("data-mediaspace-url");
+    const refreshToken = targetButton.dataset.refreshToken;
+    const mediaspaceUrl = targetButton.dataset.mediaspaceUrl;
 
     if (refreshToken && mediaspaceUrl) {
       // Decode the base64 encoded values

@@ -4,6 +4,7 @@
 
 - Feature: Add CDN Link support
 - Feature: Add sync for license releases
+- Feature: Add multi-site configuration support with site-specific settings
 
 ## 3.4.3
 
