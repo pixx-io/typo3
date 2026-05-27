@@ -6,6 +6,7 @@ The pixx.io Typo3 Extension allows pixx.io users to select the assets directly f
 
 - Select your assets from you pixx.io Mediaspace
 - Sync your assets and metadata from pixx.io Mediaspace
+- Multi-Site Support: Configure separate credentials and file storages per TYPO3 site (TYPO3 v13)
 - Includes Proxy support
 - Works with the popular core extension: typo3/filemetadata
 
@@ -31,60 +32,55 @@ is set in your php.ini. With that configuration curl is not used but `file_get_c
 
 ## Configuration:
 
-To get the extension complete expierence, you have to do some settings first. Go to Settings > Extension configuration and select pixxio_extension.
-You have four configuration categories Basic, Metadata, Sync and Proxy:
+To get the extension complete experience, you have to do some settings first. Go to Settings > Extension configuration and select pixxio_extension.
+
+### Multi-Site Configuration (TYPO3 v13)
+
+The extension supports site-specific configuration for multi-site installations. This allows you to:
+
+- Use different pixx.io credentials (mediaspaces/users) per TYPO3 site
+- Store files from different sites in separate storages
+- Isolate file access using TYPO3's native file permissions
+
+**Site-specific settings** (configured per site in TYPO3 Backend):
+- `pixxio.url` - Mediaspace URL
+- `pixxio.token_refresh` - API refresh token
+- `pixxio.auto_login` - Auto-login in image picker
+- `pixxio.filestorage_id` - Storage UID for file separation
+- `pixxio.subfolder` - Subfolder within storage
+
+All other settings (sync behavior, metadata mapping, proxy) are configured globally in Extension Configuration.
+
+**📖 Detailed Documentation:** See [docs/SITE_SPECIFIC_STORAGE.md](./docs/SITE_SPECIFIC_STORAGE.md) for complete setup instructions, examples, and best practices.
+
+**Example site configuration** (`config/sites/<siteIdentifier>/settings.yaml`):
+
+```yaml
+pixxio:
+  url: 'https://portal-a.pixx.io'
+  token_refresh: 'your-refresh-token'
+  filestorage_id: 2
+  subfolder: 'pixxio'
+  auto_login: true
+```
+
+If no site-specific value is set, the global extension configuration is used as fallback.
+
+---
+
+### Global Extension Configuration
+
+You have four configuration categories: Basic, Metadata, Sync and Proxy:
 
 ### Basic
 
 For Sync Actions it is necessary to set the URL of your mediaspace and refresh token (The refresh token is accessible in pixx.io under the Settings -> User -> Edit a User and go to App Connections).
 
-You can configure these values globally in extension settings or site-specific in TYPO3 Site Settings (recommended for multi-portal setups).
+**Note:** For multi-site installations, configure these values per site instead of globally (see Multi-Site Configuration above).
 
 The File Storage ID is an optional setting. You can choose a Storage ID, where you would like to upload and store the pixx.io assets. You can also define a subfolder if you wish.
 
 In the `allowed_download_formats` setting you can configure in which format the images are allowed to be imported. With the `original` format, the original file will be imported without conversion. With the `preview` format, images are downscaled to Full HD size and imported as JPEG or PNG. With the formats `jpg`, `png`, `pdf` and `tiff`, images are converted to the respective format if possible.
-
-
-### Per-Portal / Site-specific Login (TYPO3 v13)
-
-If you operate multiple portals (sites) in a single TYPO3 instance, you can configure pixx.io credentials per site.
-
-The extension uses TYPO3 Site Settings for this. If no site-specific value is set, the global extension configuration is used as a fallback.
-
-The extension currently ships the following site-level settings: `pixxio.url`, `pixxio.token_refresh` and `pixxio.auto_login`.
-
-The override logic in PHP is implemented generically. This means additional extension configuration keys can also be overridden per site if corresponding entries are added to the site set definition.
-
-**Best practice for TYPO3 setups:**
-
-- Keep **portal identity and access** site-specific (`url`, `token_refresh`, optionally `auto_login`).
-- Keep **technical/infrastructure defaults** global in extension configuration (for example proxy and sync policy).
-- Add additional site-level keys only when they must really differ per site.
-
-In this extension that means:
-
-- Use site settings for per-portal login data.
-- Use extension configuration as global fallback and for operational defaults.
-- If you need more per-site overrides, extend `Configuration/Sets/Pixxio/settings.definitions.yaml` with additional `pixxio.<key>` definitions.
-
-The sync process also uses this mapping: assets are grouped by `pixxio_mediaspace` and synchronized with the matching site configuration.
-
-**Example site configuration (config/sites/<siteIdentifier>/config.yaml):**
-
-```yaml
-dependencies:
-  - pixxio/pixxio-extension
-
-settings:
-  pixxio:
-    url: portal-a.px.media
-    token_refresh: <refresh-token-for-this-portal>
-    auto_login: true
-```
-
-**Security note:** If you configure sensitive values like refresh tokens in files, make sure your deployment is secured (e.g. do not store secrets in public repositories).
-
-**Legacy data note:** If older records do not have a `pixxio_mediaspace` set, the sync will continue to use the global fallback configuration.
 
 ### Metadata
 
@@ -143,3 +139,8 @@ If you are using the core extension `filemetadata` we will sync more metadata fr
 - `Date created` / `Erstellungsdatum` (Type: Internal) => `Content Creation Date`
 - `Zuletzt bearbeitet` (Type: Internal) => `Content Modification Date`
 - `ModifyDate` / `Farbraum` (Type: Internal) => `Color Space`
+
+## Documentation
+
+- **[Site-Specific Storage Configuration](./docs/SITE_SPECIFIC_STORAGE.md)** - Complete guide for multi-site installations with separate file storages and credentials
+- **[Sync Process](./docs/sync.md)** - Detailed information about the synchronization process
