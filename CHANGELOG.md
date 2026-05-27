@@ -4,6 +4,7 @@
 
 - Feature: Add CDN Link support
 - Feature: Add sync for license releases
+- Feature: Add Site Sets support
 
 ## 3.4.3
 
