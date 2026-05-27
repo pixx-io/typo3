@@ -45,7 +45,7 @@ class FilesControllerTest extends UnitTestCase
             ->with('test-image.jpg')
             ->willReturn(false);
 
-        // Inject the folder mock by overriding the private uploadFolder method result
+        // Inject the folder mock by overriding the protected uploadFolder method result
         $this->subject = $this->getMockBuilder($this->buildAccessibleProxy(FilesController::class))
             ->disableOriginalConstructor()
             ->onlyMethods(['uploadFolder'])
