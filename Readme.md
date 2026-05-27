@@ -1,5 +1,8 @@
 # pixx.io TYPO3 Extension
 
+[![Tests](https://github.com/pixx-io/typo3/actions/workflows/tests.yml/badge.svg)](https://github.com/pixx-io/typo3/actions/workflows/tests.yml)
+[![codecov](https://codecov.io/gh/pixx-io/typo3/branch/main/graph/badge.svg)](https://codecov.io/gh/pixx-io/typo3)
+
 The pixx.io Typo3 Extension allows pixx.io users to select the assets directly from their mediaspace.
 
 ## Key Features:
@@ -144,3 +147,30 @@ If you are using the core extension `filemetadata` we will sync more metadata fr
 
 - **[Site-Specific Storage Configuration](./docs/SITE_SPECIFIC_STORAGE.md)** - Complete guide for multi-site installations with separate file storages and credentials
 - **[Sync Process](./docs/sync.md)** - Detailed information about the synchronization process
+
+## Development
+
+### Running Tests
+
+This extension includes PHPUnit tests to ensure code quality. To run the tests locally:
+
+```bash
+# Install dependencies
+composer install
+
+# Run all tests
+.Build/bin/phpunit
+
+# Run tests with detailed output
+.Build/bin/phpunit --testdox
+
+# Run only unit tests
+.Build/bin/phpunit --testsuite Unit
+
+# Run tests with coverage
+.Build/bin/phpunit --coverage-text
+
+# Check PHP syntax
+find Classes Tests -name "*.php" -print0 | xargs -0 -n1 php -l
+```
+
