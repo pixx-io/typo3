@@ -1,5 +1,9 @@
 # Changelog
 
+## NEXT
+
+- Feat: Use the FAL API to handle file uploads, which allows to use different FAL Adapters.
+
 ## 3.5.0
 
 - Feature: Add CDN Link support

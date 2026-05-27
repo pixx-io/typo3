@@ -16,6 +16,7 @@ use TYPO3\CMS\Core\Database\Query\Restriction\RootLevelRestriction;
 use TYPO3\CMS\Core\Exception\SiteNotFoundException;
 use TYPO3\CMS\Core\Http\JsonResponse;
 use TYPO3\CMS\Core\Http\RequestFactory;
+use TYPO3\CMS\Core\Resource\Folder;
 use TYPO3\CMS\Core\Resource\Index\MetaDataRepository;
 use TYPO3\CMS\Core\Resource\ResourceFactory;
 use TYPO3\CMS\Core\Site\SiteFinder;
@@ -106,30 +107,22 @@ class FilesController
         );
     }
 
-    private function uploadPath()
+    protected function uploadFolder(): Folder
     {
         try {
             $storage = $this->getStorage();
 
-            $storageBasePath = $storage->getConfiguration()['basePath'];
-
-            // correct beginning and trailing slashes
-            if (!str_ends_with((string) $storageBasePath, '/')) {
-                $storageBasePath = $storageBasePath . '/';
-            }
-            if (str_starts_with((string) $storageBasePath, '/')) {
-                $storageBasePath = substr((string) $storageBasePath, 1);
-            }
-
             if ($this->extensionConfiguration['subfolder']) {
-                $storageBasePath .= $this->extensionConfiguration['subfolder'];
+                if ($storage->hasFolder($this->extensionConfiguration['subfolder'])) {
+                    $folder = $storage->getFolder($this->extensionConfiguration['subfolder']);
+                } else {
+                    $folder = $storage->createFolder($this->extensionConfiguration['subfolder']);
+                }
+            } else {
+                $folder = $storage->getRootLevelFolder();
             }
 
-            if (!str_ends_with((string) $storageBasePath, '/')) {
-                $storageBasePath = $storageBasePath . '/';
-            }
-
-            return GeneralUtility::getFileAbsFileName($storageBasePath);
+            return $folder;
         } catch (\Exception $error) {
             $this->throwError($error->getMessage(), $error->getCode());
         }
@@ -820,7 +813,9 @@ class FilesController
 
     private function saveFile($filename, $url, bool $isDirectLink = false)
     {
-        $absFileIdentifier = $this->uploadPath() . $filename;
+        // Use unique temp file to avoid collision with concurrent requests
+        $extension = pathinfo($filename, PATHINFO_EXTENSION);
+        $absTmpFileIdentifier = tempnam(sys_get_temp_dir(), 'pixxio_') . ($extension ? '.' . $extension : '');
 
         // Check for executable extensions before attempting to save
         if ($this->isExecutableExtension($filename)) {
@@ -832,7 +827,7 @@ class FilesController
 
         try {
             $options = [
-                'sink' => $absFileIdentifier,
+                'sink' => $absTmpFileIdentifier,
                 'timeout' => 300,
                 'allow_redirects' => true
             ];
@@ -851,10 +846,10 @@ class FilesController
 
             // Direct link imports are backend preview assets and should stay lightweight.
             if ($isDirectLink) {
-                $this->resizeImageToMaxWidth($absFileIdentifier, 250);
+                $this->resizeImageToMaxWidth($absTmpFileIdentifier, 250);
             }
 
-            return $absFileIdentifier;
+            return $absTmpFileIdentifier;
         } catch (\GuzzleHttp\Exception\RequestException $e) {
             $statusCode = $e->hasResponse() ? $e->getResponse()->getStatusCode() : 'unknown';
             $this->throwError(
@@ -934,35 +929,40 @@ class FilesController
             $originalFilename = $this->getNonUtf8Filename($file->fileName ?: '');
             $filename = $this->generateUniqueFilename($originalFilename);
             $targetIdentifier = rtrim((string)($this->extensionConfiguration['subfolder'] ?? ''), '/') . '/' . $filename;
-            $targetPath = $this->uploadPath() . $filename;
 
             $hasUsableDirectLink = $useDirectLinks && isset($file->directLink) && $file->directLink !== '';
 
+            $absTmpFileIdentifier = null;
             if ($hasUsableDirectLink) {
                 try {
-                    $this->saveFile($filename, $file->directLink, true);
+                    $absTmpFileIdentifier = $this->saveFile($filename, $file->directLink, true);
                 } catch (\RuntimeException $e) {
                     throw new \RuntimeException(
-                        'Copying file "' . $filename . '" failed. Target identifier: "' . $targetIdentifier . '", target path: "' . $targetPath . '". Original error: ' . $e->getMessage(),
+                        'Copying file "' . $filename . '" failed. Target identifier: "' . $targetIdentifier . '". Original error: ' . $e->getMessage(),
                         (int)$e->getCode(),
                         $e
                     );
                 }
             } elseif (isset($file->downloadURL)) {
                 try {
-                    $this->saveFile($filename, $file->downloadURL);
+                    $absTmpFileIdentifier = $this->saveFile($filename, $file->downloadURL);
                 } catch (\RuntimeException $e) {
                     throw new \RuntimeException(
-                        'Copying file "' . $filename . '" failed. Target identifier: "' . $targetIdentifier . '", target path: "' . $targetPath . '". Original error: ' . $e->getMessage(),
+                        'Copying file "' . $filename . '" failed. Target identifier: "' . $targetIdentifier . '". Original error: ' . $e->getMessage(),
                         (int)$e->getCode(),
                         $e
                     );
                 }
             } else {
-                $this->throwError('No usable download URL for file "' . $filename . '". Target identifier: "' . $targetIdentifier . '", target path: "' . $targetPath . '".', 11);
+                $this->throwError('No usable download URL for file "' . $filename . '". Target identifier: "' . $targetIdentifier . '".', 11);
             }
 
-            $importedFile = $this->getStorage()->getFile($this->extensionConfiguration['subfolder'] . '/' . $filename);
+            $importedFile = $this->getStorage()->addFile(
+                $absTmpFileIdentifier,
+                $this->uploadFolder(),
+                $filename,
+                'replace'
+            );
             if ($importedFile) {
                 // import file to FAL
                 $importedFileUid = $importedFile->getUid();
@@ -1072,12 +1072,12 @@ class FilesController
      */
     protected function generateUniqueFilename($filename): string
     {
-        $uploadPath = $this->uploadPath();
+        $uploadFolder = $this->uploadFolder();
         $originalFilename = $filename;
         $counter = 1;
 
         // Keep checking and incrementing until we find a unique filename
-        while (file_exists($uploadPath . $filename)) {
+        while ($uploadFolder->hasFile($filename)) {
             $pathInfo = pathinfo($originalFilename);
             $basename = $pathInfo['filename'];
             $extension = isset($pathInfo['extension']) ? '.' . $pathInfo['extension'] : '';
