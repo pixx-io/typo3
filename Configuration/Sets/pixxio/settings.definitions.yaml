@@ -1,20 +1,40 @@
 categories:
-  pixxio:
-    label: 'pixx.io'
+  pixxio-storage:
+    label: 'pixx.io - Storage'
+  pixxio-connection:
+    label: 'pixx.io - Connection'
 
 settings:
+  # Storage Settings
+  pixxio.filestorage_id:
+    default: 1
+    type: int
+    category: pixxio-storage
+    label: 'File Storage ID'
+    description: 'Storage UID where pixx.io files should be stored (Default: 1 = fileadmin). Use different storage IDs per site for file separation.'
+  pixxio.subfolder:
+    default: ''
+    type: string
+    category: pixxio-storage
+    label: 'Subfolder'
+    description: 'Subfolder within the storage where pixx.io files are stored (e.g. "pixxio")'
+  
+  # Connection Settings
   pixxio.url:
     default: ''
     type: string
-    category: pixxio
+    category: pixxio-connection
     label: 'Mediaspace URL'
+    description: 'pixx.io mediaspace URL (e.g. domain.px.media or https://your.pixx.io)'
   pixxio.token_refresh:
     default: ''
     type: string
-    category: pixxio
+    category: pixxio-connection
     label: 'Refresh token'
+    description: 'Refresh token for API access - obtain from pixx.io mediaspace settings'
   pixxio.auto_login:
     default: false
     type: bool
-    category: pixxio
+    category: pixxio-connection
     label: 'Enable auto login'
+    description: 'Automatically log in with these credentials when opening the image picker'
