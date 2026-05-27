@@ -996,11 +996,13 @@ class FilesController
 
             // Import file to FAL and ensure temp file cleanup
             try {
+                // Use 'rename' instead of 'replace' to avoid overwriting files in concurrent imports
+                // If the filename still conflicts (race condition), FAL will automatically add a suffix
                 $importedFile = $this->getStorage()->addFile(
                     $absTmpFileIdentifier,
                     $this->uploadFolder(),
                     $filename,
-                    'replace'
+                    'rename'
                 );
             } finally {
                 // Always clean up the temp file after FAL has processed it
