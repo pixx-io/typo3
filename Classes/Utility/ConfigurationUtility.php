@@ -88,6 +88,29 @@ class ConfigurationUtility
         return $extensionConfiguration;
     }
 
+    public static function getConfigurationForSiteIdentifier(string $siteIdentifier): array
+    {
+        $extensionConfiguration = static::getExtensionConfiguration();
+        if ($siteIdentifier === '') {
+            return $extensionConfiguration;
+        }
+
+        try {
+            $site = GeneralUtility::makeInstance(SiteFinder::class)->getSiteByIdentifier($siteIdentifier);
+        } catch (SiteNotFoundException) {
+            return $extensionConfiguration;
+        }
+
+        $siteSettings = $site->getSettings();
+        $extensionConfiguration = static::applySiteSettingOverrides($extensionConfiguration, $siteSettings);
+
+        if (isset($extensionConfiguration['url'])) {
+            $extensionConfiguration['url'] = static::getCompleteUrl((string)$extensionConfiguration['url']);
+        }
+
+        return $extensionConfiguration;
+    }
+
     public static function getCompleteUrl(string $url): string
     {
         if ($url === '') {

@@ -1,7 +1,7 @@
-# cat=basic; type=int; label=File Storage ID (Default is 1 = fileadmin in standard TYPO3 installations)
+# cat=basic; type=int; label=File Storage ID (Default is 1 = fileadmin in standard TYPO3 installations). Can be overridden per site via settings.yaml (pixxio.filestorage_id) for multi-site installations with separate file storages.
 filestorage_id = 1
 
-# cat=basic; type=string; label=Default subfolder (of choosen File Storage, e.g. "images")
+# cat=basic; type=string; label=Default subfolder (of chosen File Storage, e.g. "pixxio"). Can be overridden per site via settings.yaml (pixxio.subfolder).
 subfolder =
 
 # cat=basic; type=string; label=Allowed download formats: Control which download formats are available in the plugin SDK iframe. Use comma-separated values for multiple formats (e.g. "jpg,png,pdf"). Valid formats: original, preview, jpg, png, pdf, tiff. Leave empty for all formats.

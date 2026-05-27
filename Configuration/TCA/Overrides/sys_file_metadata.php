@@ -13,6 +13,14 @@ $temporaryPixxioFields = [
         'type' => 'input',
       ]
     ],
+    'pixxio_site_identifier' =>  [
+      'exclude' => 0,
+      'label' => 'pixx.io Site Identifier',
+      'config' =>  [
+        'readOnly' => true,
+        'type' => 'input',
+      ]
+    ],
     'pixxio_file_id' =>  [
       'exclude' => 0,
       'label' => 'pixx.io File ID',

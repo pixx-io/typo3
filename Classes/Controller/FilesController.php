@@ -13,10 +13,12 @@ use Symfony\Component\Console\Helper\Table;
 use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\Restriction\RootLevelRestriction;
+use TYPO3\CMS\Core\Exception\SiteNotFoundException;
 use TYPO3\CMS\Core\Http\JsonResponse;
 use TYPO3\CMS\Core\Http\RequestFactory;
 use TYPO3\CMS\Core\Resource\Index\MetaDataRepository;
 use TYPO3\CMS\Core\Resource\ResourceFactory;
+use TYPO3\CMS\Core\Site\SiteFinder;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Persistence\PersistenceManagerInterface;
@@ -38,6 +40,7 @@ class FilesController
     protected $extensionConfiguration;
     private $applikationKey = 'ghx8F66X3ix4AJ0VmS0DE8sx7';
     private $accessToken = '';
+    private $siteIdentifier = '';
 
     public function __construct(
         private readonly LicenseReleaseRepository $licenseReleaseRepository,
@@ -68,9 +71,20 @@ class FilesController
         $parsedBody = $this->getJSONRequest($request)->getParsedBody();
 
         if (is_object($parsedBody) && isset($parsedBody->pid)) {
+            $pageId = (int)$parsedBody->pid;
             $this->extensionConfiguration = ConfigurationUtility::getConfigurationForDatabaseRow([
-                'pid' => (int)$parsedBody->pid,
+                'pid' => $pageId,
             ]);
+
+            // Determine site identifier from page ID
+            if ($pageId > 0) {
+                try {
+                    $site = GeneralUtility::makeInstance(SiteFinder::class)->getSiteByPageId($pageId);
+                    $this->siteIdentifier = $site->getIdentifier();
+                } catch (SiteNotFoundException) {
+                    $this->siteIdentifier = '';
+                }
+            }
         }
 
         // get files
@@ -435,10 +449,10 @@ class FilesController
         }
 
         $configurationGroups = $this->groupFilesBySyncConfiguration($files);
-        $io->writeln('Sync groups by mediaspace/configuration: ' . count($configurationGroups));
+        $io->writeln('Sync groups by site/configuration: ' . count($configurationGroups));
 
         foreach ($configurationGroups as $group) {
-            $this->syncGroup($group['files'], $group['configuration'], $group['label'], $io);
+            $this->syncGroup($group['files'], $group['configuration'], $group['label'], $group['site_identifier'], $io);
         }
 
         return true;
@@ -448,15 +462,29 @@ class FilesController
     {
         $groups = [];
         foreach ($files as $file) {
-            $mediaspace = (string)($file['pixxio_mediaspace'] ?? '');
-            $configuration = ConfigurationUtility::getConfigurationForMediaspace($mediaspace);
-            $groupKey = sha1((string)($configuration['url'] ?? '') . '|' . (string)($configuration['token_refresh'] ?? ''));
+            $siteIdentifier = (string)($file['pixxio_site_identifier'] ?? '');
+            
+            // Fallback for old files without site_identifier: always use global configuration
+            // This ensures backward compatibility - old files imported before the site_identifier
+            // feature was added will continue to use the global extension config.
+            if ($siteIdentifier === '') {
+                $configuration = ConfigurationUtility::getExtensionConfiguration();
+                $groupKey = 'legacy_global';
+                $label = 'global (legacy files)';
+                $actualSiteIdentifier = '';
+            } else {
+                $configuration = ConfigurationUtility::getConfigurationForSiteIdentifier($siteIdentifier);
+                $groupKey = 'site_' . $siteIdentifier;
+                $label = $siteIdentifier;
+                $actualSiteIdentifier = $siteIdentifier;
+            }
 
             if (!isset($groups[$groupKey])) {
                 $groups[$groupKey] = [
                     'configuration' => $configuration,
                     'files' => [],
-                    'label' => (string)($configuration['url'] ?? 'global'),
+                    'label' => $label,
+                    'site_identifier' => $actualSiteIdentifier,
                 ];
             }
 
@@ -466,9 +494,10 @@ class FilesController
         return array_values($groups);
     }
 
-    private function syncGroup(array $files, array $configuration, string $groupLabel, $io): void
+    private function syncGroup(array $files, array $configuration, string $groupLabel, string $siteIdentifier, $io): void
     {
         $this->extensionConfiguration = $configuration;
+        $this->siteIdentifier = $siteIdentifier;
         $metadata = GeneralUtility::makeInstance(MetaDataRepository::class);
 
         $io->writeln('');
@@ -617,6 +646,7 @@ class FilesController
                     'description' => $pixxioFile->description,
                     'alternative' => $this->getMetadataField($pixxioFile, $this->extensionConfiguration['alt_text'] ?: 'Alt Text (Accessibility)'),
                     'pixxio_file_id' => $pixxioFile->id,
+                    'pixxio_site_identifier' => $this->siteIdentifier,
                     'pixxio_last_sync_stamp' => time()
                 );
 
@@ -981,6 +1011,7 @@ class FilesController
                     'description' => $file->description,
                     'pixxio_file_id' => $file->id,
                     'pixxio_mediaspace' => $mediaspaceUrl,
+                    'pixxio_site_identifier' => $this->siteIdentifier,
                     'pixxio_last_sync_stamp' => time(),
                     'pixxio_downloadformat' => $downloadFormat,
                     'pixxio_is_direct_link' => $hasUsableDirectLink ? 1 : 0,
