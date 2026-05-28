@@ -18,10 +18,11 @@ The pixx.io Typo3 Extension allows pixx.io users to select the assets directly f
 
 This extension has several main versions, which are intended for different TYPO3 versions:
 
-| Extension version | Compatible with TYPO3 | Branch                                                   | Changelog                                                                  |
-| ----------------- | --------------------- | -------------------------------------------------------- | -------------------------------------------------------------------------- |
-| 3.x               | TYPO3 v13             | [`main`](https://github.com/pixx-io/typo3)               | [Changelog 3.x](https://github.com/pixx-io/typo3/blob/main/CHANGELOG.md)   |
-| 2.x               | TYPO3 v11 - v12.      | [`v12`](https://github.com/pixx-io/typo3/tree/v12) | [Changelog 2.x](https://github.com/pixx-io/typo3/blob/v12/CHANGELOG.md) |
+| Extension version | Compatible with TYPO3 | Branch                                              | Changelog                                                                |
+| ----------------- | --------------------- | --------------------------------------------------- | ------------------------------------------------------------------------ |
+| 4.x               | TYPO3 v14             | [`v14`](https://github.com/pixx-io/typo3/tree/v14) | [Changelog 4.x](https://github.com/pixx-io/typo3/blob/v14/CHANGELOG.md)  |
+| 3.x               | TYPO3 v13             | [`main`](https://github.com/pixx-io/typo3)          | [Changelog 3.x](https://github.com/pixx-io/typo3/blob/main/CHANGELOG.md) |
+| 2.x               | TYPO3 v11 - v12.      | [`v12`](https://github.com/pixx-io/typo3/tree/v12)  | [Changelog 2.x](https://github.com/pixx-io/typo3/blob/v12/CHANGELOG.md)  |
 
 Please use the appropriate version depending on your TYPO3 installation.
 
@@ -47,6 +48,7 @@ The extension supports site-specific configuration for multi-site installations.
 - Isolate file access using TYPO3's native file permissions
 
 **Site-specific settings** (configured per site in TYPO3 Backend):
+
 - `pixxio.url` - Mediaspace URL
 - `pixxio.token_refresh` - API refresh token
 - `pixxio.auto_login` - Auto-login in image picker
@@ -61,10 +63,10 @@ All other settings (sync behavior, metadata mapping, proxy) are configured globa
 
 ```yaml
 pixxio:
-  url: 'https://portal-a.pixx.io'
-  token_refresh: 'your-refresh-token'
+  url: "https://portal-a.pixx.io"
+  token_refresh: "your-refresh-token"
   filestorage_id: 2
-  subfolder: 'pixxio'
+  subfolder: "pixxio"
   auto_login: true
 ```
 
@@ -85,6 +87,7 @@ For Sync Actions it is necessary to set the URL of your mediaspace and refresh t
 The File Storage ID is an optional setting. You can choose a Storage ID, where you would like to upload and store the pixx.io assets. You can also define a subfolder if you wish.
 
 **Storage Adapters:** The extension uses TYPO3's File Abstraction Layer (FAL) API and supports any configured storage adapter:
+
 - Local filesystem (default)
 - AWS S3
 - Azure Blob Storage
@@ -192,8 +195,8 @@ composer ci
 The project uses PHPStan Level 6 for static code analysis to catch potential bugs and type errors before runtime.
 
 Level 6 enforces:
+
 - Type hints for all parameters and return types
 - Proper array type specifications (e.g., `array<string, mixed>`)
 - Generic type declarations for classes extending generic base classes
 - Strict type checks including detection of always-true/false conditions
-
