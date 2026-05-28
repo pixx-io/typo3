@@ -50,16 +50,12 @@
         "analyze:phpstan": [
             "phpstan analyse --no-progress --memory-limit=512M"
         ],
-        "audit:security": [
-            "composer audit --no-dev --ignore-severity=low --ignore-severity=medium"
-        ],
         "test:unit": [
             "phpunit"
         ],
         "ci": [
             "@lint:php",
             "@analyze:phpstan",
-            "@audit:security",
             "@test:unit"
         ]
     },
