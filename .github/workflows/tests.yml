@@ -91,4 +91,4 @@ jobs:
         run: composer install --prefer-dist --no-progress --no-interaction
       
       - name: Check PHP syntax
-        run: find Classes Tests -name "*.php" -print0 | xargs -0 -n1 php -l
+        run: composer lint:php
