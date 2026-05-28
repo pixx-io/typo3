@@ -95,3 +95,7 @@ jobs:
       
       - name: Run PHPStan
         run: composer analyze:phpstan
+      
+      - name: Security Audit
+        run: composer audit:security
+        continue-on-error: false

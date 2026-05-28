@@ -174,12 +174,15 @@ composer lint:php
 # Run PHPStan Static Analysis
 composer analyze:phpstan
 
+# Check for security vulnerabilities (ignores low/medium severity)
+composer audit:security
+
 # Run PHPUnit tests
 composer test:unit
 # or directly:
 .Build/bin/phpunit
 
-# Run complete CI pipeline (Lint + PHPStan + Tests)
+# Run complete CI pipeline (Lint + PHPStan + Security Audit + Tests)
 composer ci
 
 # Run tests with coverage
@@ -196,4 +199,19 @@ Level 6 enforces:
 - Proper array type specifications (e.g., `array<string, mixed>`)
 - Generic type declarations for classes extending generic base classes
 - Strict type checks including detection of always-true/false conditions
+
+### Security Audit
+
+The project uses Composer's built-in security audit to check for known vulnerabilities in dependencies:
+
+```bash
+composer audit:security
+```
+
+The audit is configured to **ignore low and medium severity** vulnerabilities, as most of these come from Symfony components (transitive dependencies through TYPO3) that cannot be directly fixed. The CI pipeline will only fail on **high or critical** security vulnerabilities.
+
+To see all vulnerabilities (including ignored ones):
+```bash
+composer audit --no-dev
+```
 
