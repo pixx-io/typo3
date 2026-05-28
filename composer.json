@@ -21,7 +21,10 @@
     },
     "require-dev": {
         "typo3/testing-framework": "9.2.0",
-        "php-parallel-lint/php-parallel-lint": "^1.4"
+        "php-parallel-lint/php-parallel-lint": "^1.4",
+        "phpstan/phpstan": "^2.1",
+        "phpstan/extension-installer": "^1.4",
+        "saschaegerer/phpstan-typo3": "^3.0"
     },
     "autoload": {
         "psr-4": {
@@ -36,18 +39,23 @@
         "bin-dir": ".Build/bin",
         "allow-plugins": {
             "typo3/class-alias-loader": true,
-            "typo3/cms-composer-installers": true
+            "typo3/cms-composer-installers": true,
+            "phpstan/extension-installer": true
         }
     },
     "scripts": {
         "lint:php": [
             "parallel-lint -e php --colors Classes Tests"
         ],
+        "analyze:phpstan": [
+            "phpstan analyse --no-progress --memory-limit=512M"
+        ],
         "test:unit": [
             "phpunit"
         ],
         "ci": [
             "@lint:php",
+            "@analyze:phpstan",
             "@test:unit"
         ]
     },

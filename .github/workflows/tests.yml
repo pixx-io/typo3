@@ -92,3 +92,6 @@ jobs:
       
       - name: Check PHP syntax
         run: composer lint:php
+      
+      - name: Run PHPStan
+        run: composer analyze:phpstan
