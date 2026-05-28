@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Pixxio\PixxioExtension\Tests\Unit\Domain\Model;
 
 use Pixxio\PixxioExtension\Domain\Model\LicenseRelease;
+use PHPUnit\Framework\Attributes\Test;
 use TYPO3\TestingFramework\Core\Unit\UnitTestCase;
 
 /**
@@ -27,17 +28,13 @@ class LicenseReleaseTest extends UnitTestCase
         parent::tearDown();
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function getPixxioIdReturnsInitialValueForString(): void
     {
         self::assertSame('', $this->subject->getPixxioId());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function setPixxioIdForStringSetsPixxioId(): void
     {
         $pixxioId = 'test-pixxio-id-123';
@@ -46,17 +43,13 @@ class LicenseReleaseTest extends UnitTestCase
         self::assertSame($pixxioId, $this->subject->getPixxioId());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function getLicenseProviderReturnsInitialValueForString(): void
     {
         self::assertSame('', $this->subject->getLicenseProvider());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function setLicenseProviderForStringSetsLicenseProvider(): void
     {
         $provider = 'Getty Images';
@@ -65,17 +58,13 @@ class LicenseReleaseTest extends UnitTestCase
         self::assertSame($provider, $this->subject->getLicenseProvider());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function getNameReturnsInitialValueForString(): void
     {
         self::assertSame('', $this->subject->getName());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function setNameForStringSetsName(): void
     {
         $name = 'Test License Name';
@@ -84,17 +73,13 @@ class LicenseReleaseTest extends UnitTestCase
         self::assertSame($name, $this->subject->getName());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function isShowWarningMessageReturnsInitialValueForBool(): void
     {
         self::assertFalse($this->subject->isShowWarningMessage());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function setShowWarningMessageForBoolSetsShowWarningMessage(): void
     {
         $this->subject->setShowWarningMessage(true);
@@ -102,17 +87,13 @@ class LicenseReleaseTest extends UnitTestCase
         self::assertTrue($this->subject->isShowWarningMessage());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function getWarningMessageReturnsInitialValueForString(): void
     {
         self::assertSame('', $this->subject->getWarningMessage());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function setWarningMessageForStringSetsWarningMessage(): void
     {
         $message = 'This license will expire soon';
@@ -121,17 +102,13 @@ class LicenseReleaseTest extends UnitTestCase
         self::assertSame($message, $this->subject->getWarningMessage());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function getExpiresReturnsInitialValueForString(): void
     {
         self::assertSame('', $this->subject->getExpires());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function setExpiresForStringSetsExpires(): void
     {
         $expires = '2026-12-31';

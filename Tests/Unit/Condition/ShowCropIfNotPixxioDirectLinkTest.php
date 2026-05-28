@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Pixxio\PixxioExtension\Tests\Unit\Condition;
 
 use Pixxio\PixxioExtension\Condition\ShowCropIfNotPixxioDirectLink;
+use PHPUnit\Framework\Attributes\Test;
 use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\Expression\ExpressionBuilder;
@@ -34,9 +35,7 @@ class ShowCropIfNotPixxioDirectLinkTest extends UnitTestCase
         parent::tearDown();
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function evaluateReturnsTrueWhenFileUidIsZero(): void
     {
         $record = ['uid_local' => 0];
@@ -46,9 +45,7 @@ class ShowCropIfNotPixxioDirectLinkTest extends UnitTestCase
         self::assertTrue($result);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function evaluateReturnsTrueWhenUidLocalIsMissing(): void
     {
         $record = [];
@@ -58,9 +55,7 @@ class ShowCropIfNotPixxioDirectLinkTest extends UnitTestCase
         self::assertTrue($result);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function evaluateReturnsTrueWhenPixxioDirectLinkIsNotSet(): void
     {
         $fileUid = 123;
@@ -77,9 +72,7 @@ class ShowCropIfNotPixxioDirectLinkTest extends UnitTestCase
         self::assertTrue($result);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function evaluateReturnsTrueWhenPixxioDirectLinkIsFalse(): void
     {
         $fileUid = 456;
@@ -96,9 +89,7 @@ class ShowCropIfNotPixxioDirectLinkTest extends UnitTestCase
         self::assertTrue($result);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function evaluateReturnsFalseWhenPixxioDirectLinkIsTrue(): void
     {
         $fileUid = 789;
@@ -115,9 +106,7 @@ class ShowCropIfNotPixxioDirectLinkTest extends UnitTestCase
         self::assertFalse($result);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function evaluateHandlesNestedRecordStructure(): void
     {
         $fileUid = 111;
@@ -138,9 +127,7 @@ class ShowCropIfNotPixxioDirectLinkTest extends UnitTestCase
         self::assertTrue($result);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function evaluateHandlesArrayUidLocal(): void
     {
         $fileUid = 222;
@@ -161,9 +148,7 @@ class ShowCropIfNotPixxioDirectLinkTest extends UnitTestCase
         self::assertTrue($result);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function evaluateHandlesArrayUidLocalWithDirectUid(): void
     {
         $fileUid = 333;

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Pixxio\PixxioExtension\Tests\Unit\Controller;
 
 use Pixxio\PixxioExtension\Controller\FilesController;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\MockObject\MockObject;
 use TYPO3\CMS\Core\Resource\Folder;
 use TYPO3\TestingFramework\Core\AccessibleObjectInterface;
@@ -33,9 +34,7 @@ class FilesControllerTest extends UnitTestCase
         parent::tearDown();
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function generateUniqueFilenameReturnsOriginalWhenNoConflict(): void
     {
         // Setup - Mock Folder object that reports no file exists
@@ -64,9 +63,7 @@ class FilesControllerTest extends UnitTestCase
         self::assertEquals($filename, $result);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function generateUniqueFilenameAppendsNumberWhenFileExists(): void
     {
         // Setup - Mock Folder object that reports first file exists, second doesn't
@@ -97,9 +94,7 @@ class FilesControllerTest extends UnitTestCase
         self::assertEquals('test-image_1.jpg', $result);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function generateUniqueFilenameHandlesMultipleConflicts(): void
     {
         // Setup - Mock Folder object that reports multiple files exist
@@ -131,9 +126,7 @@ class FilesControllerTest extends UnitTestCase
         self::assertEquals('test-image_3.jpg', $result);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function generateUniqueFilenameHandlesFileWithoutExtension(): void
     {
         // Setup - Mock Folder object that reports file exists
