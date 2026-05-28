@@ -626,7 +626,7 @@ class FilesController
                         }
                     }
                     if ($newId) {
-                        $pixxioFile = $this->pixxioFile($newId);
+                        $pixxioFile = $this->pixxioFile((string)$newId);
                         if ($pixxioFile === false) {
                             $io->writeln('Failed to fetch pixx.io file data for ID: ' . $newId);
                             continue;
