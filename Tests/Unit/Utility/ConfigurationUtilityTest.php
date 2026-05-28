@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Pixxio\PixxioExtension\Tests\Unit\Utility;
 
 use Pixxio\PixxioExtension\Utility\ConfigurationUtility;
+use PHPUnit\Framework\Attributes\Test;
 use TYPO3\TestingFramework\Core\Unit\UnitTestCase;
 
 /**
@@ -14,9 +15,7 @@ use TYPO3\TestingFramework\Core\Unit\UnitTestCase;
  */
 class ConfigurationUtilityTest extends UnitTestCase
 {
-    /**
-     * @test
-     */
+    #[Test]
     public function getCompleteUrlAddsHttpsScheme(): void
     {
         $url = 'example.pixx.io';
@@ -25,9 +24,7 @@ class ConfigurationUtilityTest extends UnitTestCase
         self::assertStringStartsWith('https://', $result);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function getCompleteUrlHandlesUrlWithPathAndAddsTrailingSlash(): void
     {
         $url = 'https://example.pixx.io/path';
@@ -37,9 +34,7 @@ class ConfigurationUtilityTest extends UnitTestCase
         self::assertSame('https://example.pixx.io/path/', $result);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function getCompleteUrlHandlesUrlWithPath(): void
     {
         $url = 'example.pixx.io/path';
@@ -48,9 +43,7 @@ class ConfigurationUtilityTest extends UnitTestCase
         self::assertSame('https://example.pixx.io/path/', $result);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function getCompleteUrlHandlesUrlWithTrailingSlash(): void
     {
         $url = 'https://example.pixx.io/';
@@ -59,9 +52,7 @@ class ConfigurationUtilityTest extends UnitTestCase
         self::assertSame('https://example.pixx.io/', $result);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function getCompleteUrlHandlesEmptyString(): void
     {
         $url = '';
@@ -70,9 +61,7 @@ class ConfigurationUtilityTest extends UnitTestCase
         self::assertSame('', $result);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function getCompleteUrlPreservesExistingHttpsScheme(): void
     {
         $url = 'https://example.pixx.io';
@@ -81,9 +70,7 @@ class ConfigurationUtilityTest extends UnitTestCase
         self::assertStringStartsWith('https://', $result);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function getCompleteUrlHandlesUrlWithoutPath(): void
     {
         $url = 'example.pixx.io';
@@ -93,9 +80,7 @@ class ConfigurationUtilityTest extends UnitTestCase
         self::assertSame('https://example.pixx.io', $result);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function getCompleteUrlHandlesComplexUrl(): void
     {
         $url = 'subdomain.example.pixx.io/api/v2';
