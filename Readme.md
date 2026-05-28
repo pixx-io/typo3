@@ -21,7 +21,7 @@ This extension has several main versions, which are intended for different TYPO3
 | Extension version | Compatible with TYPO3 | Branch                                                   | Changelog                                                                  |
 | ----------------- | --------------------- | -------------------------------------------------------- | -------------------------------------------------------------------------- |
 | 3.x               | TYPO3 v13             | [`main`](https://github.com/pixx-io/typo3)               | [Changelog 3.x](https://github.com/pixx-io/typo3/blob/main/CHANGELOG.md)   |
-| 2.x               | TYPO3 v11 - v12.      | [`master`](https://github.com/pixx-io/typo3/tree/master) | [Changelog 2.x](https://github.com/pixx-io/typo3/blob/master/CHANGELOG.md) |
+| 2.x               | TYPO3 v11 - v12.      | [`v12`](https://github.com/pixx-io/typo3/tree/v12) | [Changelog 2.x](https://github.com/pixx-io/typo3/blob/v12/CHANGELOG.md) |
 
 Please use the appropriate version depending on your TYPO3 installation.
 
