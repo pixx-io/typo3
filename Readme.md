@@ -189,5 +189,11 @@ composer ci
 
 ### PHPStan Configuration
 
-The project uses PHPStan Level 5 for static code analysis to catch potential bugs and type errors before runtime.
+The project uses PHPStan Level 6 for static code analysis to catch potential bugs and type errors before runtime.
+
+Level 6 enforces:
+- Type hints for all parameters and return types
+- Proper array type specifications (e.g., `array<string, mixed>`)
+- Generic type declarations for classes extending generic base classes
+- Strict type checks including detection of always-true/false conditions
 

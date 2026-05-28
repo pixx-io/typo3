@@ -16,14 +16,14 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 final class FileControlsEventListener
 {
-    private $applicationId = 'ghx8F66X3ix4AJ0VmS0DE8sx7';
+    private string $applicationId = 'ghx8F66X3ix4AJ0VmS0DE8sx7';
 
     public function __construct(
         protected IconFactory $iconFactory
     ) {}
 
     #[AsEventListener]
-    public function __invoke(CustomFileControlsEvent $event)
+    public function __invoke(CustomFileControlsEvent $event): void
     {
         if ($this->shouldAddButton($event)) {
             $this->addButton($event);
@@ -53,7 +53,7 @@ final class FileControlsEventListener
         return ($showUpload || $showByUrl) && $pixxioUploadAllowed;
     }
 
-    protected function addButton(CustomFileControlsEvent $event)
+    protected function addButton(CustomFileControlsEvent $event): void
     {
         $extensionConfiguration = ConfigurationUtility::getConfigurationForDatabaseRow($event->getDatabaseRow());
         $languageService = $this->getLanguageService();

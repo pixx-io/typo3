@@ -12,6 +12,9 @@ class ConfigurationUtility
 {
     const EXTENSION = 'pixxio_extension';
 
+    /**
+     * @return array<string, mixed>
+     */
     public static function getExtensionConfiguration(): array
     {
         $extensionConfiguration = GeneralUtility::makeInstance(
@@ -33,6 +36,10 @@ class ConfigurationUtility
         return $extensionConfiguration;
     }
 
+    /**
+     * @param array<string, mixed> $databaseRow
+     * @return array<string, mixed>
+     */
     public static function getConfigurationForDatabaseRow(array $databaseRow): array
     {
         $extensionConfiguration = static::getExtensionConfiguration();
@@ -57,6 +64,9 @@ class ConfigurationUtility
         return $extensionConfiguration;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public static function getConfigurationForMediaspace(string $mediaspaceUrl): array
     {
         $extensionConfiguration = static::getExtensionConfiguration();
@@ -88,6 +98,9 @@ class ConfigurationUtility
         return $extensionConfiguration;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public static function getConfigurationForSiteIdentifier(string $siteIdentifier): array
     {
         $extensionConfiguration = static::getExtensionConfiguration();
@@ -146,6 +159,10 @@ class ConfigurationUtility
         return is_array($parsedUrl) && isset($parsedUrl['host']) ? (string)$parsedUrl['host'] : '';
     }
 
+    /**
+     * @param array<string, mixed> $extensionConfiguration
+     * @return array<string, mixed>
+     */
     protected static function applySiteSettingOverrides(array $extensionConfiguration, SiteSettings $siteSettings): array
     {
         foreach ($extensionConfiguration as $configurationKey => $currentValue) {

@@ -10,6 +10,9 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 class ShowCropIfNotPixxioDirectLink
 {
+    /**
+     * @param array<string, mixed> $record
+     */
     public function evaluate(array $record): bool
     {
         $uidLocal = $record['record']['uid_local'] ?? $record['uid_local'] ?? 0;
