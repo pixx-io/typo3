@@ -10,6 +10,7 @@ The pixx.io Typo3 Extension allows pixx.io users to select the assets directly f
 - Select your assets from you pixx.io Mediaspace
 - Sync your assets and metadata from pixx.io Mediaspace
 - Multi-Site Support: Configure separate credentials and file storages per TYPO3 site (TYPO3 v13)
+- Full TYPO3 FAL Support: Works with any FAL storage adapter (local filesystem, AWS S3, Azure, Google Cloud, etc.)
 - Includes Proxy support
 - Works with the popular core extension: typo3/filemetadata
 
@@ -82,6 +83,15 @@ For Sync Actions it is necessary to set the URL of your mediaspace and refresh t
 **Note:** For multi-site installations, configure these values per site instead of globally (see Multi-Site Configuration above).
 
 The File Storage ID is an optional setting. You can choose a Storage ID, where you would like to upload and store the pixx.io assets. You can also define a subfolder if you wish.
+
+**Storage Adapters:** The extension uses TYPO3's File Abstraction Layer (FAL) API and supports any configured storage adapter:
+- Local filesystem (default)
+- AWS S3
+- Azure Blob Storage
+- Google Cloud Storage
+- Or any other FAL-compatible storage driver
+
+Simply configure your desired storage in TYPO3's File > Filelist module and reference its UID in the extension configuration.
 
 In the `allowed_download_formats` setting you can configure in which format the images are allowed to be imported. With the `original` format, the original file will be imported without conversion. With the `preview` format, images are downscaled to Full HD size and imported as JPEG or PNG. With the formats `jpg`, `png`, `pdf` and `tiff`, images are converted to the respective format if possible.
 
