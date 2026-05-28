@@ -132,7 +132,7 @@ class ConfigurationUtility
         return $url;
     }
 
-    private static function extractHost(string $url): string
+    protected static function extractHost(string $url): string
     {
         if ($url === '') {
             return '';
@@ -146,7 +146,7 @@ class ConfigurationUtility
         return is_array($parsedUrl) && isset($parsedUrl['host']) ? (string)$parsedUrl['host'] : '';
     }
 
-    private static function applySiteSettingOverrides(array $extensionConfiguration, SiteSettings $siteSettings): array
+    protected static function applySiteSettingOverrides(array $extensionConfiguration, SiteSettings $siteSettings): array
     {
         foreach ($extensionConfiguration as $configurationKey => $currentValue) {
             $siteSettingKey = static::findSiteSettingKey($siteSettings, $configurationKey);
@@ -186,7 +186,7 @@ class ConfigurationUtility
         return $extensionConfiguration;
     }
 
-    private static function findSiteSettingKey(SiteSettings $siteSettings, string $configurationKey): ?string
+    protected static function findSiteSettingKey(SiteSettings $siteSettings, string $configurationKey): ?string
     {
         $candidate = 'pixxio.' . $configurationKey;
 

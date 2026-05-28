@@ -1,0 +1,19 @@
+parameters:
+    level: 5
+    paths:
+        - Classes
+        - Tests
+    
+    # Exclude patterns
+    excludePaths:
+        - .Build/*
+        - vendor/*
+    
+    # Ignore errors from test mocks and legacy code
+    ignoreErrors:
+        # Allow test doubles and mocks
+        - '#Access to an undefined property PHPUnit\\Framework\\MockObject\\MockObject#'
+        - '#Call to an undefined method PHPUnit\\Framework\\MockObject\\MockObject#'
+    
+    # Check technical debt
+    reportUnmatchedIgnoredErrors: false

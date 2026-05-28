@@ -51,7 +51,7 @@ class FileControlsEventListenerTest extends UnitTestCase
         // Test missing configuration (should not add parameter)
         $missingConfig = [];
         
-        $this->assertFalse(isset($missingConfig['allowed_download_formats']));
+        $this->assertArrayNotHasKey('allowed_download_formats', $missingConfig);
     }
     
     /**
@@ -110,7 +110,6 @@ class FileControlsEventListenerTest extends UnitTestCase
         
         foreach ($validFormats as $format) {
             $this->assertNotEmpty($format);
-            $this->assertIsString($format);
         }
         
         // Test URL encoding of formats

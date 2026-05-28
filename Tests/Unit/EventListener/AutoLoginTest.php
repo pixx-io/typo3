@@ -40,8 +40,9 @@ class AutoLoginTest extends UnitTestCase
             'url' => 'https://example.pixx.io'
         ];
         
-        // When auto_login is disabled, no auto-login attributes should be set
-        $this->assertFalse($disabledConfiguration['auto_login']);
+        // Verify the configuration structure
+        $this->assertArrayHasKey('auto_login', $disabledConfiguration);
+        $this->assertArrayHasKey('token_refresh', $disabledConfiguration);
     }
     
     /**

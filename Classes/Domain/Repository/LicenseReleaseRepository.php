@@ -28,6 +28,7 @@ class LicenseReleaseRepository extends Repository
         $query->matching($query->in('uid', $uids));
 
         $map = [];
+        /** @var LicenseRelease $obj */
         foreach ($query->execute() as $obj) {
             if ($obj->getPixxioId() !== '') {
                 $map[$obj->getPixxioId()] = $obj;

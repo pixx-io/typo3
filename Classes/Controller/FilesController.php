@@ -18,6 +18,11 @@ use TYPO3\CMS\Core\Http\JsonResponse;
 use TYPO3\CMS\Core\Http\RequestFactory;
 use TYPO3\CMS\Core\Resource\Folder;
 use TYPO3\CMS\Core\Resource\Index\MetaDataRepository;
+
+/**
+ * Base error code for pixx.io extension exceptions
+ */
+const TYPO3_PIXXIO_EXT_NUM = 1600000000;
 use TYPO3\CMS\Core\Resource\ResourceFactory;
 use TYPO3\CMS\Core\Site\SiteFinder;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
@@ -103,7 +108,7 @@ class FilesController
     {
         throw new \RuntimeException(
             $message,
-            \TYPO3_PIXXIO_EXT_NUM + $num
+            TYPO3_PIXXIO_EXT_NUM + $num
         );
     }
 

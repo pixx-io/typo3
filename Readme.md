@@ -160,27 +160,34 @@ If you are using the core extension `filemetadata` we will sync more metadata fr
 
 ## Development
 
-### Running Tests
+### Code Quality & Testing
 
-This extension includes PHPUnit tests to ensure code quality. To run the tests locally:
+This extension includes several tools to ensure code quality:
 
 ```bash
 # Install dependencies
 composer install
 
-# Run all tests
+# Run PHP Syntax Check (using parallel-lint)
+composer lint:php
+
+# Run PHPStan Static Analysis
+composer analyze:phpstan
+
+# Run PHPUnit tests
+composer test:unit
+# or directly:
 .Build/bin/phpunit
 
-# Run tests with detailed output
-.Build/bin/phpunit --testdox
-
-# Run only unit tests
-.Build/bin/phpunit --testsuite Unit
+# Run complete CI pipeline (Lint + PHPStan + Tests)
+composer ci
 
 # Run tests with coverage
 .Build/bin/phpunit --coverage-text
-
-# Check PHP syntax
-find Classes Tests -name "*.php" -print0 | xargs -0 -n1 php -l
+.Build/bin/phpunit --coverage-html coverage/
 ```
+
+### PHPStan Configuration
+
+The project uses PHPStan Level 5 for static code analysis to catch potential bugs and type errors before runtime.
 
