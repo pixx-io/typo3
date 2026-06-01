@@ -7,7 +7,6 @@ namespace Pixxio\PixxioExtension\Tests\Unit\Command;
 use Pixxio\PixxioExtension\Command\SyncCommand;
 use Pixxio\PixxioExtension\Controller\FilesController;
 use PHPUnit\Framework\Attributes\Test;
-use PHPUnit\Framework\MockObject\MockObject;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -49,7 +48,6 @@ class SyncCommandTest extends UnitTestCase
     #[Test]
     public function executeSyncsAllFilesWhenNoOptionsProvided(): void
     {
-        /** @var FilesController|MockObject $filesControllerMock */
         $filesControllerMock = $this->createMock(FilesController::class);
         $filesControllerMock->expects(self::once())
             ->method('syncAction')
@@ -57,7 +55,6 @@ class SyncCommandTest extends UnitTestCase
 
         GeneralUtility::addInstance(FilesController::class, $filesControllerMock);
 
-        /** @var InputInterface|MockObject $inputMock */
         $inputMock = $this->createMock(InputInterface::class);
         $inputMock->method('getOption')
             ->willReturnMap([
@@ -65,7 +62,6 @@ class SyncCommandTest extends UnitTestCase
                 ['pid', null],
             ]);
 
-        /** @var OutputInterface|MockObject $outputMock */
         $outputMock = $this->createMock(OutputInterface::class);
 
         $result = $this->subject->run($inputMock, $outputMock);
@@ -76,7 +72,6 @@ class SyncCommandTest extends UnitTestCase
     #[Test]
     public function executeSyncsSingleFileWithFidOption(): void
     {
-        /** @var FilesController|MockObject $filesControllerMock */
         $filesControllerMock = $this->createMock(FilesController::class);
         $filesControllerMock->expects(self::once())
             ->method('syncSingleFileAction')
@@ -89,7 +84,6 @@ class SyncCommandTest extends UnitTestCase
 
         GeneralUtility::addInstance(FilesController::class, $filesControllerMock);
 
-        /** @var InputInterface|MockObject $inputMock */
         $inputMock = $this->createMock(InputInterface::class);
         $inputMock->method('getOption')
             ->willReturnMap([
@@ -97,7 +91,6 @@ class SyncCommandTest extends UnitTestCase
                 ['pid', null],
             ]);
 
-        /** @var OutputInterface|MockObject $outputMock */
         $outputMock = $this->createMock(OutputInterface::class);
 
         $result = $this->subject->run($inputMock, $outputMock);
@@ -108,7 +101,6 @@ class SyncCommandTest extends UnitTestCase
     #[Test]
     public function executeSyncsSingleFileWithPidOption(): void
     {
-        /** @var FilesController|MockObject $filesControllerMock */
         $filesControllerMock = $this->createMock(FilesController::class);
         $filesControllerMock->expects(self::once())
             ->method('syncSingleFileAction')
@@ -121,7 +113,6 @@ class SyncCommandTest extends UnitTestCase
 
         GeneralUtility::addInstance(FilesController::class, $filesControllerMock);
 
-        /** @var InputInterface|MockObject $inputMock */
         $inputMock = $this->createMock(InputInterface::class);
         $inputMock->method('getOption')
             ->willReturnMap([
@@ -129,7 +120,6 @@ class SyncCommandTest extends UnitTestCase
                 ['pid', '456789'],
             ]);
 
-        /** @var OutputInterface|MockObject $outputMock */
         $outputMock = $this->createMock(OutputInterface::class);
 
         $result = $this->subject->run($inputMock, $outputMock);
@@ -140,7 +130,6 @@ class SyncCommandTest extends UnitTestCase
     #[Test]
     public function executeReturnsInvalidWhenBothOptionsProvided(): void
     {
-        /** @var FilesController|MockObject $filesControllerMock */
         $filesControllerMock = $this->createMock(FilesController::class);
         $filesControllerMock->expects(self::never())
             ->method('syncAction');
@@ -149,7 +138,6 @@ class SyncCommandTest extends UnitTestCase
 
         GeneralUtility::addInstance(FilesController::class, $filesControllerMock);
 
-        /** @var InputInterface|MockObject $inputMock */
         $inputMock = $this->createMock(InputInterface::class);
         $inputMock->method('getOption')
             ->willReturnMap([
@@ -157,7 +145,6 @@ class SyncCommandTest extends UnitTestCase
                 ['pid', '456789'],
             ]);
 
-        /** @var OutputInterface|MockObject $outputMock */
         $outputMock = $this->createMock(OutputInterface::class);
 
         $result = $this->subject->run($inputMock, $outputMock);
@@ -168,7 +155,6 @@ class SyncCommandTest extends UnitTestCase
     #[Test]
     public function executeReturnsFailureWhenSyncFails(): void
     {
-        /** @var FilesController|MockObject $filesControllerMock */
         $filesControllerMock = $this->createMock(FilesController::class);
         $filesControllerMock->expects(self::once())
             ->method('syncAction')
@@ -176,7 +162,6 @@ class SyncCommandTest extends UnitTestCase
 
         GeneralUtility::addInstance(FilesController::class, $filesControllerMock);
 
-        /** @var InputInterface|MockObject $inputMock */
         $inputMock = $this->createMock(InputInterface::class);
         $inputMock->method('getOption')
             ->willReturnMap([
@@ -184,7 +169,6 @@ class SyncCommandTest extends UnitTestCase
                 ['pid', null],
             ]);
 
-        /** @var OutputInterface|MockObject $outputMock */
         $outputMock = $this->createMock(OutputInterface::class);
 
         $result = $this->subject->run($inputMock, $outputMock);
@@ -195,7 +179,6 @@ class SyncCommandTest extends UnitTestCase
     #[Test]
     public function executeReturnsFailureOnRuntimeException(): void
     {
-        /** @var FilesController|MockObject $filesControllerMock */
         $filesControllerMock = $this->createMock(FilesController::class);
         $filesControllerMock->expects(self::once())
             ->method('syncAction')
@@ -203,7 +186,6 @@ class SyncCommandTest extends UnitTestCase
 
         GeneralUtility::addInstance(FilesController::class, $filesControllerMock);
 
-        /** @var InputInterface|MockObject $inputMock */
         $inputMock = $this->createMock(InputInterface::class);
         $inputMock->method('getOption')
             ->willReturnMap([
@@ -211,7 +193,6 @@ class SyncCommandTest extends UnitTestCase
                 ['pid', null],
             ]);
 
-        /** @var OutputInterface|MockObject $outputMock */
         $outputMock = $this->createMock(OutputInterface::class);
 
         $result = $this->subject->run($inputMock, $outputMock);

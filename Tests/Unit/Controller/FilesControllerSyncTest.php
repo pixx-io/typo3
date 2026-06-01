@@ -28,13 +28,13 @@ class FilesControllerSyncTest extends UnitTestCase
     /** @var FilesController&MockObject&AccessibleObjectInterface */
     protected FilesController $subject;
 
-    /** @var SymfonyStyle|MockObject */
+    /** @var SymfonyStyle&MockObject */
     protected SymfonyStyle $ioMock;
 
-    /** @var QueryBuilder|MockObject */
+    /** @var QueryBuilder&MockObject */
     protected QueryBuilder $queryBuilderMock;
 
-    /** @var ConnectionPool|MockObject */
+    /** @var ConnectionPool&MockObject */
     protected ConnectionPool $connectionPoolMock;
 
     protected function setUp(): void
