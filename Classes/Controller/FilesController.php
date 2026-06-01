@@ -485,6 +485,104 @@ class FilesController
     }
 
     /**
+     * Sync a single file by TYPO3 file UID or pixx.io ID
+     *
+     * @param mixed $io SymfonyStyle output interface
+     * @param string|null $typo3FileId TYPO3 file UID
+     * @param string|null $pixxioId pixx.io file ID
+     * @return bool
+     */
+    public function syncSingleFileAction(mixed $io, ?string $typo3FileId = null, ?string $pixxioId = null): bool
+    {
+        // check if extension configuration is set to update/delete media by sync command
+        if (!(
+            $this->extensionConfiguration['delete'] ||
+            $this->extensionConfiguration['update'] ||
+            $this->extensionConfiguration['update_metadata']
+        )) {
+            $io->writeln('Please update extension configuration to enable update/update_metadata/deletion of media by sync command');
+            return true;
+        }
+
+        // Validate input IDs before building query
+        if ($typo3FileId !== null && ($typo3FileId === '' || !ctype_digit($typo3FileId) || (int)$typo3FileId <= 0)) {
+            $io->error('Invalid TYPO3 file UID provided: "' . $typo3FileId . '". Must be a positive integer.');
+            return false;
+        }
+
+        if ($pixxioId !== null && ($pixxioId === '' || !ctype_digit($pixxioId) || (int)$pixxioId <= 0)) {
+            $io->error('Invalid pixx.io ID provided: "' . $pixxioId . '". Must be a positive integer.');
+            return false;
+        }
+
+        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('sys_file_metadata');
+        $queryBuilder->getRestrictions()->add(GeneralUtility::makeInstance(RootLevelRestriction::class));
+
+        $query = $queryBuilder
+            ->select('*')
+            ->from('sys_file_metadata')
+            ->leftJoin(
+                'sys_file_metadata',
+                'sys_file',
+                'f',
+                $queryBuilder->expr()->eq(
+                    'sys_file_metadata.file',
+                    $queryBuilder->quoteIdentifier('f.uid')
+                )
+            );
+
+        if ($typo3FileId !== null) {
+            $io->writeln('Searching for file with TYPO3 file UID: ' . $typo3FileId);
+            $query->where(
+                $queryBuilder->expr()->eq('sys_file_metadata.file', $queryBuilder->createNamedParameter((int)$typo3FileId, Connection::PARAM_INT))
+            );
+        } elseif ($pixxioId !== null) {
+            $io->writeln('Searching for file with pixx.io ID: ' . $pixxioId);
+            $query->where(
+                $queryBuilder->expr()->eq('sys_file_metadata.pixxio_file_id', $queryBuilder->createNamedParameter((int)$pixxioId, Connection::PARAM_INT))
+            );
+        } else {
+            $io->error('Either TYPO3 file UID or pixx.io ID must be provided');
+            return false;
+        }
+
+        $files = $query->executeQuery()->fetchAllAssociative();
+
+        if (empty($files)) {
+            $io->error('No file found with the provided ID');
+            return false;
+        }
+
+        if (count($files) > 1) {
+            $io->warning('Multiple files found with the provided ID. Syncing all of them.');
+        }
+
+        $io->writeln('Found ' . count($files) . ' file(s) in database');
+
+        // Check if files have pixx.io IDs
+        $filesWithoutPixxioId = array_filter($files, function ($file) {
+            return empty($file['pixxio_file_id']) || $file['pixxio_file_id'] == 0;
+        });
+
+        if (!empty($filesWithoutPixxioId)) {
+            $io->error('The following files do not have a pixx.io ID and cannot be synced:');
+            foreach ($filesWithoutPixxioId as $file) {
+                $io->writeln('  - File UID: ' . $file['file'] . ', Identifier: ' . $file['identifier']);
+            }
+            return false;
+        }
+
+        $configurationGroups = $this->groupFilesBySyncConfiguration($files);
+        $io->writeln('Sync groups by site/configuration: ' . count($configurationGroups));
+
+        foreach ($configurationGroups as $group) {
+            $this->syncGroup($group['files'], $group['configuration'], $group['label'], $group['site_identifier'], $io);
+        }
+
+        return true;
+    }
+
+    /**
      * @param array<int, array<string, mixed>> $files
      * @return array<int, array<string, mixed>>
      */

@@ -174,6 +174,37 @@ php bin/typo3 pixxio:sync
 
 Du siehst alle Ausgaben in Echtzeit im Terminal.
 
+#### Verfügbare Optionen
+
+Der Sync-Command unterstützt folgende Optionen zur gezielten Synchronisation einzelner Dateien:
+
+**Sync einer einzelnen Datei über TYPO3 File UID:**
+
+```bash
+php bin/typo3 pixxio:sync --fid=123
+```
+
+- `--fid=<id>`: Synchronisiert eine spezifische Datei anhand ihrer TYPO3 File UID
+- Nützlich, wenn du genau weißt, welche TYPO3-Datei aktualisiert werden soll
+- Die ID findest du in der TYPO3-Dateiverwaltung (sys_file.uid)
+
+**Sync einer einzelnen Datei über pixx.io ID:**
+
+```bash
+php bin/typo3 pixxio:sync --pid=456
+```
+
+- `--pid=<id>`: Synchronisiert eine spezifische Datei anhand ihrer pixx.io Datei-ID
+- Nützlich, wenn du die pixx.io-ID kennst und die Datei direkt synchronisieren möchtest
+- Die ID findest du in pixx.io in den Dateidetails
+
+**Wichtige Hinweise:**
+
+- Die Optionen `--fid` und `--pid` können **nicht gleichzeitig** verwendet werden
+- Beide IDs müssen positive Ganzzahlen sein
+- Wenn eine der Optionen verwendet wird, wird nur diese eine Datei synchronisiert
+- Die konfigurierten Sync-Optionen (Update, Update Metadata, Delete) werden auch bei einzelnen Dateien beachtet
+
 ### 2. Automatisch über den TYPO3 Scheduler
 
 - Empfohlen: Täglich oder stündlich
