@@ -43,9 +43,24 @@ class SyncCommand extends Command
       $fid = $input->getOption('fid');
       $pid = $input->getOption('pid');
       
+      // Normalize empty strings to null
+      $fid = ($fid !== null && $fid !== '') ? $fid : null;
+      $pid = ($pid !== null && $pid !== '') ? $pid : null;
+      
       // Check if both options are provided
-      if ($fid && $pid) {
+      if ($fid !== null && $pid !== null) {
           $io->error('Please provide either --fid or --pid, not both');
+          return Command::INVALID;
+      }
+      
+      // Validate that provided IDs are positive integers
+      if ($fid !== null && (!ctype_digit($fid) || (int)$fid <= 0)) {
+          $io->error('The --fid option must be a positive integer');
+          return Command::INVALID;
+      }
+      
+      if ($pid !== null && (!ctype_digit($pid) || (int)$pid <= 0)) {
+          $io->error('The --pid option must be a positive integer');
           return Command::INVALID;
       }
 
@@ -54,7 +69,7 @@ class SyncCommand extends Command
           $filesController = GeneralUtility::makeInstance(FilesController::class);
           
           // Sync single file if fid or pid is provided
-          if ($fid || $pid) {
+          if ($fid !== null || $pid !== null) {
               $result = $filesController->syncSingleFileAction($io, $fid, $pid);
           } else {
               // Sync all files
