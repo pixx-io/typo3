@@ -504,6 +504,17 @@ class FilesController
             return true;
         }
 
+        // Validate input IDs before building query
+        if ($typo3FileId !== null && ($typo3FileId === '' || !ctype_digit($typo3FileId) || (int)$typo3FileId <= 0)) {
+            $io->error('Invalid TYPO3 file UID provided: "' . $typo3FileId . '". Must be a positive integer.');
+            return false;
+        }
+
+        if ($pixxioId !== null && ($pixxioId === '' || !ctype_digit($pixxioId) || (int)$pixxioId <= 0)) {
+            $io->error('Invalid pixx.io ID provided: "' . $pixxioId . '". Must be a positive integer.');
+            return false;
+        }
+
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('sys_file_metadata');
         $queryBuilder->getRestrictions()->add(GeneralUtility::makeInstance(RootLevelRestriction::class));
 
