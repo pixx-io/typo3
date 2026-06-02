@@ -4,6 +4,7 @@
 
  - Feat: Use the FAL API to handle file uploads, allowing the use of different FAL adapters.
  - Feat: Add `--fid` and `--pid` options to sync command for syncing individual files
+ - Fix: Sync pagination now works correctly when `update_metadata=false`, `delete=false`, or `update=false` is configured. Previously, the sync would get stuck on the same files and couldn't progress.
  
 ## 3.5.0
 

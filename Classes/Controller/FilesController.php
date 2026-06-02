@@ -700,6 +700,7 @@ class FilesController
                     }
                     $storage = $this->getStorage();
                     $storage->deleteFile($storage->getFileByIdentifier($file['identifier']));
+                    $this->deleteTypo3FileRecords((int)$file['uid']);
                     unset($files[$index]);
                     foreach ($fileIds as $key => $id) {
                         if ($id === $file['pixxio_file_id']) {
@@ -776,7 +777,8 @@ class FilesController
                 }));
 
                 if (empty($pixxioFile)) {
-                    // have to delete file?!
+                    // File no longer exists in pixx.io (should be deleted, but delete=false)
+                    // Timestamp will be updated below to prevent sync from getting stuck
                     continue;
                 }
 
@@ -788,7 +790,6 @@ class FilesController
                     'alternative' => $this->getMetadataField($pixxioFile, $this->extensionConfiguration['alt_text'] ?: 'Alt Text (Accessibility)'),
                     'pixxio_file_id' => $pixxioFile->id,
                     'pixxio_site_identifier' => $this->siteIdentifier,
-                    'pixxio_last_sync_stamp' => time()
                 );
 
                 if ($this->hasExt('filemetadata')) {
@@ -801,6 +802,61 @@ class FilesController
                 $metadata->update($file['uid'], $additionalFields);
             }
         }
+
+        // Update timestamps for ALL processed files to enable pagination
+        // This must run regardless of update_metadata setting to prevent sync from getting stuck
+        // on files that were skipped (delete=false, update=false, or no longer exist in pixx.io)
+        $files = array_values($files);
+        $currentTimestamp = time();
+        
+        foreach ($files as $file) {
+            $metadata->update($file['uid'], [
+                'pixxio_last_sync_stamp' => $currentTimestamp
+            ]);
+        }
+        
+        if (!empty($files)) {
+            $io->writeln('Updated sync timestamps for ' . count($files) . ' processed files');
+        }
+    }
+
+    private function deleteTypo3FileRecords(int $fileUid): void
+    {
+        $referenceQueryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)
+            ->getQueryBuilderForTable('sys_file_reference');
+        $referenceQueryBuilder
+            ->delete('sys_file_reference')
+            ->where(
+                $referenceQueryBuilder->expr()->eq(
+                    'uid_local',
+                    $referenceQueryBuilder->createNamedParameter($fileUid, Connection::PARAM_INT)
+                )
+            )
+            ->executeStatement();
+
+        $metadataQueryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)
+            ->getQueryBuilderForTable('sys_file_metadata');
+        $metadataQueryBuilder
+            ->delete('sys_file_metadata')
+            ->where(
+                $metadataQueryBuilder->expr()->eq(
+                    'file',
+                    $metadataQueryBuilder->createNamedParameter($fileUid, Connection::PARAM_INT)
+                )
+            )
+            ->executeStatement();
+
+        $fileQueryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)
+            ->getQueryBuilderForTable('sys_file');
+        $fileQueryBuilder
+            ->delete('sys_file')
+            ->where(
+                $fileQueryBuilder->expr()->eq(
+                    'uid',
+                    $fileQueryBuilder->createNamedParameter($fileUid, Connection::PARAM_INT)
+                )
+            )
+            ->executeStatement();
     }
 
     /**
