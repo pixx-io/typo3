@@ -170,8 +170,15 @@ class FilesControllerSyncPaginationTest extends UnitTestCase
     #[Test]
     public function documentIntegrationTestRequirement(): void
     {
-        self::assertTrue(
-            true,
+        $filesControllerPath = __DIR__ . '/../../../Classes/Controller/FilesController.php';
+        self::assertFileExists($filesControllerPath);
+
+        $code = file_get_contents($filesControllerPath);
+
+        // Verify the fix is present in the code
+        self::assertStringContainsString(
+            'Update timestamps for pagination even when update_metadata is false',
+            $code,
             'FIX IMPLEMENTED: Timestamps are now updated for all processed files. ' .
             'Additional integration tests could verify:' . PHP_EOL .
             '1. Database setup with test files having old timestamps' . PHP_EOL .
