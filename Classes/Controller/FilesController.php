@@ -700,6 +700,7 @@ class FilesController
                     }
                     $storage = $this->getStorage();
                     $storage->deleteFile($storage->getFileByIdentifier($file['identifier']));
+                    $this->deleteTypo3FileRecords((int)$file['uid']);
                     unset($files[$index]);
                     foreach ($fileIds as $key => $id) {
                         if ($id === $file['pixxio_file_id']) {
@@ -817,6 +818,45 @@ class FilesController
         if (!empty($files)) {
             $io->writeln('Updated sync timestamps for ' . count($files) . ' processed files');
         }
+    }
+
+    private function deleteTypo3FileRecords(int $fileUid): void
+    {
+        $referenceQueryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)
+            ->getQueryBuilderForTable('sys_file_reference');
+        $referenceQueryBuilder
+            ->delete('sys_file_reference')
+            ->where(
+                $referenceQueryBuilder->expr()->eq(
+                    'uid_local',
+                    $referenceQueryBuilder->createNamedParameter($fileUid, Connection::PARAM_INT)
+                )
+            )
+            ->executeStatement();
+
+        $metadataQueryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)
+            ->getQueryBuilderForTable('sys_file_metadata');
+        $metadataQueryBuilder
+            ->delete('sys_file_metadata')
+            ->where(
+                $metadataQueryBuilder->expr()->eq(
+                    'file',
+                    $metadataQueryBuilder->createNamedParameter($fileUid, Connection::PARAM_INT)
+                )
+            )
+            ->executeStatement();
+
+        $fileQueryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)
+            ->getQueryBuilderForTable('sys_file');
+        $fileQueryBuilder
+            ->delete('sys_file')
+            ->where(
+                $fileQueryBuilder->expr()->eq(
+                    'uid',
+                    $fileQueryBuilder->createNamedParameter($fileUid, Connection::PARAM_INT)
+                )
+            )
+            ->executeStatement();
     }
 
     /**
