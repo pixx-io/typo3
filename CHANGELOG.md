@@ -1,11 +1,11 @@
 # Changelog
 
-## NEXT
+## 3.6.0
 
- - Feat: Use the FAL API to handle file uploads, allowing the use of different FAL adapters.
- - Feat: Add `--fid` and `--pid` options to sync command for syncing individual files
- - Fix: Sync pagination now works correctly when `update_metadata=false`, `delete=false`, or `update=false` is configured. Previously, the sync would get stuck on the same files and couldn't progress.
- 
+- Feat: Use the FAL API to handle file uploads, allowing the use of different FAL adapters.
+- Feat: Add `--fid` and `--pid` options to sync command for syncing individual files
+- Fix: Sync pagination now works correctly when `update_metadata=false`, `delete=false`, or `update=false` is configured. Previously, the sync would get stuck on the same files and couldn't progress.
+
 ## 3.5.0
 
 - Feature: Add CDN Link support
@@ -36,7 +36,6 @@
 - Fix: Use configured limit for sync action
 - Fix: Missing files are deleted if activated in the settings
 - Docs: Add documentation for sync command
-
 
 ## 3.3.0
 
