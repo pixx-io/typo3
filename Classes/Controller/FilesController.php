@@ -698,8 +698,19 @@ class FilesController
                         $licenseUids = GeneralUtility::intExplode(',', (string)$file['tx_pixxioextension_licensereleases'], true);
                         $this->licenseReleaseRepository->deleteByUids($licenseUids);
                     }
+
                     $storage = $this->getStorage();
-                    $storage->deleteFile($storage->getFileByIdentifier($file['identifier']));
+                    try {
+                        $fileObject = $storage->getFileByIdentifier($file['identifier']);
+                        $storage->deleteFile($fileObject);
+                        $io->writeln('Removed physical file from storage: ' . $file['identifier']);
+                    } catch (\Throwable $exception) {
+                        $io->writeln(
+                            'Physical file missing or not deletable, removing database records only: ' .
+                            $file['identifier'] . ' (' . $exception->getMessage() . ')'
+                        );
+                    }
+
                     $this->deleteTypo3FileRecords((int)$file['uid']);
                     unset($files[$index]);
                     foreach ($fileIds as $key => $id) {
