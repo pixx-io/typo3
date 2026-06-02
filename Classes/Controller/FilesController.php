@@ -776,7 +776,8 @@ class FilesController
                 }));
 
                 if (empty($pixxioFile)) {
-                    // have to delete file?!
+                    // File no longer exists in pixx.io (should be deleted, but delete=false)
+                    // Timestamp will be updated below to prevent sync from getting stuck
                     continue;
                 }
 
@@ -788,7 +789,6 @@ class FilesController
                     'alternative' => $this->getMetadataField($pixxioFile, $this->extensionConfiguration['alt_text'] ?: 'Alt Text (Accessibility)'),
                     'pixxio_file_id' => $pixxioFile->id,
                     'pixxio_site_identifier' => $this->siteIdentifier,
-                    'pixxio_last_sync_stamp' => time()
                 );
 
                 if ($this->hasExt('filemetadata')) {
@@ -800,21 +800,22 @@ class FilesController
                 $io->writeln('Update metadata for ' . $pixxioFile->id);
                 $metadata->update($file['uid'], $additionalFields);
             }
-        } else {
-            // Update timestamps for pagination even when update_metadata is false
-            // This ensures that processed files don't get stuck in the sync queue
-            $files = array_values($files);
-            $currentTimestamp = time();
-            
-            foreach ($files as $file) {
-                $metadata->update($file['uid'], [
-                    'pixxio_last_sync_stamp' => $currentTimestamp
-                ]);
-            }
-            
-            if (!empty($files)) {
-                $io->writeln('Updated sync timestamps for ' . count($files) . ' processed files');
-            }
+        }
+
+        // Update timestamps for ALL processed files to enable pagination
+        // This must run regardless of update_metadata setting to prevent sync from getting stuck
+        // on files that were skipped (delete=false, update=false, or no longer exist in pixx.io)
+        $files = array_values($files);
+        $currentTimestamp = time();
+        
+        foreach ($files as $file) {
+            $metadata->update($file['uid'], [
+                'pixxio_last_sync_stamp' => $currentTimestamp
+            ]);
+        }
+        
+        if (!empty($files)) {
+            $io->writeln('Updated sync timestamps for ' . count($files) . ' processed files');
         }
     }
 

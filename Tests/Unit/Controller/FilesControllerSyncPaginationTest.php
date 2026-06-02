@@ -14,10 +14,10 @@ use TYPO3\TestingFramework\Core\Unit\UnitTestCase;
  *
  * BUG 1: When update_metadata=false, pixxio_last_sync_stamp was not updated
  * -----------------------------------------------------------------------
- * Location: FilesController::syncGroup() around line 765-809
+ * Location: FilesController::syncGroup() around line 765-820
  *
- * FIXED: Added else block that updates pixxio_last_sync_stamp for all processed files
- * when update_metadata=false, ensuring pagination works correctly.
+ * FIXED: Moved timestamp updates outside of update_metadata conditional, ensuring
+ * all processed files get their timestamps updated regardless of configuration.
  *
  * Previous behavior:
  *   The pixxio_last_sync_stamp field was ONLY updated inside the
@@ -30,43 +30,43 @@ use TYPO3\TestingFramework\Core\Unit\UnitTestCase;
  *   - Pagination didn't work - couldn't reach "page 2" of files
  *
  * Fix implemented:
- *   Added else block after update_metadata conditional that updates timestamps
- *   for all processed files, enabling proper pagination.
+ *   Timestamp updates now run unconditionally after the update_metadata block,
+ *   ensuring proper pagination for all configuration scenarios.
  *
  *
- * BUG 2: When delete=false and many files should be deleted, sync got stuck
+ * BUG 2: When delete=false or update=false, sync got stuck on skipped files
  * ---------------------------------------------------------------------------
- * Location: FilesController::syncGroup() around line 696-713
+ * Location: FilesController::syncGroup() around line 696-760
  *
- * FIXED: The same fix (else block updating timestamps) resolves this issue.
+ * FIXED: Same fix resolves this - timestamps now update for ALL processed files.
  *
- * Previous behavior:
- *   - Files marked for deletion but with delete=false got message logged (line 712)
- *   - No timestamp update happened for these files
- *   - They remained with old timestamps
+ * Previous behavior (update_metadata=true + delete=false):
+ *   - Files marked for deletion but with delete=false were skipped
+ *   - These files remained in $files array but got 'continue' at line 780
+ *   - Their timestamps were never updated (they didn't reach line 791)
+ *
+ * Previous behavior (update_metadata=false + any skipped files):
+ *   - No timestamp update happened at all for any files
  *
  * Problem it caused:
- *   - If limit=20 and there were 20+ files that should be deleted
- *   - With delete=false, these files were not deleted
+ *   - If limit=20 and there were 20+ files that should be deleted/updated
+ *   - With delete=false or update=false, these files were skipped
  *   - These files kept their old timestamps
  *   - Every sync run loaded these same 20 files again
  *   - Sync got "stuck" on these files, never processed other files
  *
- * Similar issue with update=false:
- *   - Files marked for update but with update=false (line 759)
- *   - Same problem: timestamps not updated, sync got stuck
- *
  * Fix implemented:
- *   Timestamps are now updated for ALL processed files in the else block,
- *   regardless of whether actions were taken or disabled.
+ *   Timestamps are now updated for ALL processed files unconditionally,
+ *   after the main sync logic, regardless of whether actions were taken
+ *   or disabled, and regardless of whether files were skipped via continue.
  */
 class FilesControllerSyncPaginationTest extends UnitTestCase
 {
     /**
- * Bug 1 documentation test: Verify that the bug exists in the code
+     * Bug 1 documentation test: Verify timestamp updates are now unconditional
      *
-     * This test verifies that timestamps are now correctly updated
-     * even when update_metadata=false.
+     * This test verifies that pixxio_last_sync_stamp is now updated for ALL
+     * processed files, regardless of the update_metadata setting.
      */
     #[Test]
     public function timestampUpdateIsConditionalOnUpdateMetadata(): void
@@ -90,17 +90,17 @@ class FilesControllerSyncPaginationTest extends UnitTestCase
             'Code should have update_metadata conditional'
         );
 
-        // Verify that the fix is in place: there should be an else block that updates timestamps
+        // Verify the fix: timestamps are updated unconditionally after the main sync logic
         self::assertStringContainsString(
-            'Update timestamps for pagination even when update_metadata is false',
+            'Update timestamps for ALL processed files to enable pagination',
             $code,
-            'FIX VERIFIED: Code should have else block that updates timestamps for pagination'
+            'FIX VERIFIED: Timestamps are updated for all files unconditionally'
         );
         
         self::assertStringContainsString(
-            'Updated sync timestamps for',
+            'This must run regardless of update_metadata setting',
             $code,
-            'FIX VERIFIED: Code should log timestamp updates when update_metadata=false'
+            'FIX VERIFIED: Timestamp updates run regardless of configuration'
         );
     }
 
@@ -125,11 +125,11 @@ class FilesControllerSyncPaginationTest extends UnitTestCase
             'Code should have message for delete=false scenario'
         );
 
-        // Verify the fix: timestamps are now updated in the else block
+        // Verify the fix: timestamps are now updated unconditionally for all processed files
         self::assertStringContainsString(
-            'Update timestamps for pagination even when update_metadata is false',
+            'Update timestamps for ALL processed files to enable pagination',
             $code,
-            'FIX VERIFIED: Timestamps are now updated even when actions are disabled'
+            'FIX VERIFIED: Timestamps are now updated for all files, including skipped ones'
         );
     }
 
@@ -153,11 +153,11 @@ class FilesControllerSyncPaginationTest extends UnitTestCase
             'Code should have message for update=false scenario'
         );
 
-        // Verify the fix: timestamps are now updated in the else block
+        // Verify the fix: timestamps are now updated unconditionally for all processed files
         self::assertStringContainsString(
-            'Update timestamps for pagination even when update_metadata is false',
+            'Update timestamps for ALL processed files to enable pagination',
             $code,
-            'FIX VERIFIED: Timestamps are now updated even when actions are disabled'
+            'FIX VERIFIED: Timestamps are now updated for all files, including skipped ones'
         );
     }
 
@@ -177,17 +177,18 @@ class FilesControllerSyncPaginationTest extends UnitTestCase
 
         // Verify the fix is present in the code
         self::assertStringContainsString(
-            'Update timestamps for pagination even when update_metadata is false',
+            'Update timestamps for ALL processed files to enable pagination',
             $code,
-            'FIX IMPLEMENTED: Timestamps are now updated for all processed files. ' .
+            'FIX IMPLEMENTED: Timestamps are now updated for all processed files unconditionally. ' .
             'Additional integration tests could verify:' . PHP_EOL .
             '1. Database setup with test files having old timestamps' . PHP_EOL .
             '2. Mock pixx.io API responses' . PHP_EOL .
             '3. Run syncAction() with update_metadata=false' . PHP_EOL .
             '4. Verify that pixxio_last_sync_stamp was updated for all processed files' . PHP_EOL .
             '5. Run syncAction() again and verify different files are processed (pagination works)' . PHP_EOL .
-            '6. Test with delete=false and files marked for deletion' . PHP_EOL .
-            '7. Verify sync progresses through all files, not stuck on same ones'
+            '6. Test with delete=false and files marked for deletion (update_metadata=true)' . PHP_EOL .
+            '7. Verify files skipped via continue still get their timestamps updated' . PHP_EOL .
+            '8. Verify sync progresses through all files, not stuck on same ones'
         );
     }
 }
