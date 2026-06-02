@@ -800,6 +800,21 @@ class FilesController
                 $io->writeln('Update metadata for ' . $pixxioFile->id);
                 $metadata->update($file['uid'], $additionalFields);
             }
+        } else {
+            // Update timestamps for pagination even when update_metadata is false
+            // This ensures that processed files don't get stuck in the sync queue
+            $files = array_values($files);
+            $currentTimestamp = time();
+            
+            foreach ($files as $file) {
+                $metadata->update($file['uid'], [
+                    'pixxio_last_sync_stamp' => $currentTimestamp
+                ]);
+            }
+            
+            if (!empty($files)) {
+                $io->writeln('Updated sync timestamps for ' . count($files) . ' processed files');
+            }
         }
     }
 
