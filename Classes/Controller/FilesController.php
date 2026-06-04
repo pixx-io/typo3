@@ -17,13 +17,15 @@ use TYPO3\CMS\Core\Exception\SiteNotFoundException;
 use TYPO3\CMS\Core\Http\JsonResponse;
 use TYPO3\CMS\Core\Http\RequestFactory;
 use TYPO3\CMS\Core\Resource\Folder;
+use TYPO3\CMS\Core\Resource\Enum\DuplicationBehavior;
 use TYPO3\CMS\Core\Resource\Index\MetaDataRepository;
+use TYPO3\CMS\Core\Resource\ResourceStorage;
+use TYPO3\CMS\Core\Resource\StorageRepository;
 
 /**
  * Base error code for pixx.io extension exceptions
  */
 const TYPO3_PIXXIO_EXT_NUM = 1600000000;
-use TYPO3\CMS\Core\Resource\ResourceFactory;
 use TYPO3\CMS\Core\Site\SiteFinder;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -1021,15 +1023,15 @@ class FilesController
         return $temp;
     }
 
-    private function getStorage(): \TYPO3\CMS\Core\Resource\ResourceStorage
+    private function getStorage(): ResourceStorage
     {
         $storageUid = (int)$this->extensionConfiguration['filestorage_id'];
         if (!($storageUid > 0)) {
             $storageUid = 1;
         }
 
-        $resourceFactory = GeneralUtility::makeInstance(ResourceFactory::class);
-        return $resourceFactory->getStorageObject($storageUid);
+        $storageRepository = GeneralUtility::makeInstance(StorageRepository::class);
+        return $storageRepository->getStorageObject($storageUid);
     }
 
     private function saveFile(string $filename, string $url, bool $isDirectLink = false): string
@@ -1215,7 +1217,7 @@ class FilesController
                     $absTmpFileIdentifier,
                     $this->uploadFolder(),
                     $filename,
-                    'rename'
+                    DuplicationBehavior::RENAME
                 );
             } finally {
                 // Always clean up the temp file after FAL has processed it
