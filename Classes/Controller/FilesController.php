@@ -21,11 +21,6 @@ use TYPO3\CMS\Core\Resource\Enum\DuplicationBehavior;
 use TYPO3\CMS\Core\Resource\Index\MetaDataRepository;
 use TYPO3\CMS\Core\Resource\ResourceStorage;
 use TYPO3\CMS\Core\Resource\StorageRepository;
-
-/**
- * Base error code for pixx.io extension exceptions
- */
-const TYPO3_PIXXIO_EXT_NUM = 1600000000;
 use TYPO3\CMS\Core\Site\SiteFinder;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -33,6 +28,10 @@ use TYPO3\CMS\Extbase\Persistence\PersistenceManagerInterface;
 
 class FilesController
 {
+    /**
+     * Base error code for pixx.io extension exceptions
+     */
+    private const TYPO3_PIXXIO_EXT_NUM = 1600000000;
     /**
      * @var array<string, string>
      */
@@ -115,7 +114,7 @@ class FilesController
     {
         throw new \RuntimeException(
             $message,
-            TYPO3_PIXXIO_EXT_NUM + $num
+            self::TYPO3_PIXXIO_EXT_NUM + $num
         );
     }
 
