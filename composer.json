@@ -36,7 +36,7 @@
     },
     "config": {
         "platform": {
-            "php": "8.3.0"
+            "php": "8.2.0"
         },
         "vendor-dir": ".Build/vendor",
         "bin-dir": ".Build/bin",
