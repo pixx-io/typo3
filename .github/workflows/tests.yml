@@ -2,40 +2,40 @@ name: Tests
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, v14]
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, v14]
 
 jobs:
   phpunit:
     name: PHPUnit Tests (PHP ${{ matrix.php-version }})
     runs-on: ubuntu-latest
-    
+
     strategy:
       fail-fast: false
       matrix:
         php-version:
-          - '8.2'
-          - '8.3'
-    
+          - "8.2"
+          - "8.3"
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-version }}
           extensions: curl, json, mbstring
           coverage: xdebug
-      
+
       - name: Validate composer.json
         run: composer validate --strict
-      
+
       - name: Get Composer Cache Directory
         id: composer-cache
         run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
-      
+
       - name: Cache Composer dependencies
         uses: actions/cache@v4
         with:
@@ -44,13 +44,13 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-php-${{ matrix.php-version }}-composer-
             ${{ runner.os }}-php-
-      
+
       - name: Install dependencies
         run: composer install --prefer-dist --no-progress --no-interaction
-      
+
       - name: Run PHPUnit tests
         run: .Build/bin/phpunit --testdox --coverage-text --coverage-clover=coverage.xml
-      
+
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         if: matrix.php-version == '8.3'
@@ -62,36 +62,36 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   code-quality:
-    name: Code Quality Checks
+    name: Code Quality Checks (PHP 8.3)
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.3'
+          php-version: "8.3"
           extensions: curl, json, mbstring
           tools: composer, cs2pr
-      
+
       - name: Get Composer Cache Directory
         id: composer-cache
         run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
-      
+
       - name: Cache Composer dependencies
         uses: actions/cache@v4
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
           key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
           restore-keys: ${{ runner.os }}-composer-
-      
+
       - name: Install dependencies
         run: composer install --prefer-dist --no-progress --no-interaction
-      
+
       - name: Check PHP syntax
         run: composer lint:php
-      
+
       - name: Run PHPStan
         run: composer analyze:phpstan
