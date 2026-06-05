@@ -12,7 +12,7 @@ The pixx.io Typo3 Extension allows pixx.io users to select the assets directly f
 - Multi-Site Support: Configure separate credentials and file storages per TYPO3 site (TYPO3 v13)
 - Full TYPO3 FAL Support: Works with any FAL storage adapter (local filesystem, AWS S3, Azure, Google Cloud, etc.)
 - Includes Proxy support
-- Works with the popular core extension: typo3/filemetadata
+- Works with the popular core extension: filemetadata (Composer package: typo3/cms-filemetadata)
 
 ## ⚠️ Note on versions
 
