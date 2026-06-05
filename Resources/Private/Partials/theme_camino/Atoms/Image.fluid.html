@@ -44,7 +44,7 @@
                                         image: image,
                                         width: sourceConfig.width,
                                         height: sourceConfig.height,
-                                        cropVariant: '{sourceConfig.cropVariant ? sourceConfig.cropVariant : \'default\'}',
+                                        cropVariant: '{f:if(condition: sourceConfig.cropVariant, then: sourceConfig.cropVariant, else: \'default\')}',
                                         fileExtension: fileExtension
                                     )}"
                                     media="(min-width: {minWidth}px)"
