@@ -9,7 +9,7 @@ The pixx.io Typo3 Extension allows pixx.io users to select the assets directly f
 
 - Select your assets from you pixx.io Mediaspace
 - Sync your assets and metadata from pixx.io Mediaspace
-- Multi-Site Support: Configure separate credentials and file storages per TYPO3 site (TYPO3 v13)
+- Multi-Site Support: Configure separate credentials and file storages per TYPO3 site
 - Full TYPO3 FAL Support: Works with any FAL storage adapter (local filesystem, AWS S3, Azure, Google Cloud, etc.)
 - Includes Proxy support
 - Works with the popular core extension: filemetadata (Composer package: typo3/cms-filemetadata)
@@ -39,7 +39,7 @@ is set in your php.ini. With that configuration curl is not used but `file_get_c
 
 To get the extension complete experience, you have to do some settings first. Go to Settings > Extension configuration and select pixxio_extension.
 
-### Multi-Site Configuration (TYPO3 v13)
+### Multi-Site Configuration
 
 The extension supports site-specific configuration for multi-site installations. This allows you to:
 

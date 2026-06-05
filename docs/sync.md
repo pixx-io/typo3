@@ -172,6 +172,12 @@ Der Sync kann auf zwei Arten ausgeführt werden:
 php bin/typo3 pixxio:sync
 ```
 
+In a local ddev setup, you can run:
+
+```bash
+ddev typo3 pixxio:sync
+```
+
 Du siehst alle Ausgaben in Echtzeit im Terminal.
 
 #### Verfügbare Optionen

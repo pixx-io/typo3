@@ -362,6 +362,6 @@ WHERE pixxio_file_id != ''
 
 ## Related Documentation
 
-- [Site-Specific Configuration](SITE_SPECIFIC_CONFIG.md)
+- [Extension Configuration Overview](../Readme.md)
 - [TYPO3 File Abstraction Layer](https://docs.typo3.org/m/typo3/reference-coreapi/main/en-us/ApiOverview/Fal/Index.html)
 - [TYPO3 Site Configuration](https://docs.typo3.org/m/typo3/reference-coreapi/main/en-us/ApiOverview/SiteHandling/Index.html)
