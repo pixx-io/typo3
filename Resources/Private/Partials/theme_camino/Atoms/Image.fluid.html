@@ -21,7 +21,7 @@
     </f:then>
     <f:else>
         <f:variable name="mimeType" value="{image.properties.mime_type}"/>
-        <f:variable name="fileExtension" value="{f:if(condition: '{mimeType} == \'image/jpeg\' || {mimeType} == \'image/png\'', then: 'webp')}"/>
+        <f:variable name="fileExtension" value="{f:if(condition: {mimeType} == 'image/jpeg' || {mimeType} == 'image/png', then: 'webp')}"/>
 
         <f:if condition="{image}">
             <f:if condition="{sources}">
