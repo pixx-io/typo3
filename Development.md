@@ -2,10 +2,9 @@
 
 ## Setup a local Typo3 system
 
-You can use Docker and ddev to setup a local Typo3 instance.
+You can use Docker and ddev to setup a local TYPO3 instance.
 
-Typo3 V11: https://docs.typo3.org/m/typo3/tutorial-getting-started/11.5/en-us/Installation/TutorialDdev.html
-Typo3 V12: https://docs.typo3.org/m/typo3/tutorial-getting-started/12.4/en-us/Installation/TutorialDdev.html
+TYPO3 v14: https://docs.typo3.org/m/typo3/tutorial-getting-started/14.0/en-us/Installation/TutorialDdev.html
 
 ## Important hints
 
@@ -45,7 +44,7 @@ You need one additional plugin:
 
 After the installation, there is a database error visible. To fix it, run:
 
-`ddev typo3 extension:setup` (V11) or `ddev typo3 database:updateschema` (V12)
+`ddev typo3 database:updateschema`
 
 ##### Add a scheduled task
 
@@ -67,7 +66,7 @@ After the installation, there is a database error visible. To fix it, run:
 - Update the version in `CHANGELOG.md`
 - Push the branch and merge it into the main
 - Checkout main
-- Create and push a new tag: `git tag 3.5.0 && git push --tags`
+- Create and push a new tag: `git tag 4.0.0 && git push --tags`
 - Login to https://packagist.org/ and click the "Update" button at https://packagist.org/packages/pixxio/pixxio-extension
-- Create a zip `zip -r ../pixxio_extension_3.5.0.zip *`
+- Create a zip `zip -r ../pixxio_extension_4.0.0.zip *`
 - Upload the extension to https://extensions.typo3.org/my-extensions

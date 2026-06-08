@@ -6,3 +6,4 @@ node_modules/
 coverage.xml
 .phpunit.result.cache
 test-results/
+var/cache/

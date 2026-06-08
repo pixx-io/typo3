@@ -9,10 +9,10 @@ The pixx.io Typo3 Extension allows pixx.io users to select the assets directly f
 
 - Select your assets from you pixx.io Mediaspace
 - Sync your assets and metadata from pixx.io Mediaspace
-- Multi-Site Support: Configure separate credentials and file storages per TYPO3 site (TYPO3 v13)
+- Multi-Site Support: Configure separate credentials and file storages per TYPO3 site
 - Full TYPO3 FAL Support: Works with any FAL storage adapter (local filesystem, AWS S3, Azure, Google Cloud, etc.)
 - Includes Proxy support
-- Works with the popular core extension: typo3/filemetadata
+- Works with the popular core extension: filemetadata (Composer package: typo3/cms-filemetadata)
 
 ## ⚠️ Note on versions
 
@@ -39,7 +39,7 @@ is set in your php.ini. With that configuration curl is not used but `file_get_c
 
 To get the extension complete experience, you have to do some settings first. Go to Settings > Extension configuration and select pixxio_extension.
 
-### Multi-Site Configuration (TYPO3 v13)
+### Multi-Site Configuration
 
 The extension supports site-specific configuration for multi-site installations. This allows you to:
 
@@ -137,6 +137,8 @@ You can hide the "Select from pixx.io" button for backend users and backend user
 
 If you are using the core extension `filemetadata` we will sync more metadata from pixx.io to TYPO3. The mapping of the metadata is defined like this:
 
+**Important for GPS sync:** In your mediaspace metadata settings, the internal field `Location (internal)` (`Ort des Motives (Intern)`) must be added/activated as an important metadata field.
+
 #### Mapping from pixx.io to TYPO3
 
 - `Title` / `Titel` (Type: Internal) => `Download Name`
@@ -148,7 +150,7 @@ If you are using the core extension `filemetadata` we will sync more metadata fr
 - `Publisher` / `Publisher` (Type: IPTC) => `Publisher`
 - `Source` / `Quelle` (Type: IPTC) => `Source`
 - `Copyright Notice` / `Copyright-Vermerk` (Type: IPTC) => `Copyright`
-- `GPS` / `GPS` (Type: Internal) => `GPS Latitude` und `GPS Longitude`
+- `Location` / `Ort des Motives` (Type: Internal) => `GPS Latitude` und `GPS Longitude`
 - `Country` (Type: Custom) => `Country`
 - `Region` (Type: Custom) => `Region`
 - `City` / `Stadt` (Type: IPTC) => `City`

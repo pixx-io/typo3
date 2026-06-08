@@ -1,57 +1,5 @@
 # Changelog
 
-## NEXT
+## 4.0.0
 
- - Feat: Use the FAL API to handle file uploads, allowing the use of different FAL adapters.
- - Feat: Add `--fid` and `--pid` options to sync command for syncing individual files
- - Fix: Sync pagination now works correctly when `update_metadata=false`, `delete=false`, or `update=false` is configured. Previously, the sync would get stuck on the same files and couldn't progress.
- 
-## 3.5.0
-
-- Feature: Add CDN Link support
-- Feature: Add sync for license releases
-- Feature: Add multi-site configuration support with site-specific settings
-- Tests: Fix broken unit tests and add new ones
-
-## 3.4.3
-
-- Fix: Normalize auto_login config to boolean to fix login problems
-- Chore: Remove unused data-attributes from import button
-
-## 3.4.2
-
-- Fix: "Select from pixx.io" button for dynamically loaded IRRE elements
-
-## 3.4.1
-
-- Fix: Metadata import when metadata value is not a string
-
-## 3.4.0
-
-- Feature: Update Plugin SDK to latest version
-- Feature: Improve logging
-- Feature: New setting to sync only metadata (`update_metadata`)
-- Feature: Modernize download handling
-- Fix: Sync command now exits successfully when no pixx.io files in the system
-- Fix: Use configured limit for sync action
-- Fix: Missing files are deleted if activated in the settings
-- Docs: Add documentation for sync command
-
-
-## 3.3.0
-
-- [v13.4] Add setting to configure the `allowed_download_formats` in the media selection
-
-## 3.2.0
-
-- [v13.4] Sync metadata when importing images without the need of the scheduler
-- [v13.4] Fix file name collision. When a file was added with the same file name, the import was skipped.
-- [v13.4] Add a strict isMainVersion check when synching files
-
-## 3.1.0
-
-- [v13.4] Add support for auto login in the media selection modal
-
-## 3.0.x
-
-- [v13.4] Add TYPO3 v13.4 support
+ - Initial v14 release

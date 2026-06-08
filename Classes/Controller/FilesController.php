@@ -17,13 +17,10 @@ use TYPO3\CMS\Core\Exception\SiteNotFoundException;
 use TYPO3\CMS\Core\Http\JsonResponse;
 use TYPO3\CMS\Core\Http\RequestFactory;
 use TYPO3\CMS\Core\Resource\Folder;
+use TYPO3\CMS\Core\Resource\Enum\DuplicationBehavior;
 use TYPO3\CMS\Core\Resource\Index\MetaDataRepository;
-
-/**
- * Base error code for pixx.io extension exceptions
- */
-const TYPO3_PIXXIO_EXT_NUM = 1600000000;
-use TYPO3\CMS\Core\Resource\ResourceFactory;
+use TYPO3\CMS\Core\Resource\ResourceStorage;
+use TYPO3\CMS\Core\Resource\StorageRepository;
 use TYPO3\CMS\Core\Site\SiteFinder;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -31,6 +28,10 @@ use TYPO3\CMS\Extbase\Persistence\PersistenceManagerInterface;
 
 class FilesController
 {
+    /**
+     * Base error code for pixx.io extension exceptions
+     */
+    private const TYPO3_PIXXIO_EXT_NUM = 1600000000;
     /**
      * @var array<string, string>
      */
@@ -113,7 +114,7 @@ class FilesController
     {
         throw new \RuntimeException(
             $message,
-            TYPO3_PIXXIO_EXT_NUM + $num
+            self::TYPO3_PIXXIO_EXT_NUM + $num
         );
     }
 
@@ -1021,15 +1022,19 @@ class FilesController
         return $temp;
     }
 
-    private function getStorage(): \TYPO3\CMS\Core\Resource\ResourceStorage
+    private function getStorage(): ResourceStorage
     {
         $storageUid = (int)$this->extensionConfiguration['filestorage_id'];
         if (!($storageUid > 0)) {
             $storageUid = 1;
         }
 
-        $resourceFactory = GeneralUtility::makeInstance(ResourceFactory::class);
-        return $resourceFactory->getStorageObject($storageUid);
+        $storageRepository = GeneralUtility::makeInstance(StorageRepository::class);
+        $storage = $storageRepository->findByUid($storageUid);
+        if ($storage === null) {
+            $this->throwError('Storage with UID ' . $storageUid . ' not found.', 14);
+        }
+        return $storage;
     }
 
     private function saveFile(string $filename, string $url, bool $isDirectLink = false): string
@@ -1215,7 +1220,7 @@ class FilesController
                     $absTmpFileIdentifier,
                     $this->uploadFolder(),
                     $filename,
-                    'rename'
+                    DuplicationBehavior::RENAME
                 );
             } finally {
                 // Always clean up the temp file after FAL has processed it
