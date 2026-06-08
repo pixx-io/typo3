@@ -13,7 +13,19 @@
                         <img loading="lazy" src="{file.properties.pixxio_direct_link}" title="{file.properties.title}" alt="{file.properties.alternative}">
                     </f:then>
                     <f:else>
-                        <f:render partial="Media/Type" arguments="{file: file, data: data, settings: settings, variants: variants}" />
+                        <f:variable name="mimeType" value="{file.properties.mime_type}" />
+                        <f:if condition="{mimeType} == 'image/jpeg' || {mimeType} == 'image/png'">
+                            <f:then>
+                                <f:image
+                                    image="{file}"
+                                    fileExtension="webp"
+                                    loading="lazy"
+                                />
+                            </f:then>
+                            <f:else>
+                                <f:render partial="Media/Type" arguments="{file: file, data: data, settings: settings, variants: variants}" />
+                            </f:else>
+                        </f:if>
                     </f:else>
                 </f:if>
             </div>
