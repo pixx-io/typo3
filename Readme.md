@@ -137,6 +137,8 @@ You can hide the "Select from pixx.io" button for backend users and backend user
 
 If you are using the core extension `filemetadata` we will sync more metadata from pixx.io to TYPO3. The mapping of the metadata is defined like this:
 
+**Important for GPS sync:** In your mediaspace metadata settings, the internal field `Location (internal)` (`Ort des Motives (Intern)`) must be added/activated as an important metadata field.
+
 #### Mapping from pixx.io to TYPO3
 
 - `Title` / `Titel` (Type: Internal) => `Download Name`
