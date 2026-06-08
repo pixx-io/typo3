@@ -61,11 +61,11 @@ After the installation, there is a database error visible. To fix it, run:
 
 ## Publish new release
 
-- Create a new branch
+- Create a new branch from `v14`
 - Update the version in `ext_emconf.php`
 - Update the version in `CHANGELOG.md`
-- Push the branch and merge it into the main
-- Checkout main
+- Push the branch and merge it into the `v14`
+- Checkout `main`
 - Create and push a new tag: `git tag 4.0.0 && git push --tags`
 - Login to https://packagist.org/ and click the "Update" button at https://packagist.org/packages/pixxio/pixxio-extension
 - Create a zip `zip -r ../pixxio_extension_4.0.0.zip *`
