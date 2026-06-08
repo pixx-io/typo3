@@ -150,7 +150,7 @@ If you are using the core extension `filemetadata` we will sync more metadata fr
 - `Publisher` / `Publisher` (Type: IPTC) => `Publisher`
 - `Source` / `Quelle` (Type: IPTC) => `Source`
 - `Copyright Notice` / `Copyright-Vermerk` (Type: IPTC) => `Copyright`
-- `GPS` / `GPS` (Type: Internal) => `GPS Latitude` und `GPS Longitude`
+- `Location` / `Ort des Motives` (Type: Internal) => `GPS Latitude` und `GPS Longitude`
 - `Country` (Type: Custom) => `Country`
 - `Region` (Type: Custom) => `Region`
 - `City` / `Stadt` (Type: IPTC) => `City`
