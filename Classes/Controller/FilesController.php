@@ -19,8 +19,8 @@ use TYPO3\CMS\Core\Http\RequestFactory;
 use TYPO3\CMS\Core\Resource\Folder;
 use TYPO3\CMS\Core\Resource\Enum\DuplicationBehavior;
 use TYPO3\CMS\Core\Resource\Index\MetaDataRepository;
-use TYPO3\CMS\Core\Resource\ResourceFactory;
 use TYPO3\CMS\Core\Resource\ResourceStorage;
+use TYPO3\CMS\Core\Resource\StorageRepository;
 use TYPO3\CMS\Core\Site\SiteFinder;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -1029,8 +1029,12 @@ class FilesController
             $storageUid = 1;
         }
 
-        $resourceFactory = GeneralUtility::makeInstance(ResourceFactory::class);
-        return $resourceFactory->getStorageObject($storageUid);
+        $storageRepository = GeneralUtility::makeInstance(StorageRepository::class);
+        $storage = $storageRepository->findByUid($storageUid);
+        if ($storage === null) {
+            $this->throwError('Storage with UID ' . $storageUid . ' not found.', 14);
+        }
+        return $storage;
     }
 
     private function saveFile(string $filename, string $url, bool $isDirectLink = false): string
