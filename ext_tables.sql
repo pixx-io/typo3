@@ -6,7 +6,8 @@ CREATE TABLE sys_file_metadata (
     pixxio_last_sync_stamp int(11) NOT NULL DEFAULT '0',
     pixxio_is_direct_link int(1) NOT NULL DEFAULT '0',
     pixxio_direct_link varchar(2048) NOT NULL DEFAULT '',
-    tx_pixxioextension_licensereleases text
+    tx_pixxioextension_licensereleases text,
+    pixxio_custom_metadata text
 );
 
 CREATE TABLE tx_pixxioextension_domain_model_licenserelease (
