@@ -6,7 +6,9 @@ namespace Pixxio\PixxioExtension\Controller;
 
 use Pixxio\PixxioExtension\Domain\Model\LicenseRelease;
 use Pixxio\PixxioExtension\Domain\Repository\LicenseReleaseRepository;
+use Pixxio\PixxioExtension\Event\MetaDataAfterPopulateEvent;
 use Pixxio\PixxioExtension\Utility\ConfigurationUtility;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Symfony\Component\Console\Helper\Table;
@@ -57,6 +59,7 @@ class FilesController
         private readonly LicenseReleaseRepository $licenseReleaseRepository,
         private readonly PersistenceManagerInterface $persistenceManager,
         private readonly RequestFactory $requestFactory,
+        private readonly EventDispatcherInterface $eventDispatcher,
     ) {
         $this->extensionConfiguration = ConfigurationUtility::getExtensionConfiguration();
     }
@@ -809,8 +812,11 @@ class FilesController
 
                 $additionalFields['tx_pixxioextension_licensereleases'] = $this->licenseReleasesSync($pixxioFile, $file);
 
+                $event = new MetaDataAfterPopulateEvent($additionalFields, $pixxioFile);
+                $this->eventDispatcher->dispatch($event);
+
                 $io->writeln('Update metadata for ' . $pixxioFile->id);
-                $metadata->update($file['uid'], $additionalFields);
+                $metadata->update($file['uid'], $event->getAdditionalFields());
             }
         }
 
@@ -1287,8 +1293,11 @@ class FilesController
                 $additionalFields = array_merge($additionalFields, $this->getMetadataWithFilemetadataExt($file));
             }
 
+            $event = new MetaDataAfterPopulateEvent($additionalFields, $file);
+            $this->eventDispatcher->dispatch($event);
+
             $metaDataRepository = GeneralUtility::makeInstance(MetaDataRepository::class);
-            $metaDataRepository->update($importedFileUid, $additionalFields);
+            $metaDataRepository->update($importedFileUid, $event->getAdditionalFields());
         }
         return $importedFiles;
     }

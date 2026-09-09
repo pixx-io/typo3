@@ -168,6 +168,10 @@ The parameters are only evaluated for the source formats JPEG, PNG, GIF, WebP an
 
 It's possible to sync the alt text. Therefore you have to define the name of the metadata, which you would like to synchronize.
 
+To meet special needs in your project you can modify the metadata before being persisted
+by creating a PSR-14 event listener listening for the Pixxio\PixxioExtension\Event\MetaDataAfterPopulateEvent
+event.
+
 ### Sync
 
 See [docs/sync.md](./docs/sync.md) for detailed information about the sync process.
